@@ -5,12 +5,13 @@
     "categoria": "Aquecimento",
     "pontosCheios": 10,
     "pontosMeios": 5,
-    "pergunta": "Qual era religião de Paulo antes de sua conversão?",
+    "isKids": true,
+    "pergunta": "Quantos capítulos tem no livro de Gálatas?",
     "tipo": "multipla_escolha",
-    "opcoes": ["Fariseu", "Saduceus", "Judaísmo", "Helenista"],
-    "respostaCorreta": "Judaísmo",
-    "versiculo": "Gálatas 1:13 ARA",
-    "textoBiblico": "Porque ouvistes qual foi o meu procedimento outrora no judaísmo..."
+    "opcoes": ["5", "6", "7", "8"],
+    "respostaCorreta": "6",
+    "versiculo": "Estrutura geral de Gálatas",
+    "textoBiblico": "O livro de Gálatas é composto por 6 capítulos."
   },
   {
     "id": 2,
@@ -18,12 +19,12 @@
     "categoria": "Aquecimento",
     "pontosCheios": 10,
     "pontosMeios": 5,
-    "pergunta": "Quantos capítulos tem no livro de Gálatas?",
+    "pergunta": "Qual era a religião de Paulo antes de sua conversão?",
     "tipo": "multipla_escolha",
-    "opcoes": ["5", "6", "7", "8"],
-    "respostaCorreta": "6",
-    "versiculo": "Estrutura do Livro",
-    "textoBiblico": "A Epístola aos Gálatas é composta por 6 capítulos."
+    "opcoes": ["Fariseu", "Saduceus", "Judaísmo", "Helenista"],
+    "respostaCorreta": "Judaísmo",
+    "versiculo": "Gálatas 1:13 ARA",
+    "textoBiblico": "Porque ouvistes qual foi o meu procedimento outrora no judaísmo..."
   },
   {
     "id": 3,
@@ -83,7 +84,7 @@
     "categoria": "Aquecimento",
     "pontosCheios": 10,
     "pontosMeios": 5,
-    "pergunta": "Complete: '...porque todos quantos fostes batizados em Cristo de _______ vos revestistes.'",
+    "pergunta": "Complete: “...porque todos quantos fostes batizados em Cristo de _______ vos revestistes.”",
     "tipo": "multipla_escolha",
     "opcoes": ["Salvação", "Cristo", "Justificação", "Nova criação"],
     "respostaCorreta": "Cristo",
@@ -96,6 +97,20 @@
     "categoria": "Fácil",
     "pontosCheios": 20,
     "pontosMeios": 10,
+    "isKids": true,
+    "pergunta": "Após a imposição de mãos sobre Paulo e Barnabé, de quem eles deveriam sempre se lembrar ao pregar o evangelho?",
+    "tipo": "dissertativa",
+    "opcoes": [],
+    "respostaCorreta": "Dos pobres",
+    "versiculo": "Gálatas 2:10 ARA",
+    "textoBiblico": "recomendando-nos somente que nos lembrássemos dos pobres, o que também me esforcei por fazer."
+  },
+  {
+    "id": 9,
+    "rodada": 2,
+    "categoria": "Fácil",
+    "pontosCheios": 20,
+    "pontosMeios": 10,
     "pergunta": "Quem semeia para a sua própria carne, da carne colherá o quê?",
     "tipo": "multipla_escolha",
     "opcoes": ["Corrupção", "Tristeza e dor", "Pobreza", "Vergonha"],
@@ -104,7 +119,7 @@
     "textoBiblico": "Porque o que semeia para a sua própria carne da carne colherá corrupção..."
   },
   {
-    "id": 9,
+    "id": 10,
     "rodada": 2,
     "categoria": "Fácil",
     "pontosCheios": 20,
@@ -117,7 +132,7 @@
     "textoBiblico": "e, quando conheceram a graça que me foi dada, Tiago, Cefas e João, que eram reputados colunas, me estenderam, a mim e a Barnabé, a destra de comunhão..."
   },
   {
-    "id": 10,
+    "id": 11,
     "rodada": 2,
     "categoria": "Fácil",
     "pontosCheios": 20,
@@ -130,7 +145,7 @@
     "textoBiblico": "Porque vós, irmãos, fostes chamados à liberdade; porém não useis da liberdade para dar ocasião à carne..."
   },
   {
-    "id": 11,
+    "id": 12,
     "rodada": 2,
     "categoria": "Fácil",
     "pontosCheios": 20,
@@ -143,7 +158,7 @@
     "textoBiblico": "Mas longe esteja de mim gloriar-me, senão na cruz de nosso Senhor Jesus Cristo..."
   },
   {
-    "id": 12,
+    "id": 13,
     "rodada": 2,
     "categoria": "Fácil",
     "pontosCheios": 20,
@@ -156,7 +171,7 @@
     "textoBiblico": "E não nos cansemos de fazer o bem, porque a seu tempo ceifaremos, se não desfalecermos."
   },
   {
-    "id": 13,
+    "id": 14,
     "rodada": 2,
     "categoria": "Fácil",
     "pontosCheios": 20,
@@ -169,25 +184,13 @@
     "textoBiblico": "Mas, se sois guiados pelo Espírito, não estais sob a lei."
   },
   {
-    "id": 14,
-    "rodada": 2,
-    "categoria": "Fácil",
-    "pontosCheios": 20,
-    "pontosMeios": 10,
-    "pergunta": "Após a imposição de mãos sobre Paulo e Barnabé, de quem eles deveriam se lembrar?",
-    "tipo": "dissertativa",
-    "opcoes": [],
-    "respostaCorreta": "Dos pobres",
-    "versiculo": "Gálatas 2:10 ARA",
-    "textoBiblico": "recomendando-nos somente que nos lembrássemos dos pobres, o que também me esforcei por fazer."
-  },
-  {
     "id": 15,
     "rodada": 3,
     "categoria": "Médio",
     "pontosCheios": 30,
     "pontosMeios": 15,
-    "pergunta": "Complete o versículo 20 do capítulo 2: '...logo, já não sou eu quem vive, mas...'",
+    "isKids": true,
+    "pergunta": "Complete o versículo muito conhecido da Bíblia: “...logo, já não sou eu quem vive, mas...”",
     "tipo": "dissertativa",
     "opcoes": [],
     "respostaCorreta": "Cristo vive em mim",
@@ -203,7 +206,7 @@
     "pergunta": "Qual foi a sentença dada por Paulo para quem pregasse outro evangelho, mesmo que fosse um anjo vindo do céu?",
     "tipo": "dissertativa",
     "opcoes": [],
-    "respostaCorreta": "Seja anátema",
+    "respostaCorreta": "Seja anátema (amaldiçoado)",
     "versiculo": "Gálatas 1:8 ARA",
     "textoBiblico": "Mas, ainda que nós ou mesmo um anjo vindo do céu vos pregue evangelho que vá além do que vos temos pregado, seja anátema."
   },
@@ -265,7 +268,7 @@
     "categoria": "Médio",
     "pontosCheios": 30,
     "pontosMeios": 15,
-    "pergunta": "Complete: 'E os que são de Cristo Jesus crucificaram a carne, com as _______ e _______.'",
+    "pergunta": "Complete: “E os que são de Cristo Jesus crucificaram a carne, com as _______ e _______.”",
     "tipo": "multipla_escolha",
     "opcoes": ["Suas concupiscências / iniquidades", "Suas obras / maldades", "Suas tentações / pecados", "Suas paixões / concupiscências"],
     "respostaCorreta": "Suas paixões / concupiscências",
@@ -278,7 +281,8 @@
     "categoria": "Quase Difícil",
     "pontosCheios": 40,
     "pontosMeios": 20,
-    "pergunta": "Qual é a sequência exata das características do fruto do Espírito em Gálatas 5:22-23?",
+    "isKids": true,
+    "pergunta": "Durante uma aula da EBD infantil da tia Cleitiane: Qual é a sequência exata das características do fruto do Espírito?",
     "tipo": "multipla_escolha",
     "opcoes": [
       "amor, alegria, paz, longanimidade, benignidade, bondade, fidelidade, mansidão, domínio próprio.",
@@ -348,7 +352,7 @@
     "categoria": "Quase Difícil",
     "pontosCheios": 40,
     "pontosMeios": 20,
-    "pergunta": "Por que Paulo utilizou a figura de que 'um pouco de fermento leveda toda a massa'?",
+    "pergunta": "Por que Paulo utilizou a figura de que “um pouco de fermento leveda toda a massa”?",
     "tipo": "multipla_escolha",
     "opcoes": [
       "Que Paulo considerava toda prática da Lei necessariamente pecaminosa.",
@@ -366,7 +370,7 @@
     "categoria": "Quase Difícil",
     "pontosCheios": 40,
     "pontosMeios": 20,
-    "pergunta": "Complete o versículo: '...o qual se entregou a si mesmo pelos nossos pecados, para nos ____________________, segundo a vontade de nosso Deus e Pai,'",
+    "pergunta": "Complete o versículo: “...o qual se entregou a si mesmo pelos nossos pecados, para nos ____________________, segundo a vontade de nosso Deus e Pai,”",
     "tipo": "dissertativa",
     "opcoes": [],
     "respostaCorreta": "desarraigar deste mundo perverso",
@@ -379,7 +383,21 @@
     "categoria": "Difícil",
     "pontosCheios": 50,
     "pontosMeios": 25,
-    "pergunta": "No contexto greco-romano, qual era a função do AIO (paidagogos) que ajuda a compreender a metáfora de Paulo?",
+    "isKids": true,
+    "pergunta": "Paulo analisa que a promessa diz 'ao seu descendente' no singular. A quem o apóstolo ensina que se refere esse descendente?",
+    "tipo": "multipla_escolha",
+    "opcoes": ["A Isaque", "A Jacó", "A nação de Israel", "A Jesus Cristo"],
+    "respostaCorreta": "A Jesus Cristo",
+    "versiculo": "Gálatas 3:16 ARA",
+    "textoBiblico": "Não diz: E aos descendentes, como se falando de muitos, porém como de um só: E ao teu descendente, que é Cristo."
+  },
+  {
+    "id": 30,
+    "rodada": 5,
+    "categoria": "Difícil",
+    "pontosCheios": 50,
+    "pontosMeios": 25,
+    "pergunta": "No contexto greco-romano, qual era a principal função do AIO (paidagogos) que ajuda a compreender a metáfora de Paulo?",
     "tipo": "multipla_escolha",
     "opcoes": [
       "O juiz que decidia quem herdaria a propriedade da família.",
@@ -392,7 +410,7 @@
     "textoBiblico": "De maneira que a lei nos serviu de aio para nos conduzir a Cristo, a fim de que fôssemos justificados por fé."
   },
   {
-    "id": 30,
+    "id": 31,
     "rodada": 5,
     "categoria": "Difícil",
     "pontosCheios": 50,
@@ -405,35 +423,17 @@
     "textoBiblico": "Ora, Agar é o monte Sinai, na Arábia, e corresponde à Jerusalém atual..."
   },
   {
-    "id": 31,
-    "rodada": 5,
-    "categoria": "Difícil",
-    "pontosCheios": 50,
-    "pontosMeios": 25,
-    "pergunta": "A declaração 'o justo viverá pela fé' foi escrita séculos antes por qual profeta do Antigo Testamento?",
-    "tipo": "multipla_escolha",
-    "opcoes": ["Ageu", "Sofonias", "Oséias", "Habacuque"],
-    "respostaCorreta": "Habacuque",
-    "versiculo": "Gálatas 3:11 ARA / Hc 2:4",
-    "textoBiblico": "E é evidente que, pela lei, ninguém é justificado diante de Deus, porque o justo viverá pela fé."
-  },
-  {
     "id": 32,
     "rodada": 5,
     "categoria": "Difícil",
     "pontosCheios": 50,
     "pontosMeios": 25,
-    "pergunta": "Paulo analisa que a promessa diz 'ao seu descendente' no singular e não no plural. A quem o apóstolo aplica esse singular?",
+    "pergunta": "A declaração “o justo viverá pela fé” foi escrita séculos antes por qual profeta do Antigo Testamento?",
     "tipo": "multipla_escolha",
-    "opcoes": [
-      "A Isaque, como filho único da promessa divina.",
-      "A Jacó, que teve o nome mudado para Israel.",
-      "A nação de Israel coletivamente.",
-      "A Jesus Cristo."
-    ],
-    "respostaCorreta": "A Jesus Cristo.",
-    "versiculo": "Gálatas 3:16 ARA",
-    "textoBiblico": "Não diz: E aos descendentes, como se falando de muitos, porém como de um só: E ao teu descendente, que é Cristo."
+    "opcoes": ["Ageu", "Sofonias", "Oséias", "Habacuque"],
+    "respostaCorreta": "Habacuque",
+    "versiculo": "Gálatas 3:11 ARA / Habacuque 2:4",
+    "textoBiblico": "E é evidente que, pela lei, ninguém é justificado diante de Deus, porque o justo viverá pela fé."
   },
   {
     "id": 33,
@@ -485,6 +485,20 @@
     "categoria": "Especialista",
     "pontosCheios": 60,
     "pontosMeios": 30,
+    "isKids": true,
+    "pergunta": "Qual é a última palavra que encerra a Epístola aos Gálatas?",
+    "tipo": "multipla_escolha",
+    "opcoes": ["“... seja com o vosso espírito!”", "“e para todo sempre.”", "“Amém!”", "“A graça seja com todos vós.”"],
+    "respostaCorreta": "“Amém!”",
+    "versiculo": "Gálatas 6:18 ARA",
+    "textoBiblico": "A graça de nosso Senhor Jesus Cristo seja, irmãos, com o vosso espírito. Amém!"
+  },
+  {
+    "id": 37,
+    "rodada": 6,
+    "categoria": "Especialista",
+    "pontosCheios": 60,
+    "pontosMeios": 30,
     "pergunta": "De acordo com Gálatas 5:4, aqueles que procuram justificar-se pela Lei estão em qual condição?",
     "tipo": "multipla_escolha",
     "opcoes": ["Separados do Espírito", "Separados de Cristo", "Na carne", "Em jugo de escravidão"],
@@ -493,7 +507,7 @@
     "textoBiblico": "De Cristo vos desligastes, vós que procurais justificar-vos na lei; da graça decaístes."
   },
   {
-    "id": 37,
+    "id": 38,
     "rodada": 6,
     "categoria": "Especialista",
     "pontosCheios": 60,
@@ -506,7 +520,7 @@
     "textoBiblico": "E digo isto: uma aliança já anteriormente confirmada por Deus, a lei, que veio quatrocentos e trinta anos depois, não a pode ab-rogar..."
   },
   {
-    "id": 38,
+    "id": 39,
     "rodada": 6,
     "categoria": "Especialista",
     "pontosCheios": 60,
@@ -514,17 +528,17 @@
     "pergunta": "Teologicamente, por que a circuncisão naquele contexto anulava o benefício da obra de Cristo?",
     "tipo": "multipla_escolha",
     "opcoes": [
-      "Porque representa a busca de justificação por obras da lei, invalidando a suficiência da graça.",
+      "Porque representa a busca de justificação por obras da lei, invalidando a suficiência da graça de Cristo.",
       "Porque os gentios não tinham autorização anatômica e cultural para o ritual mosaico.",
       "Porque a circuncisão passou a ser pecado de higiene física sob a Nova Aliança.",
       "Porque anula a genealogia biológica de quem a realiza."
     ],
-    "respostaCorreta": "Porque representa a busca de justificação por obras da lei, invalidando a suficiência da graça.",
-    "versiculo": "Gálatas 5:2-4 ARA",
+    "respostaCorreta": "Porque representa a busca de justificação por obras da lei, invalidando a suficiência da graça de Cristo.",
+    "versiculo": "Gálatas 5:2,4 ARA",
     "textoBiblico": "Eu, Paulo, vos digo que, se vos deixardes circuncidar, Cristo de nada vos aproveitará... da graça decaístes."
   },
   {
-    "id": 39,
+    "id": 40,
     "rodada": 6,
     "categoria": "Especialista",
     "pontosCheios": 60,
@@ -532,12 +546,12 @@
     "pergunta": "Quantos anos se passaram antes de Paulo subir a Jerusalém e quantos dias permaneceu com Cefas?",
     "tipo": "dissertativa",
     "opcoes": [],
-    "respostaCorreta": "3 anos e permaneceu 15 dias",
+    "respostaCorreta": "Três anos e permaneceu quinze dias",
     "versiculo": "Gálatas 1:18 ARA",
     "textoBiblico": "Decorridos três anos, então, subi a Jerusalém para avistar-me com Cefas e permaneci com ele quinze dias;"
   },
   {
-    "id": 40,
+    "id": 41,
     "rodada": 6,
     "categoria": "Especialista",
     "pontosCheios": 60,
@@ -555,12 +569,12 @@
     "textoBiblico": "E vós sabeis que vos preguei o evangelho a primeira vez por causa de uma enfermidade física."
   },
   {
-    "id": 41,
+    "id": 42,
     "rodada": 6,
     "categoria": "Especialista",
     "pontosCheios": 60,
     "pontosMeios": 30,
-    "pergunta": "Complete: 'Mas, antes que viesse ______, estávamos sob a tutela da lei... a fim de que fôssemos justificados _______.'",
+    "pergunta": "Complete: “Mas, antes que viesse ______, estávamos sob a tutela da lei... a fim de que fôssemos justificados _______.”",
     "tipo": "multipla_escolha",
     "opcoes": [
       "O amor // essa liberdade // por fé.",
@@ -573,19 +587,6 @@
     "textoBiblico": "Mas, antes que viesse a fé, estávamos sob a tutela da lei e nela encerrados, para essa fé que, de futuro, haveria de revelar-se... a fim de que fôssemos justificados por fé."
   },
   {
-    "id": 42,
-    "rodada": 6,
-    "categoria": "Especialista",
-    "pontosCheios": 60,
-    "pontosMeios": 30,
-    "pergunta": "Qual foi a saudação endereçada no versículo 2 do capítulo 1 de Gálatas?",
-    "tipo": "dissertativa",
-    "opcoes": [],
-    "respostaCorreta": "todos os irmãos meus companheiros, às igrejas da Galácia",
-    "versiculo": "Gálatas 1:2 ARA",
-    "textoBiblico": "e todos os irmãos meus companheiros, às igrejas da Galácia:"
-  },
-  {
     "id": 43,
     "rodada": 7,
     "categoria": "Morte Súbita",
@@ -595,7 +596,7 @@
     "tipo": "multipla_escolha",
     "opcoes": ["151", "150", "149", "148"],
     "respostaCorreta": "149",
-    "versiculo": "Curiosidade Estrutural",
-    "textoBiblico": "O livro de Gálatas possui exatamente 149 versículos distribuídos em 6 capítulos."
+    "versiculo": "Estrutura geral de Gálatas",
+    "textoBiblico": "O livro de Gálatas é composto por 6 capítulos e 149 versículos."
   }
 ]

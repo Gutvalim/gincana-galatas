@@ -158,6 +158,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(action.payload.questionId)
                   ? prev.usedQuestionIdsInRound
                   : [...prev.usedQuestionIdsInRound, action.payload.questionId],
+                usedCardIndicesInRound: prev.usedCardIndicesInRound.includes(action.payload.cardIndex)
+                  ? prev.usedCardIndicesInRound
+                  : [...prev.usedCardIndicesInRound, action.payload.cardIndex],
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -289,6 +292,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 currentRound: action.payload.round,
                 currentQuestionId: action.payload.questionId,
                 teamsAvailableInRound: [...ALL_TEAM_IDS],
+                usedQuestionIdsInRound: [],
+                usedCardIndicesInRound: [],
+                selectedCardIndex: null,
+                isCardFlipping: false,
                 drawnTeam: null,
                 isRevealed: false,
                 timerSeconds: 60,
@@ -632,6 +639,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           currentQuestionId: qId,
           teamsAvailableInRound: [...ALL_TEAM_IDS],
           usedQuestionIdsInRound: [],
+          usedCardIndicesInRound: [],
           selectedCardIndex: null,
           isCardFlipping: false,
           drawnTeam: null,
@@ -651,18 +659,46 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (questionId: number, cardIndex: number) => {
       sounds.playCorrectReveal();
 
+      // Resolve question based on drawn team:
+      // If UCP is the drawn team, ALWAYS assign the Kids question of the current round
+      const questionsInRound = questions.filter((q) => q.rodada === state.currentRound);
+      const kidsQ = questionsInRound.find((q) => q.isKids) || questionsInRound[0];
+      const adultQuestions = questionsInRound.filter((q) => !q.isKids);
+
+      let resolvedQId = questionId;
+
+      if (state.drawnTeam === 'UCP') {
+        resolvedQId = kidsQ.id;
+      } else {
+        // Non-UCP teams must never receive the kids question
+        const availableAdultQuestions = adultQuestions.filter(
+          (q) => !state.usedQuestionIdsInRound.includes(q.id)
+        );
+        const naturalQ = questionsInRound[cardIndex];
+        if (naturalQ && !naturalQ.isKids && availableAdultQuestions.some((q) => q.id === naturalQ.id)) {
+          resolvedQId = naturalQ.id;
+        } else if (availableAdultQuestions.length > 0) {
+          resolvedQId = availableAdultQuestions[0].id;
+        } else {
+          resolvedQId = naturalQ ? naturalQ.id : questionId;
+        }
+      }
+
       // Trigger 3D flip animation
       updateStateAndSync(
         (prev) => ({
           ...prev,
           selectedCardIndex: cardIndex,
           isCardFlipping: true,
-          currentQuestionId: questionId,
-          usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(questionId)
+          currentQuestionId: resolvedQId,
+          usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(resolvedQId)
             ? prev.usedQuestionIdsInRound
-            : [...prev.usedQuestionIdsInRound, questionId],
+            : [...prev.usedQuestionIdsInRound, resolvedQId],
+          usedCardIndicesInRound: prev.usedCardIndicesInRound.includes(cardIndex)
+            ? prev.usedCardIndicesInRound
+            : [...prev.usedCardIndicesInRound, cardIndex],
         }),
-        { type: 'SELECT_CARD', payload: { questionId, cardIndex } }
+        { type: 'SELECT_CARD', payload: { questionId: resolvedQId, cardIndex } }
       );
 
       // Transition to question presentation after flip animation
@@ -674,11 +710,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isCardFlipping: false,
             selectedCardIndex: null,
           }),
-          { type: 'FINISH_CARD_FLIP', payload: { questionId } }
+          { type: 'FINISH_CARD_FLIP', payload: { questionId: resolvedQId } }
         );
       }, 1400);
     },
-    [updateStateAndSync]
+    [state.currentRound, state.drawnTeam, state.usedQuestionIdsInRound, updateStateAndSync]
   );
 
   // SELECT QUESTION MANUALLY

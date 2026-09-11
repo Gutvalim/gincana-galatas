@@ -90,6 +90,7 @@ export interface Question {
   respostaCorreta: string;
   versiculo: string;
   textoBiblico: string;
+  isKids?: boolean;
 }
 
 export type GameStage =
@@ -122,6 +123,7 @@ export interface GameState {
   scores: Record<TeamId, number>;
   teamsAvailableInRound: TeamId[];
   usedQuestionIdsInRound: number[];
+  usedCardIndicesInRound: number[];
   selectedCardIndex: number | null;
   isCardFlipping: boolean;
   drawnTeam: TeamId | null;

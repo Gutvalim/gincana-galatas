@@ -7,6 +7,8 @@ interface CardSelectionViewProps {
   round: number;
   questionsInRound: Question[];
   usedQuestionIds: number[];
+  usedCardIndices: number[];
+  currentQuestion?: Question | null;
   drawnTeam: TeamId | null;
   selectedCardIndex: number | null;
   isCardFlipping: boolean;
@@ -17,7 +19,9 @@ interface CardSelectionViewProps {
 export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
   round,
   questionsInRound,
-  usedQuestionIds,
+  usedQuestionIds: _usedQuestionIds,
+  usedCardIndices = [],
+  currentQuestion = null,
   drawnTeam,
   selectedCardIndex,
   isCardFlipping,
@@ -70,9 +74,10 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
       {/* Cards Grid */}
       <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 sm:gap-5 perspective-1000">
         {questionsInRound.map((q, idx) => {
-          const isUsed = usedQuestionIds.includes(q.id);
+          const isUsed = usedCardIndices.includes(idx);
           const isSelected = selectedCardIndex === idx;
           const isFlipping = isSelected && isCardFlipping;
+          const revealQ = isSelected && currentQuestion ? currentQuestion : q;
 
           return (
             <div
@@ -161,13 +166,13 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
 
                   <div className="my-auto flex flex-col items-center gap-1">
                     <span className="text-3xl font-black text-amber-300 font-mono">
-                      #{q.id}
+                      #{revealQ.id}
                     </span>
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-500/50">
-                      {q.categoria}
+                      {revealQ.categoria}
                     </span>
                     <p className="text-xs text-gray-200 mt-2 line-clamp-3 font-medium">
-                      "{q.pergunta}"
+                      "{revealQ.pergunta}"
                     </p>
                   </div>
 
@@ -185,7 +190,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
         <span>Cards restantes nesta rodada:</span>
         <strong className="text-emerald-400 font-bold">
-          {questionsInRound.length - usedQuestionIds.length} de {questionsInRound.length}
+          {questionsInRound.length - usedCardIndices.length} de {questionsInRound.length}
         </strong>
       </div>
     </div>

@@ -202,6 +202,8 @@ export const AdminPage: React.FC = () => {
                 round={state.currentRound}
                 questionsInRound={questions.filter((q) => q.rodada === state.currentRound)}
                 usedQuestionIds={state.usedQuestionIdsInRound}
+                usedCardIndices={state.usedCardIndicesInRound}
+                currentQuestion={currentQuestion}
                 drawnTeam={state.drawnTeam}
                 selectedCardIndex={state.selectedCardIndex}
                 isCardFlipping={state.isCardFlipping}
@@ -223,6 +225,11 @@ export const AdminPage: React.FC = () => {
                   <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#133829] text-gray-300 border border-[#1d5740]">
                     {currentQuestion.categoria}
                   </span>
+                  {currentQuestion.isKids && (
+                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                      👶 Pergunta UCP (Kids)
+                    </span>
+                  )}
                   <span className="text-xs text-gray-400">
                     ({currentQuestion.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 'Dissertativa'})
                   </span>

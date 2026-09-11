@@ -47,6 +47,7 @@ export const INITIAL_STATE: GameState = {
   },
   teamsAvailableInRound: [...ALL_TEAM_IDS],
   usedQuestionIdsInRound: [],
+  usedCardIndicesInRound: [],
   selectedCardIndex: null,
   isCardFlipping: false,
   drawnTeam: null,
@@ -70,7 +71,12 @@ export function loadSavedState(): GameState {
       const parsed = JSON.parse(data) as GameState;
       // Sanity checks on parsed state
       if (parsed && typeof parsed.scores === 'object' && parsed.currentRound) {
-        return parsed;
+        return {
+          ...INITIAL_STATE,
+          ...parsed,
+          usedCardIndicesInRound: parsed.usedCardIndicesInRound || [],
+          usedQuestionIdsInRound: parsed.usedQuestionIdsInRound || [],
+        };
       }
     }
   } catch (e) {

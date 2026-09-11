@@ -196,6 +196,8 @@ export const TelaoPage: React.FC = () => {
               round={state.currentRound}
               questionsInRound={questions.filter((q) => q.rodada === state.currentRound)}
               usedQuestionIds={state.usedQuestionIdsInRound}
+              usedCardIndices={state.usedCardIndicesInRound}
+              currentQuestion={currentQuestion}
               drawnTeam={state.drawnTeam}
               selectedCardIndex={state.selectedCardIndex}
               isCardFlipping={state.isCardFlipping}
