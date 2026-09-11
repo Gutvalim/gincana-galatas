@@ -13,8 +13,9 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
   isRunning = false,
   size = 280,
 }) => {
-  const strokeWidth = 14;
-  const radius = (size - strokeWidth) / 2;
+  const strokeWidth = 12;
+  const padding = 12;
+  const radius = (size - strokeWidth - padding * 2) / 2;
   const circumference = 2 * Math.PI * radius;
 
   const progress = Math.min(1, Math.max(0, seconds / maxSeconds));
@@ -39,25 +40,27 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
         }`}
         style={{ width: size, height: size }}
       >
-        {/* Glow backdrop */}
+        {/* Subtle circular radial backdrop (strictly circular, no square glow or box) */}
         <div
-          className="absolute inset-2 rounded-full blur-xl transition-all duration-300"
+          className="absolute rounded-full pointer-events-none transition-all duration-300"
           style={{
-            backgroundColor: isUrgent
-              ? 'rgba(239, 68, 68, 0.4)'
-              : 'rgba(0, 99, 65, 0.35)',
+            width: radius * 2 + strokeWidth,
+            height: radius * 2 + strokeWidth,
+            background: isUrgent
+              ? 'radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.05) 70%, transparent 100%)'
+              : 'radial-gradient(circle, rgba(0, 99, 65, 0.25) 0%, rgba(6, 20, 14, 0.7) 70%, transparent 100%)',
           }}
         />
 
-        <svg width={size} height={size} className="transform -rotate-90">
-          {/* Background circle */}
+        <svg width={size} height={size} className="overflow-visible transform -rotate-90">
+          {/* Background circle track with circular fill */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#0c231a"
+            stroke="#0a261c"
             strokeWidth={strokeWidth}
-            fill="transparent"
+            fill="rgba(6, 25, 18, 0.6)"
           />
           {/* Progress circle */}
           <circle
@@ -73,14 +76,14 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
             className="transition-all duration-300 ease-linear"
             style={{
               filter: isUrgent
-                ? 'drop-shadow(0 0 16px rgba(239, 68, 68, 0.9))'
-                : 'drop-shadow(0 0 12px rgba(16, 185, 129, 0.7))',
+                ? 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.85))'
+                : 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.6))',
             }}
           />
         </svg>
 
         {/* Center Digital Display */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span
             className={`font-black tracking-tighter leading-none transition-colors duration-200 ${
               isUrgent
