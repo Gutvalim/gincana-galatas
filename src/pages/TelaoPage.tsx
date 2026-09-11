@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { TEAMS } from '../types/game';
+import { TEAMS, getRoundPlayableQuestions } from '../types/game';
 import { Roulette } from '../components/Roulette';
 import { CircularTimer } from '../components/CircularTimer';
 import { Leaderboard } from '../components/Leaderboard';
@@ -304,7 +304,7 @@ export const TelaoPage: React.FC = () => {
             )}
             <CardSelectionView
               round={state.currentRound}
-              questionsInRound={questions.filter((q) => q.rodada === state.currentRound && !q.isKids)}
+              questionsInRound={getRoundPlayableQuestions(questions, state.currentRound)}
               usedQuestionIds={state.usedQuestionIdsInRound}
               usedCardIndices={state.usedCardIndicesInRound}
               currentQuestion={currentQuestion}

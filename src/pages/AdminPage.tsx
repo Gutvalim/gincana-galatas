@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import type { GameStage, ActionCardType } from '../types/game';
-import { TEAMS, ROUNDS_INFO } from '../types/game';
+import { TEAMS, ROUNDS_INFO, getRoundPlayableQuestions } from '../types/game';
 import { ScoreModal } from '../components/ScoreModal';
 import { Leaderboard } from '../components/Leaderboard';
 import { CardSelectionView } from '../components/CardSelectionView';
@@ -289,7 +289,7 @@ export const AdminPage: React.FC = () => {
             <div className="p-4 rounded-3xl bg-[#0c231a] border-2 border-[#1d5740] shadow-xl">
               <CardSelectionView
                 round={state.currentRound}
-                questionsInRound={questions.filter((q) => q.rodada === state.currentRound && !q.isKids)}
+                questionsInRound={getRoundPlayableQuestions(questions, state.currentRound)}
                 usedQuestionIds={state.usedQuestionIdsInRound}
                 usedCardIndices={state.usedCardIndicesInRound}
                 currentQuestion={currentQuestion}

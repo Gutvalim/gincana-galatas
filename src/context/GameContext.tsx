@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import type { GameState, GameStage, TeamId, Question, ActionCardType } from '../types/game';
-import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS, ROUNDS_INFO, TEAMS } from '../types/game';
+import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS, ROUNDS_INFO, TEAMS, getRoundPlayableQuestions } from '../types/game';
 import questionsData from '../data/questions.json';
 import {
   CHANNEL_NAME,
@@ -1269,7 +1269,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         const naturalAdultQ = adultQuestions[cardIndex];
-        if (naturalAdultQ) {
+        if (naturalAdultQ && !state.usedQuestionIdsInRound.includes(naturalAdultQ.id)) {
           resolvedQId = naturalAdultQ.id;
         } else {
           const availableAdult = adultQuestions.filter(
@@ -1572,14 +1572,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       case 'card_selection': {
         if (state.isCardFlipping) return;
-        // Auto-select next available card if none selected
-        const questionsInRound = questions.filter((q) => q.rodada === state.currentRound);
-        const availableIndices = Array.from({ length: questionsInRound.length }, (_, i) => i).filter(
+        // Auto-select next available card if none selected (8 cards in round)
+        const roundCards = getRoundPlayableQuestions(questions, state.currentRound);
+        const availableIndices = Array.from({ length: roundCards.length }, (_, i) => i).filter(
           (idx) => !state.usedCardIndicesInRound.includes(idx)
         );
         if (availableIndices.length > 0) {
           const pickIndex = availableIndices[0];
-          const qId = questionsInRound[pickIndex]?.id ?? questionsInRound[0].id;
+          const qId = roundCards[pickIndex]?.id ?? roundCards[0].id;
           selectCardQuestion(qId, pickIndex);
         } else {
           setStage('question');

@@ -185,3 +185,9 @@ export const ROUNDS_INFO: Record<number, RoundInfo> = {
   6: { number: 6, name: 'Rodada 6: Especialista', category: 'Especialista', pointsFull: 50, pointsHalf: 20, color: '#c084fc' },
   7: { number: 7, name: 'Morte Súbita: Desempate', category: 'Morte Súbita', pointsFull: 0, pointsHalf: 0, color: '#ef4444' },
 };
+
+export const getRoundPlayableQuestions = (allQuestions: Question[], round: number): Question[] => {
+  const adults = allQuestions.filter((q) => q.rodada === round && !q.isKids);
+  const kidsTitular = allQuestions.filter((q) => q.rodada === round && q.isKids && !q.isKidsBackup);
+  return [...adults, ...kidsTitular];
+};

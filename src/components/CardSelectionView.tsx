@@ -31,12 +31,12 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
   const team = drawnTeam ? TEAMS[drawnTeam] : null;
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-8 py-4 px-4 animate-fadeIn">
+    <div className="w-full max-w-7xl mx-auto flex flex-col items-center gap-8 py-4 px-4 animate-fadeIn">
       {/* Header Banner */}
       <div className="text-center flex flex-col items-center">
         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#006341]/30 border-2 border-amber-400/60 text-amber-300 font-black uppercase tracking-widest text-xs sm:text-sm mb-3 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
           <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-          Fase de Escolha • Rodada {round}
+          Fase de Escolha • Rodada {round} (8 Cards de Perguntas)
           <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
         </div>
 
@@ -69,12 +69,12 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
         )}
 
         <p className="mt-3 text-xs sm:text-sm text-gray-300 max-w-xl font-medium">
-          A equipe sorteada escolhe um card para responder. Os cards já respondidos ficam bloqueados para as próximas equipes nesta rodada!
+          A rodada possui <strong>8 cards de perguntas</strong> (7 para adultos e 1 para crianças). Cada equipe escolhe um card para responder!
         </p>
       </div>
 
-      {/* Cards Grid */}
-      <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 sm:gap-5 perspective-1000">
+      {/* Cards Grid (8 Cards) */}
+      <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4 perspective-1000">
         {questionsInRound.map((q, idx) => {
           const isUsed = usedCardIndices.includes(idx);
           const isSelected = selectedCardIndex === idx;
