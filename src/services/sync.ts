@@ -10,6 +10,8 @@ export type SyncAction =
   | { type: 'CHANGE_STAGE'; payload: GameStage }
   | { type: 'START_SPIN'; payload: { targetTeam: TeamId; seed: number } }
   | { type: 'FINISH_SPIN'; payload: TeamId }
+  | { type: 'SELECT_CARD'; payload: { questionId: number; cardIndex: number } }
+  | { type: 'FINISH_CARD_FLIP'; payload: { questionId: number } }
   | { type: 'TIMER_START'; payload: { seconds: number; endTimestamp: number } }
   | { type: 'TIMER_PAUSE'; payload: { remainingSeconds: number } }
   | { type: 'TIMER_ADD_15'; payload: { seconds: number; endTimestamp: number } }
@@ -44,6 +46,9 @@ export const INITIAL_STATE: GameState = {
     Adultos: 0,
   },
   teamsAvailableInRound: [...ALL_TEAM_IDS],
+  usedQuestionIdsInRound: [],
+  selectedCardIndex: null,
+  isCardFlipping: false,
   drawnTeam: null,
   isSpinning: false,
   spinningTargetTeam: null,

@@ -4,6 +4,7 @@ import type { GameStage } from '../types/game';
 import { TEAMS, ROUNDS_INFO } from '../types/game';
 import { ScoreModal } from '../components/ScoreModal';
 import { Leaderboard } from '../components/Leaderboard';
+import { CardSelectionView } from '../components/CardSelectionView';
 import {
   ExternalLink,
   Play,
@@ -26,6 +27,7 @@ import {
   Sparkles,
   ChevronRight,
   ChevronLeft,
+  Layers,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -45,6 +47,7 @@ export const AdminPage: React.FC = () => {
     emergencyScoreAdjust,
     selectRound,
     selectQuestion,
+    selectCardQuestion,
     resetGameToStart,
     toggleSound,
   } = useGame();
@@ -63,6 +66,7 @@ export const AdminPage: React.FC = () => {
     { key: 'leaderboard', label: 'Placar', icon: <Trophy className="w-4 h-4" /> },
     { key: 'splash', label: 'Splash Rodada', icon: <Flame className="w-4 h-4" /> },
     { key: 'roulette', label: 'Roleta', icon: <Compass className="w-4 h-4" /> },
+    { key: 'card_selection', label: 'Escolha Cards', icon: <Layers className="w-4 h-4" /> },
     { key: 'question', label: 'Pergunta', icon: <BookOpen className="w-4 h-4" /> },
     { key: 'timer', label: 'Cronômetro', icon: <Clock className="w-4 h-4" /> },
     { key: 'reveal', label: 'Revelação', icon: <Eye className="w-4 h-4" /> },
@@ -73,12 +77,12 @@ export const AdminPage: React.FC = () => {
   const roundInfo = ROUNDS_INFO[state.currentRound] || ROUNDS_INFO[1];
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#06140e] text-white flex flex-col font-sans">
       {/* HEADER */}
-      <header className="px-6 py-4 bg-[#111827] border-b border-gray-800 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40 shadow-lg">
+      <header className="px-6 py-4 bg-[#0c231a] border-b border-[#1d5740] flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center font-black text-black text-lg shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-            ⚙️
+          <div className="w-10 h-10 rounded-xl bg-[#006341]/30 flex items-center justify-center p-1 border border-amber-400/40 shadow-[0_0_15px_rgba(0,99,65,0.6)]">
+            <img src="/logo.png" alt="IPBNB" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -107,7 +111,7 @@ export const AdminPage: React.FC = () => {
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={handleOpenTelao}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#006341] to-emerald-600 hover:from-[#007a50] hover:to-emerald-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 border border-emerald-400/40 shadow-[0_0_20px_rgba(0,99,65,0.5)] transition-all"
           >
             <ExternalLink className="w-4 h-4" />
             Abrir Telão em Nova Janela
@@ -116,9 +120,9 @@ export const AdminPage: React.FC = () => {
           <button
             onClick={toggleSound}
             title="Alternar Áudio"
-            className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors"
+            className="p-2 rounded-xl bg-[#133829] hover:bg-[#1a4a37] text-gray-300 transition-colors border border-[#1d5740]"
           >
-            {state.soundEnabled ? <Volume2 className="w-5 h-5 text-cyan-400" /> : <VolumeX className="w-5 h-5 text-gray-500" />}
+            {state.soundEnabled ? <Volume2 className="w-5 h-5 text-amber-400" /> : <VolumeX className="w-5 h-5 text-gray-500" />}
           </button>
 
           <button
@@ -132,8 +136,8 @@ export const AdminPage: React.FC = () => {
       </header>
 
       {/* STAGE STEPPER BAR */}
-      <div className="bg-[#111827]/80 border-b border-gray-800 px-6 py-2.5 overflow-x-auto scrollbar-none flex items-center gap-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-gray-400 mr-2 shrink-0">
+      <div className="bg-[#0c231a]/90 border-b border-[#1d5740] px-6 py-2.5 overflow-x-auto scrollbar-none flex items-center gap-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-amber-300 mr-2 shrink-0">
           Etapa no Telão:
         </span>
         {stages.map((st) => {
@@ -144,8 +148,8 @@ export const AdminPage: React.FC = () => {
               onClick={() => setStage(st.key)}
               className={`px-3.5 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 transition-all ${
                 isActive
-                  ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.6)]'
-                  : 'bg-gray-800/80 text-gray-400 hover:bg-gray-700 hover:text-white border border-gray-700'
+                  ? 'bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                  : 'bg-[#133829] text-gray-300 hover:bg-[#1c4d38] hover:text-white border border-[#1d5740]'
               }`}
             >
               {st.icon}
@@ -160,9 +164,9 @@ export const AdminPage: React.FC = () => {
         {/* LEFT & CENTER: ACTIVE CONTROL CONSOLE (2 COLS) */}
         <div className="lg:col-span-2 flex flex-col gap-5">
           {/* ROUND SELECTOR & METADATA BAR */}
-          <div className="p-4 rounded-2xl bg-[#111827] border border-gray-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase text-gray-400 tracking-wider">
+              <span className="text-xs font-black uppercase text-amber-300 tracking-wider">
                 Rodada:
               </span>
               <div className="flex gap-1.5 flex-wrap">
@@ -172,8 +176,8 @@ export const AdminPage: React.FC = () => {
                     onClick={() => selectRound(r)}
                     className={`w-8 h-8 rounded-lg font-black text-xs transition-all ${
                       state.currentRound === r
-                        ? 'bg-amber-500 text-black shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105'
-                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                        ? 'bg-amber-400 text-black shadow-[0_0_12px_rgba(245,158,11,0.6)] scale-105'
+                        : 'bg-[#133829] text-gray-300 hover:bg-[#1a4a37] hover:text-white border border-[#1d5740]'
                     }`}
                   >
                     {r === 7 ? 'MS' : r}
@@ -183,7 +187,7 @@ export const AdminPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-gray-400">
+              <span className="text-xs font-bold text-gray-300">
                 {roundInfo.name} • Microfone:{' '}
                 <strong className="text-amber-400">{roundInfo.pointsFull}p</strong> | Papel:{' '}
                 <strong className="text-purple-400">{roundInfo.pointsHalf}p</strong>
@@ -191,16 +195,32 @@ export const AdminPage: React.FC = () => {
             </div>
           </div>
 
+          {/* CARD SELECTION VIEW (WHEN IN CARD_SELECTION STAGE) */}
+          {state.stage === 'card_selection' && (
+            <div className="p-4 rounded-3xl bg-[#0c231a] border-2 border-[#1d5740] shadow-xl">
+              <CardSelectionView
+                round={state.currentRound}
+                questionsInRound={questions.filter((q) => q.rodada === state.currentRound)}
+                usedQuestionIds={state.usedQuestionIdsInRound}
+                drawnTeam={state.drawnTeam}
+                selectedCardIndex={state.selectedCardIndex}
+                isCardFlipping={state.isCardFlipping}
+                onSelectCard={selectCardQuestion}
+                interactive={true}
+              />
+            </div>
+          )}
+
           {/* MAIN CONTROL DECK: QUESTION PREVIEW & GABARITO */}
           {currentQuestion && (
-            <div className="p-6 rounded-3xl bg-[#111827] border-2 border-cyan-500/30 shadow-xl flex flex-col gap-5">
+            <div className="p-6 rounded-3xl bg-[#0c231a] border-2 border-emerald-500/40 shadow-xl flex flex-col gap-5">
               {/* Question Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1d5740] pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-lg text-xs font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                  <span className="px-3 py-1 rounded-lg text-xs font-black bg-[#006341]/40 text-emerald-300 border border-emerald-500/40">
                     Pergunta #{currentQuestion.id} de 43
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-800 text-gray-300">
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#133829] text-gray-300 border border-[#1d5740]">
                     {currentQuestion.categoria}
                   </span>
                   <span className="text-xs text-gray-400">
@@ -327,14 +347,14 @@ export const AdminPage: React.FC = () => {
                     </button>
                     <button
                       onClick={add15Seconds}
-                      className="py-2.5 px-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 font-black text-xs uppercase flex items-center justify-center gap-1 text-black shadow transition-all"
+                      className="py-2.5 px-2 rounded-xl bg-[#006341] hover:bg-[#00875a] font-black text-xs uppercase flex items-center justify-center gap-1 text-white border border-emerald-400/40 shadow transition-all"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       +15s
                     </button>
                     <button
                       onClick={resetTimer}
-                      className="py-2.5 px-2 rounded-xl bg-gray-700 hover:bg-gray-600 font-bold text-xs uppercase flex items-center justify-center gap-1 text-gray-200 shadow transition-all"
+                      className="py-2.5 px-2 rounded-xl bg-[#133829] hover:bg-[#1a4a37] font-bold text-xs uppercase flex items-center justify-center gap-1 text-gray-200 border border-[#1d5740] shadow transition-all"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       Zerar
@@ -348,7 +368,7 @@ export const AdminPage: React.FC = () => {
                     {/* Spin Roulette */}
                     <button
                       onClick={() => startRouletteSpin()}
-                      className="py-3 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all"
+                      className="py-3 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all"
                     >
                       <Compass className="w-4 h-4" />
                       Girar Roleta
@@ -360,7 +380,7 @@ export const AdminPage: React.FC = () => {
                       className={`py-3 px-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 border transition-all ${
                         state.isRevealed
                           ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.5)]'
-                          : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                          : 'bg-[#133829] border-[#1d5740] text-gray-200 hover:bg-[#1c4d38]'
                       }`}
                     >
                       {state.isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -385,8 +405,8 @@ export const AdminPage: React.FC = () => {
         {/* RIGHT SIDEBAR: REAL-TIME LEADERBOARD & EMERGENCY ADJUSTMENTS (1 COL) */}
         <div className="flex flex-col gap-5">
           {/* Currently Drawn Team Widget */}
-          <div className="p-4 rounded-2xl bg-[#111827] border border-gray-800">
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-2">
+          <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740]">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-2">
               Sorteio da Rodada Atual:
             </span>
             {state.drawnTeam ? (
@@ -409,7 +429,7 @@ export const AdminPage: React.FC = () => {
                 <Radio className="w-6 h-6 text-white animate-pulse" />
               </div>
             ) : (
-              <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800 text-center text-xs text-gray-400 italic">
+              <div className="p-3 rounded-xl bg-[#06140e] border border-[#1d5740] text-center text-xs text-gray-400 italic">
                 Nenhuma equipe sorteada no momento.
               </div>
             )}
@@ -434,7 +454,7 @@ export const AdminPage: React.FC = () => {
           </div>
 
           {/* Leaderboard with Emergency +5 / -5 buttons */}
-          <div className="p-4 rounded-2xl bg-[#111827] border border-gray-800 flex flex-col gap-3">
+          <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-1.5">
                 <Trophy className="w-4 h-4 text-amber-400" />
@@ -455,8 +475,8 @@ export const AdminPage: React.FC = () => {
           </div>
 
           {/* Question List Navigator */}
-          <div className="p-4 rounded-2xl bg-[#111827] border border-gray-800 flex flex-col gap-2.5">
-            <span className="text-xs font-black uppercase tracking-wider text-gray-400">
+          <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-col gap-2.5">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-300">
               Navegador de Perguntas (1 a 43):
             </span>
             <div className="max-h-56 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
@@ -468,8 +488,8 @@ export const AdminPage: React.FC = () => {
                     onClick={() => selectQuestion(q.id)}
                     className={`w-full text-left p-2 rounded-xl text-xs flex items-center justify-between border transition-all ${
                       isSelected
-                        ? 'border-cyan-400 bg-cyan-500/20 text-white font-bold'
-                        : 'border-transparent bg-gray-900/50 text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                        ? 'border-amber-400 bg-[#006341]/40 text-white font-bold shadow'
+                        : 'border-transparent bg-[#06140e]/60 text-gray-400 hover:bg-[#133829] hover:text-gray-200'
                     }`}
                   >
                     <span className="truncate pr-2">

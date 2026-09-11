@@ -24,11 +24,11 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
   const isExpired = seconds === 0;
 
   // Determine stroke color
-  let ringColor = '#06b6d4'; // Cyan default
+  let ringColor = '#10b981'; // IPB Emerald default
   if (isUrgent) {
     ringColor = '#ef4444'; // Red danger
   } else if (seconds <= 20) {
-    ringColor = '#f59e0b'; // Amber warning
+    ringColor = '#f59e0b'; // Presbyterian gold warning
   }
 
   return (
@@ -45,7 +45,7 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
           style={{
             backgroundColor: isUrgent
               ? 'rgba(239, 68, 68, 0.4)'
-              : 'rgba(6, 182, 212, 0.25)',
+              : 'rgba(0, 99, 65, 0.35)',
           }}
         />
 
@@ -55,7 +55,7 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#1f2937"
+            stroke="#0c231a"
             strokeWidth={strokeWidth}
             fill="transparent"
           />
@@ -74,7 +74,7 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
             style={{
               filter: isUrgent
                 ? 'drop-shadow(0 0 16px rgba(239, 68, 68, 0.9))'
-                : 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.7))',
+                : 'drop-shadow(0 0 12px rgba(16, 185, 129, 0.7))',
             }}
           />
         </svg>
@@ -87,7 +87,7 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
                 ? 'text-red-500 scale-110 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]'
                 : isExpired
                 ? 'text-red-400'
-                : 'text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]'
+                : 'text-white drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]'
             }`}
             style={{ fontSize: size * 0.32 }}
           >
@@ -95,7 +95,7 @@ export const CircularTimer: React.FC<CircularTimerProps> = ({
           </span>
           <span
             className={`text-xs sm:text-sm font-bold tracking-widest uppercase mt-1 ${
-              isUrgent ? 'text-red-400' : 'text-cyan-400'
+              isUrgent ? 'text-red-400' : 'text-emerald-400'
             }`}
           >
             {isExpired ? 'TEMPO ESGOTADO' : isRunning ? 'SEGUNDOS' : 'PAUSADO'}

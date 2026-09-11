@@ -95,8 +95,8 @@ export const Roulette: React.FC<RouletteProps> = ({
     <div className="flex flex-col items-center justify-center p-4">
       {/* Outer Glowing Container */}
       <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center">
-        {/* Outer Neon Glow Ring */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500/20 via-yellow-500/20 to-purple-500/20 blur-2xl animate-pulse" />
+        {/* Outer IPB Glow Ring */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#006341]/30 via-amber-500/20 to-emerald-500/25 blur-2xl animate-pulse" />
 
         {/* Pointer / Needle at Top */}
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center filter drop-shadow-[0_4px_10px_rgba(239,68,68,0.8)]">
@@ -107,7 +107,7 @@ export const Roulette: React.FC<RouletteProps> = ({
 
         {/* Wheel SVG */}
         <div
-          className="w-full h-full rounded-full border-4 border-cyan-400/60 shadow-[0_0_50px_rgba(6,182,212,0.5)] overflow-hidden transition-transform"
+          className="w-full h-full rounded-full border-4 border-amber-400/80 shadow-[0_0_50px_rgba(0,99,65,0.6)] overflow-hidden transition-transform"
           style={{
             transform: `rotate(${rotation}deg)`,
             transitionDuration: isSpinning ? '5000ms' : '0ms',
@@ -178,8 +178,8 @@ export const Roulette: React.FC<RouletteProps> = ({
             })}
 
             {/* Center Cap */}
-            <circle cx="200" cy="200" r="42" fill="#0b0f19" stroke="#22d3ee" strokeWidth="4" />
-            <circle cx="200" cy="200" r="32" fill="#1f2937" />
+            <circle cx="200" cy="200" r="42" fill="#06140e" stroke="#f59e0b" strokeWidth="4" />
+            <circle cx="200" cy="200" r="32" fill="#006341" />
             <text
               x="200"
               y="200"

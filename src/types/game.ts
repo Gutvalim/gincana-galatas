@@ -10,6 +10,7 @@ export interface TeamInfo {
   badgeClass: string;
   gradient: string;
   accent: string;
+  logo?: string;
 }
 
 export const TEAMS: Record<TeamId, TeamInfo> = {
@@ -23,6 +24,7 @@ export const TEAMS: Record<TeamId, TeamInfo> = {
     badgeClass: 'bg-sky-500 text-white',
     gradient: 'from-sky-600 to-cyan-400',
     accent: '#38bdf8',
+    logo: '/logo_ucp.png',
   },
   UPA: {
     id: 'UPA',
@@ -34,6 +36,7 @@ export const TEAMS: Record<TeamId, TeamInfo> = {
     badgeClass: 'bg-orange-500 text-white',
     gradient: 'from-orange-600 to-amber-400',
     accent: '#fb923c',
+    logo: '/logo_upa.png',
   },
   UMP: {
     id: 'UMP',
@@ -45,6 +48,7 @@ export const TEAMS: Record<TeamId, TeamInfo> = {
     badgeClass: 'bg-emerald-600 text-white',
     gradient: 'from-emerald-600 to-green-400',
     accent: '#4ade80',
+    logo: '/logo_ump.webp',
   },
   Casais: {
     id: 'Casais',
@@ -92,6 +96,7 @@ export type GameStage =
   | 'leaderboard'
   | 'splash'
   | 'roulette'
+  | 'card_selection'
   | 'question'
   | 'timer'
   | 'reveal'
@@ -114,6 +119,9 @@ export interface GameState {
   stage: GameStage;
   scores: Record<TeamId, number>;
   teamsAvailableInRound: TeamId[];
+  usedQuestionIdsInRound: number[];
+  selectedCardIndex: number | null;
+  isCardFlipping: boolean;
   drawnTeam: TeamId | null;
   isSpinning: boolean;
   spinningTargetTeam: TeamId | null;

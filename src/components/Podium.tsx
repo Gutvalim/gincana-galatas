@@ -68,6 +68,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
               backgroundColor: `${TEAMS[winner].color}20`,
             }}
           >
+            {TEAMS[winner].logo && (
+              <img src={TEAMS[winner].logo} alt={TEAMS[winner].name} className="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-2 drop-shadow-lg" />
+            )}
             <span
               className="text-4xl sm:text-6xl font-black tracking-widest uppercase"
               style={{ color: TEAMS[winner].color }}
@@ -91,6 +94,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
           <div className="flex flex-col items-center">
             <div className="flex flex-col items-center mb-3">
               <Medal className="w-8 h-8 text-slate-300" />
+              {TEAMS[second].logo && (
+                <img src={TEAMS[second].logo} alt={TEAMS[second].name} className="w-8 h-8 object-contain my-1" />
+              )}
               <span
                 className="font-black text-xl sm:text-2xl uppercase mt-1"
                 style={{ color: TEAMS[second].color }}
@@ -117,6 +123,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
           <div className="flex flex-col items-center">
             <div className="flex flex-col items-center mb-3">
               <Trophy className="w-12 h-12 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]" />
+              {TEAMS[winner].logo && (
+                <img src={TEAMS[winner].logo} alt={TEAMS[winner].name} className="w-10 h-10 object-contain my-1" />
+              )}
               <span
                 className="font-black text-2xl sm:text-3xl uppercase mt-1"
                 style={{ color: TEAMS[winner].color }}
@@ -143,6 +152,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
           <div className="flex flex-col items-center">
             <div className="flex flex-col items-center mb-3">
               <Medal className="w-8 h-8 text-amber-700" />
+              {TEAMS[third].logo && (
+                <img src={TEAMS[third].logo} alt={TEAMS[third].name} className="w-8 h-8 object-contain my-1" />
+              )}
               <span
                 className="font-black text-xl sm:text-2xl uppercase mt-1"
                 style={{ color: TEAMS[third].color }}

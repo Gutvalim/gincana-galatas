@@ -4,12 +4,12 @@ import { Compass, Clock, Mic, FileText, CheckCircle2 } from 'lucide-react';
 export const RulesView: React.FC = () => {
   const rules = [
     {
-      icon: <Compass className="w-8 h-8 text-cyan-400" />,
-      title: '1. Sorteio por Roleta',
-      desc: 'A cada pergunta, uma equipe é sorteada pela roleta digital. A equipe sorteada é destacada e não repete até a próxima rodada.',
+      icon: <Compass className="w-8 h-8 text-amber-400" />,
+      title: '1. Sorteio e Escolha de Cards',
+      desc: 'A equipe sorteada na roleta escolhe o Card de Pergunta da rodada. O card escolhido é revelado em 3D e fica bloqueado para as outras equipes na mesma rodada.',
       badge: 'Dinâmica',
-      border: 'border-cyan-500/40',
-      glow: 'shadow-[0_0_20px_rgba(6,182,212,0.2)]',
+      border: 'border-[#1d5740]',
+      glow: 'shadow-[0_0_20px_rgba(0,99,65,0.3)]',
     },
     {
       icon: <Mic className="w-8 h-8 text-amber-400" />,
@@ -41,14 +41,14 @@ export const RulesView: React.FC = () => {
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center gap-8 py-6 px-4 animate-fadeIn">
       {/* Rules Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-bold uppercase tracking-widest text-xs sm:text-sm mb-3">
-          <CheckCircle2 className="w-4 h-4" />
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#006341]/40 border border-emerald-500/50 text-emerald-300 font-bold uppercase tracking-widest text-xs sm:text-sm mb-3">
+          <CheckCircle2 className="w-4 h-4 text-amber-400" />
           Regulamento Oficial da Gincana
         </div>
         <h2 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight drop-shadow-md">
           Como Funciona a Disputa
         </h2>
-        <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto mt-2">
+        <p className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto mt-2">
           Gincana Bíblica IPBNB sobre a Epístola aos Gálatas • Regras gerais para as 6 rodadas.
         </p>
       </div>
@@ -58,7 +58,7 @@ export const RulesView: React.FC = () => {
         {rules.map((rule, idx) => (
           <div
             key={idx}
-            className={`p-6 rounded-3xl bg-[#111827]/90 border-2 ${rule.border} ${rule.glow} flex flex-col justify-between transition-all hover:scale-[1.01]`}
+            className={`p-6 rounded-3xl bg-[#0c231a] border-2 ${rule.border} ${rule.glow} flex flex-col justify-between transition-all hover:scale-[1.01]`}
           >
             <div>
               <div className="flex items-center justify-between mb-4">

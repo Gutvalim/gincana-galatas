@@ -9,18 +9,20 @@ export default {
     extend: {
       colors: {
         game: {
-          bg: '#0b0f19',
-          surface: '#111827',
-          card: '#1f2937',
-          cardHover: '#374151',
-          border: '#374151',
-          cyan: '#06b6d4',
-          neonCyan: '#22d3ee',
-          gold: '#f59e0b',
-          neonGold: '#fbbf24',
-          emerald: '#10b981',
+          bg: '#06140e',          // Deep IPB forest green dark
+          surface: '#0c231a',     // IPB surface green
+          card: '#133829',        // IPB card green
+          cardHover: '#1c4a37',   // IPB card hover
+          border: '#1d5740',      // IPB border
+          ipbGreen: '#006341',    // IPB Official Green
+          ipbLight: '#00875a',    // IPB Bright Green
+          cyan: '#10b981',        // Replaced with IPB vibrant emerald
+          neonCyan: '#34d399',    // Vibrant emerald highlight
+          gold: '#f59e0b',        // Presbyterian Gold
+          neonGold: '#fbbf24',    // Bright gold highlight
+          emerald: '#10b981',     // Green highlight
           neonEmerald: '#34d399',
-          danger: '#ef4444',
+          danger: '#ef4444',      // Red warning
           neonDanger: '#f87171',
         },
         team: {
@@ -41,8 +43,8 @@ export default {
       },
       keyframes: {
         glowPulse: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(6, 182, 212, 0.2)' },
-          '50%': { boxShadow: '0 0 35px rgba(6, 182, 212, 0.8), inset 0 0 20px rgba(6, 182, 212, 0.4)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(0, 135, 90, 0.4), inset 0 0 10px rgba(0, 135, 90, 0.2)' },
+          '50%': { boxShadow: '0 0 35px rgba(0, 135, 90, 0.8), inset 0 0 20px rgba(0, 135, 90, 0.4)' },
         }
       }
     },

@@ -20,10 +20,10 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
       {/* Category & Points Badges Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="px-4 py-1.5 rounded-xl text-sm sm:text-base font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+          <span className="px-4 py-1.5 rounded-xl text-sm sm:text-base font-black uppercase tracking-wider bg-[#006341]/50 text-emerald-300 border border-emerald-500/50 shadow-[0_0_15px_rgba(0,99,65,0.4)]">
             Pergunta #{question.id} • {question.categoria}
           </span>
-          <span className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider bg-gray-800 text-gray-300 border border-gray-700">
+          <span className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider bg-[#0c231a] text-gray-300 border border-[#1d5740]">
             {question.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 'Dissertativa'}
           </span>
         </div>
@@ -44,7 +44,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
       </div>
 
       {/* Main Question Card */}
-      <div className="p-6 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-[#111827] to-[#1f2937] border-2 border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.15)]">
+      <div className="p-6 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-[#0c231a] to-[#081c13] border-2 border-[#1d5740] shadow-[0_0_45px_rgba(0,99,65,0.3)]">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-snug tracking-tight text-center sm:text-left drop-shadow-md">
           {question.pergunta}
         </h2>
@@ -57,8 +57,8 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
             const isCorrect = opcao.trim().toLowerCase() === question.respostaCorreta.trim().toLowerCase();
             const letter = letters[idx] || `${idx + 1}`;
 
-            let cardStyle = 'border-gray-800 bg-[#111827]/80 text-gray-200 hover:border-gray-700';
-            let letterStyle = 'bg-gray-800 text-cyan-400 border-gray-700';
+            let cardStyle = 'border-[#1d5740] bg-[#0c231a]/90 text-gray-200 hover:border-emerald-500/60';
+            let letterStyle = 'bg-[#133829] text-amber-300 border-[#1d5740]';
 
             if (isRevealed) {
               if (isCorrect) {

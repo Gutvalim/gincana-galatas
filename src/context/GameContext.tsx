@@ -31,6 +31,7 @@ interface GameContextType {
   emergencyScoreAdjust: (team: TeamId, delta: number) => void;
   selectRound: (round: number) => void;
   selectQuestion: (questionId: number) => void;
+  selectCardQuestion: (questionId: number, cardIndex: number) => void;
   resetGameToStart: () => void;
   toggleSound: () => void;
 }
@@ -139,6 +140,39 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isSpinning: false,
                 drawnTeam: action.payload,
                 spinningTargetTeam: null,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'SELECT_CARD':
+            sounds.playCorrectReveal();
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                selectedCardIndex: action.payload.cardIndex,
+                isCardFlipping: true,
+                currentQuestionId: action.payload.questionId,
+                usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(action.payload.questionId)
+                  ? prev.usedQuestionIdsInRound
+                  : [...prev.usedQuestionIdsInRound, action.payload.questionId],
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'FINISH_CARD_FLIP':
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                stage: 'question',
+                currentQuestionId: action.payload.questionId,
+                isCardFlipping: false,
+                selectedCardIndex: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -404,6 +438,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }),
       { type: 'FINISH_SPIN', payload: team }
     );
+
+    // After celebratory highlight on the roulette (2s), transition smoothly to card_selection
+    setTimeout(() => {
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          stage: 'card_selection',
+        }),
+        { type: 'CHANGE_STAGE', payload: 'card_selection' }
+      );
+    }, 2000);
   }, [updateStateAndSync]);
 
   // TIMER CONTROLS
@@ -586,6 +631,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           currentRound: round,
           currentQuestionId: qId,
           teamsAvailableInRound: [...ALL_TEAM_IDS],
+          usedQuestionIdsInRound: [],
+          selectedCardIndex: null,
+          isCardFlipping: false,
           drawnTeam: null,
           isRevealed: false,
           timerSeconds: 60,
@@ -596,6 +644,41 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       );
     },
     [state.currentQuestionId, updateStateAndSync]
+  );
+
+  // SELECT QUESTION CARD INTERACTIVELY
+  const selectCardQuestion = useCallback(
+    (questionId: number, cardIndex: number) => {
+      sounds.playCorrectReveal();
+
+      // Trigger 3D flip animation
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          selectedCardIndex: cardIndex,
+          isCardFlipping: true,
+          currentQuestionId: questionId,
+          usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(questionId)
+            ? prev.usedQuestionIdsInRound
+            : [...prev.usedQuestionIdsInRound, questionId],
+        }),
+        { type: 'SELECT_CARD', payload: { questionId, cardIndex } }
+      );
+
+      // Transition to question presentation after flip animation
+      setTimeout(() => {
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            stage: 'question',
+            isCardFlipping: false,
+            selectedCardIndex: null,
+          }),
+          { type: 'FINISH_CARD_FLIP', payload: { questionId } }
+        );
+      }, 1400);
+    },
+    [updateStateAndSync]
   );
 
   // SELECT QUESTION MANUALLY
@@ -657,6 +740,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emergencyScoreAdjust,
         selectRound,
         selectQuestion,
+        selectCardQuestion,
         resetGameToStart,
         toggleSound,
       }}

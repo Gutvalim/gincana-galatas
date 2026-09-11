@@ -62,16 +62,20 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               key={teamId}
               className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 isHighlighted
-                  ? 'border-yellow-400 bg-yellow-500/10 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
-                  : 'border-gray-800 bg-[#111827]/80 hover:border-gray-700'
+                  ? 'border-amber-400 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                  : 'border-[#1d5740] bg-[#0c231a] hover:border-emerald-500/50'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span className="text-xs font-black text-gray-400 w-4">{rank + 1}º</span>
-                <span
-                  className="w-3 h-3 rounded-full shadow"
-                  style={{ backgroundColor: team.color }}
-                />
+                {team.logo ? (
+                  <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain" />
+                ) : (
+                  <span
+                    className="w-3 h-3 rounded-full shadow"
+                    style={{ backgroundColor: team.color }}
+                  />
+                )}
                 <span className="font-bold text-sm text-gray-200">{team.name}</span>
               </div>
 
@@ -121,8 +125,8 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             key={teamId}
             className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-500 shadow-xl ${
               isHighlighted
-                ? 'border-yellow-400 bg-gray-900/90 shadow-[0_0_30px_rgba(250,204,21,0.3)] scale-[1.02]'
-                : 'border-gray-800 bg-[#111827]/90'
+                ? 'border-amber-400 bg-[#0e2a1f] shadow-[0_0_35px_rgba(245,158,11,0.4)] scale-[1.02]'
+                : 'border-[#1d5740] bg-[#0c231a]'
             }`}
           >
             {/* Background progress fill */}
@@ -136,8 +140,20 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
             <div className="relative z-10 px-6 py-4 flex items-center justify-between gap-4">
               {/* Rank & Team Name */}
-              <div className="flex items-center gap-4 min-w-[200px]">
+              <div className="flex items-center gap-4 min-w-[220px]">
                 {getRankBadge(rank)}
+                {team.logo ? (
+                  <div className="w-12 h-12 rounded-xl bg-black/40 border border-[#1d5740] p-1.5 flex items-center justify-center shrink-0 shadow-md">
+                    <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div
+                    className="w-12 h-12 rounded-xl border flex items-center justify-center font-black text-base shrink-0 shadow-md"
+                    style={{ backgroundColor: `${team.color}20`, borderColor: `${team.color}60`, color: team.color }}
+                  >
+                    {team.name.slice(0, 3)}
+                  </div>
+                )}
                 <div>
                   <div className="flex items-center gap-2">
                     <span

@@ -41,9 +41,9 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-xl bg-[#111827] border-2 border-cyan-500/50 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)] flex flex-col gap-6">
+      <div className="w-full max-w-xl bg-[#0c231a] border-2 border-[#1d5740] rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(0,99,65,0.5)] flex flex-col gap-6">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+        <div className="flex items-center justify-between border-b border-[#1d5740] pb-4">
           <div>
             <h3 className="text-2xl font-black text-white flex items-center gap-2">
               <Award className="w-6 h-6 text-amber-400" />
@@ -166,18 +166,18 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 pt-2 border-t border-gray-800">
+        <div className="flex items-center gap-3 pt-2 border-t border-[#1d5740]">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 px-4 rounded-xl border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-sm transition-colors"
+            className="flex-1 py-3 px-4 rounded-xl border border-[#1d5740] bg-[#133829] hover:bg-[#1c4d38] text-gray-300 font-bold text-sm transition-colors"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className="flex-2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-sm sm:text-base uppercase tracking-wider shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all"
+            className="flex-2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-[#006341] to-emerald-600 hover:from-[#007a50] hover:to-emerald-500 text-white font-black text-sm sm:text-base uppercase tracking-wider border border-emerald-400/40 shadow-[0_0_25px_rgba(0,99,65,0.6)] transition-all"
           >
             Confirmar e Atualizar Placar
           </button>
