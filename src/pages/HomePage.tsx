@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Tv, Settings, BookOpen, ShieldCheck, Flame } from 'lucide-react';
 
+import { TEAMS } from '../types/game';
+
 export const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#06140e] text-white flex flex-col justify-between p-6 sm:p-10 font-sans selection:bg-emerald-500 selection:text-white">
@@ -11,8 +13,8 @@ export const HomePage: React.FC = () => {
       {/* Header */}
       <header className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between border-b border-[#1d5740]/80 pb-6">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#006341] to-emerald-500 flex items-center justify-center text-2xl text-amber-300 border border-amber-400/40 shadow-[0_0_20px_rgba(0,99,65,0.6)]">
-            📖
+          <div className="w-12 h-12 rounded-2xl bg-[#006341]/40 flex items-center justify-center p-1 border border-amber-400/40 shadow-[0_0_20px_rgba(0,99,65,0.6)]">
+            <img src="/logo.png" alt="IPBNB" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">
@@ -104,8 +106,42 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Teams Participating Showcase */}
+        <div className="mt-12 w-full max-w-4xl">
+          <span className="text-xs uppercase tracking-widest font-black text-amber-300 block mb-4">
+            Sociedades e Equipes Participantes
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {Object.values(TEAMS).map((team) => (
+              <div
+                key={team.id}
+                className="p-3.5 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-col items-center justify-center gap-2 transition-all hover:scale-105 shadow-md hover:border-emerald-500/50"
+              >
+                {team.logo ? (
+                  <div className="w-14 h-14 rounded-xl bg-black/40 border border-white/10 p-1.5 flex items-center justify-center">
+                    <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div
+                    className="w-14 h-14 rounded-xl border flex items-center justify-center font-black text-lg"
+                    style={{ backgroundColor: `${team.color}20`, borderColor: team.color, color: team.color }}
+                  >
+                    {team.name}
+                  </div>
+                )}
+                <span className="font-black text-sm uppercase tracking-wide" style={{ color: team.color }}>
+                  {team.name}
+                </span>
+                <span className="text-[10px] text-gray-400 font-medium text-center leading-tight line-clamp-2">
+                  {team.fullName}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* How to use info */}
-        <div className="mt-12 p-6 rounded-2xl bg-[#0c231a]/80 border border-[#1d5740] text-left max-w-3xl w-full flex items-start gap-4 shadow-lg">
+        <div className="mt-10 p-6 rounded-2xl bg-[#0c231a]/80 border border-[#1d5740] text-left max-w-3xl w-full flex items-start gap-4 shadow-lg">
           <BookOpen className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
           <div className="text-xs sm:text-sm text-gray-300 space-y-1">
             <p className="font-bold text-amber-300">

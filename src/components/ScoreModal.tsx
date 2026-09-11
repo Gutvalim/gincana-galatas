@@ -69,9 +69,12 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
             </span>
             {drawnTeam ? (
               <span
-                className="px-3 py-1 rounded-full text-xs font-black text-white"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black text-white shadow"
                 style={{ backgroundColor: TEAMS[drawnTeam].color }}
               >
+                {TEAMS[drawnTeam].logo && (
+                  <img src={TEAMS[drawnTeam].logo} alt={TEAMS[drawnTeam].name} className="w-4 h-4 object-contain" />
+                )}
                 {TEAMS[drawnTeam].name} ({TEAMS[drawnTeam].fullName})
               </span>
             ) : (
@@ -140,10 +143,14 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span
-                      className="w-3 h-3 rounded-full shadow"
-                      style={{ backgroundColor: team.color }}
-                    />
+                    {team.logo ? (
+                      <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain" />
+                    ) : (
+                      <span
+                        className="w-3 h-3 rounded-full shadow"
+                        style={{ backgroundColor: team.color }}
+                      />
+                    )}
                     <span className="font-bold text-sm text-gray-200">
                       {team.name}
                     </span>

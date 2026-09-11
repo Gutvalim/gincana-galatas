@@ -60,6 +60,7 @@ export const TEAMS: Record<TeamId, TeamInfo> = {
     badgeClass: 'bg-purple-600 text-white',
     gradient: 'from-purple-600 to-pink-400',
     accent: '#c084fc',
+    logo: '/logo_casais.svg',
   },
   Adultos: {
     id: 'Adultos',
@@ -71,6 +72,7 @@ export const TEAMS: Record<TeamId, TeamInfo> = {
     badgeClass: 'bg-amber-600 text-white',
     gradient: 'from-amber-600 to-yellow-400',
     accent: '#fde047',
+    logo: '/logo_adultos.svg',
   },
 };
 

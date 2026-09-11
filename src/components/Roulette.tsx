@@ -178,19 +178,20 @@ export const Roulette: React.FC<RouletteProps> = ({
             })}
 
             {/* Center Cap */}
-            <circle cx="200" cy="200" r="42" fill="#06140e" stroke="#f59e0b" strokeWidth="4" />
-            <circle cx="200" cy="200" r="32" fill="#006341" />
-            <text
-              x="200"
-              y="200"
-              fill="#fbbf24"
-              fontSize="16"
-              fontWeight="900"
-              textAnchor="middle"
-              dominantBaseline="central"
-            >
-              IPBNB
-            </text>
+            <circle cx="200" cy="200" r="44" fill="#06140e" stroke="#f59e0b" strokeWidth="4" />
+            <clipPath id="centerLogoClip">
+              <circle cx="200" cy="200" r="38" />
+            </clipPath>
+            <circle cx="200" cy="200" r="40" fill="#ffffff" />
+            <image
+              href="/logo.png"
+              x="162"
+              y="162"
+              width="76"
+              height="76"
+              clipPath="url(#centerLogoClip)"
+              preserveAspectRatio="xMidYMid meet"
+            />
           </svg>
         </div>
       </div>
@@ -199,21 +200,28 @@ export const Roulette: React.FC<RouletteProps> = ({
       {drawnTeam && !isSpinning && (
         <div className="mt-8 animate-bounce">
           <div
-            className="px-8 py-3 rounded-2xl border-2 shadow-[0_0_30px_rgba(251,191,36,0.6)] flex items-center gap-3"
+            className="px-8 py-3 rounded-2xl border-2 shadow-[0_0_30px_rgba(251,191,36,0.6)] flex items-center gap-4"
             style={{
               borderColor: TEAMS[drawnTeam].color,
               backgroundColor: `${TEAMS[drawnTeam].color}25`,
             }}
           >
-            <span className="text-xl text-gray-300 font-semibold uppercase tracking-wider">
-              Equipe Sorteada:
-            </span>
-            <span
-              className="text-3xl sm:text-4xl font-black uppercase tracking-widest drop-shadow-md"
-              style={{ color: TEAMS[drawnTeam].color }}
-            >
-              {TEAMS[drawnTeam].name}
-            </span>
+            {TEAMS[drawnTeam].logo && (
+              <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/20 p-1 flex items-center justify-center shrink-0">
+                <img src={TEAMS[drawnTeam].logo} alt={TEAMS[drawnTeam].name} className="w-full h-full object-contain" />
+              </div>
+            )}
+            <div>
+              <span className="text-xs sm:text-sm text-gray-300 font-semibold uppercase tracking-wider block">
+                Equipe Sorteada:
+              </span>
+              <span
+                className="text-2xl sm:text-3xl font-black uppercase tracking-widest drop-shadow-md"
+                style={{ color: TEAMS[drawnTeam].color }}
+              >
+                {TEAMS[drawnTeam].name} ({TEAMS[drawnTeam].fullName})
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -221,13 +229,16 @@ export const Roulette: React.FC<RouletteProps> = ({
       {/* Remaining Teams Counter */}
       <div className="mt-4 flex items-center gap-2 text-sm text-gray-400 font-medium">
         <span>Equipes nesta rodada:</span>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2 flex-wrap justify-center">
           {activeTeams.map((t) => (
             <span
               key={t}
-              className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white shadow"
               style={{ backgroundColor: TEAMS[t].color }}
             >
+              {TEAMS[t].logo && (
+                <img src={TEAMS[t].logo} alt={t} className="w-4 h-4 object-contain" />
+              )}
               {t}
             </span>
           ))}

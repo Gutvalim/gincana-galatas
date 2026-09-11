@@ -417,14 +417,23 @@ export const AdminPage: React.FC = () => {
                   backgroundColor: `${TEAMS[state.drawnTeam].color}25`,
                 }}
               >
-                <div>
-                  <span className="text-xs text-gray-300 block">Equipe no Microfone:</span>
-                  <span
-                    className="text-xl font-black uppercase"
-                    style={{ color: TEAMS[state.drawnTeam].color }}
-                  >
-                    {TEAMS[state.drawnTeam].name}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {TEAMS[state.drawnTeam].logo && (
+                    <img
+                      src={TEAMS[state.drawnTeam].logo}
+                      alt={TEAMS[state.drawnTeam].name}
+                      className="w-9 h-9 object-contain shrink-0"
+                    />
+                  )}
+                  <div>
+                    <span className="text-xs text-gray-300 block">Equipe no Microfone:</span>
+                    <span
+                      className="text-xl font-black uppercase"
+                      style={{ color: TEAMS[state.drawnTeam].color }}
+                    >
+                      {TEAMS[state.drawnTeam].name}
+                    </span>
+                  </div>
                 </div>
                 <Radio className="w-6 h-6 text-white animate-pulse" />
               </div>
@@ -439,13 +448,16 @@ export const AdminPage: React.FC = () => {
               <span className="text-[11px] text-gray-400 block mb-1">
                 Restam sortear nesta rodada:
               </span>
-              <div className="flex gap-1 flex-wrap">
+              <div className="flex gap-1.5 flex-wrap">
                 {state.teamsAvailableInRound.map((t) => (
                   <span
                     key={t}
-                    className="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm"
                     style={{ backgroundColor: TEAMS[t].color }}
                   >
+                    {TEAMS[t].logo && (
+                      <img src={TEAMS[t].logo} alt={t} className="w-3 h-3 object-contain" />
+                    )}
                     {t}
                   </span>
                 ))}

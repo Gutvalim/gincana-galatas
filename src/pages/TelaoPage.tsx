@@ -208,7 +208,7 @@ export const TelaoPage: React.FC = () => {
         {/* STAGE: QUESTION */}
         {state.stage === 'question' && currentQuestion && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
-            <QuestionView question={currentQuestion} isRevealed={false} />
+            <QuestionView question={currentQuestion} isRevealed={false} drawnTeam={state.drawnTeam} />
           </div>
         )}
 
@@ -224,14 +224,14 @@ export const TelaoPage: React.FC = () => {
                 size={220}
               />
             </div>
-            <QuestionView question={currentQuestion} isRevealed={false} showPoints={false} />
+            <QuestionView question={currentQuestion} isRevealed={false} showPoints={false} drawnTeam={state.drawnTeam} />
           </div>
         )}
 
         {/* STAGE: REVEAL */}
         {state.stage === 'reveal' && currentQuestion && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
-            <QuestionView question={currentQuestion} isRevealed={true} />
+            <QuestionView question={currentQuestion} isRevealed={true} drawnTeam={state.drawnTeam} />
           </div>
         )}
 

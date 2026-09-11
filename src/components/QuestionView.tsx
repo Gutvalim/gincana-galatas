@@ -1,22 +1,60 @@
 import React from 'react';
-import type { Question } from '../types/game';
+import type { Question, TeamId } from '../types/game';
+import { TEAMS } from '../types/game';
 import { BookOpen, CheckCircle2, Award } from 'lucide-react';
 
 interface QuestionViewProps {
   question: Question;
   isRevealed: boolean;
   showPoints?: boolean;
+  drawnTeam?: TeamId | null;
 }
 
 export const QuestionView: React.FC<QuestionViewProps> = ({
   question,
   isRevealed,
   showPoints = true,
+  drawnTeam = null,
 }) => {
   const letters = ['A', 'B', 'C', 'D'];
+  const team = drawnTeam ? TEAMS[drawnTeam] : null;
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-5">
+      {/* Active Team on Microphone Banner */}
+      {team && (
+        <div
+          className="flex items-center justify-between px-5 py-2.5 rounded-2xl border-2 shadow-lg animate-fadeIn"
+          style={{
+            borderColor: team.color,
+            backgroundColor: `${team.color}20`,
+            boxShadow: `0 0 20px ${team.color}30`,
+          }}
+        >
+          <div className="flex items-center gap-3">
+            {team.logo && (
+              <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 p-1 flex items-center justify-center shrink-0">
+                <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+              </div>
+            )}
+            <div>
+              <span className="text-[11px] text-gray-300 uppercase tracking-wider block font-bold">
+                Equipe no Microfone:
+              </span>
+              <span className="text-base sm:text-xl font-black uppercase tracking-wide" style={{ color: team.color }}>
+                {team.name} <span className="text-xs font-normal text-gray-300 hidden sm:inline">({team.fullName})</span>
+              </span>
+            </div>
+          </div>
+          <span
+            className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-white shadow"
+            style={{ backgroundColor: team.color }}
+          >
+            Vez de Responder
+          </span>
+        </div>
+      )}
+
       {/* Category & Points Badges Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
