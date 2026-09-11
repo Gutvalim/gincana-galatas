@@ -304,7 +304,7 @@ export const TelaoPage: React.FC = () => {
             )}
             <CardSelectionView
               round={state.currentRound}
-              questionsInRound={questions.filter((q) => q.rodada === state.currentRound)}
+              questionsInRound={questions.filter((q) => q.rodada === state.currentRound && !q.isKids)}
               usedQuestionIds={state.usedQuestionIdsInRound}
               usedCardIndices={state.usedCardIndicesInRound}
               currentQuestion={currentQuestion}

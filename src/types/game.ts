@@ -91,6 +91,7 @@ export interface Question {
   versiculo: string;
   textoBiblico: string;
   isKids?: boolean;
+  isKidsBackup?: boolean;
 }
 
 export type GameStage =

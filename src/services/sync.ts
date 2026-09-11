@@ -35,6 +35,7 @@ export type SyncAction =
         cardType: ActionCardType;
         eliminatedOptionIndices?: number[];
         additionalSeconds?: number;
+        newQuestionId?: number;
       };
     }
   | {

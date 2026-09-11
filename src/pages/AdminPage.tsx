@@ -289,7 +289,7 @@ export const AdminPage: React.FC = () => {
             <div className="p-4 rounded-3xl bg-[#0c231a] border-2 border-[#1d5740] shadow-xl">
               <CardSelectionView
                 round={state.currentRound}
-                questionsInRound={questions.filter((q) => q.rodada === state.currentRound)}
+                questionsInRound={questions.filter((q) => q.rodada === state.currentRound && !q.isKids)}
                 usedQuestionIds={state.usedQuestionIdsInRound}
                 usedCardIndices={state.usedCardIndicesInRound}
                 currentQuestion={currentQuestion}
@@ -309,14 +309,14 @@ export const AdminPage: React.FC = () => {
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1d5740] pb-3">
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 rounded-lg text-xs font-black bg-[#006341]/40 text-emerald-300 border border-emerald-500/40">
-                    Pergunta #{currentQuestion.id} de 43
+                    Pergunta #{currentQuestion.id} de {questions.length}
                   </span>
                   <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#133829] text-gray-300 border border-[#1d5740]">
                     {currentQuestion.categoria}
                   </span>
                   {currentQuestion.isKids && (
                     <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
-                      👶 Pergunta UCP (Kids)
+                      👶 Pergunta UCP (Kids) {currentQuestion.isKidsBackup ? '• Reserva' : '• Titular'}
                     </span>
                   )}
                   <span className="text-xs text-gray-400">
