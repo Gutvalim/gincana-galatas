@@ -31,6 +31,7 @@ import {
   Layers,
   ArrowRight,
   Undo2,
+  Check,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -54,7 +55,7 @@ export const AdminPage: React.FC = () => {
     preselectOption,
     confirmOptionAnswer,
     submitQuestionScore,
-    emergencyScoreAdjust,
+    setTeamScore,
     selectRound,
     selectQuestion,
     selectCardQuestion,
@@ -556,14 +557,25 @@ export const AdminPage: React.FC = () => {
                 {/* Primary Action Buttons */}
                 <div className="flex flex-col gap-2.5 justify-center">
                   <div className="grid grid-cols-2 gap-2">
-                    {/* Spin Roulette */}
-                    <button
-                      onClick={() => startRouletteSpin()}
-                      className="py-3 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all"
-                    >
-                      <Compass className="w-4 h-4" />
-                      Girar Roleta
-                    </button>
+                    {/* Spin Roulette or Advance Single Team */}
+                    {state.stage === 'roulette' && state.teamsAvailableInRound.length === 1 ? (
+                      <button
+                        onClick={() => advanceGameStep()}
+                        className="py-3 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all"
+                      >
+                        <Check className="w-4 h-4" />
+                        Avançar ({TEAMS[state.teamsAvailableInRound[0]]?.name || state.teamsAvailableInRound[0]})
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => startRouletteSpin()}
+                        disabled={state.isSpinning || state.stage !== 'roulette' || state.teamsAvailableInRound.length === 0}
+                        className="py-3 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <Compass className="w-4 h-4" />
+                        Girar Roleta
+                      </button>
+                    )}
 
                     {/* Toggle Reveal */}
                     <button
@@ -598,90 +610,103 @@ export const AdminPage: React.FC = () => {
 
         {/* RIGHT SIDEBAR: REAL-TIME LEADERBOARD & EMERGENCY ADJUSTMENTS (1 COL) */}
         <div className="flex flex-col gap-5">
-          {/* Currently Drawn Team Widget */}
-          <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740]">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-2">
-              Sorteio da Rodada Atual:
-            </span>
-            {state.drawnTeam ? (
-              <div
-                className="p-3 rounded-xl border-2 shadow flex items-center justify-between"
-                style={{
-                  borderColor: TEAMS[state.drawnTeam].color,
-                  backgroundColor: `${TEAMS[state.drawnTeam].color}25`,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  {TEAMS[state.drawnTeam].logo && (
-                    <div className="w-10 h-10 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
-                      <img
-                        src={TEAMS[state.drawnTeam].logo}
-                        alt={TEAMS[state.drawnTeam].name}
-                        className="w-full h-full object-contain"
-                      />
+          {(() => {
+            const activeDisplayTeam =
+              state.drawnTeam ||
+              (state.stage === 'roulette' && state.teamsAvailableInRound.length === 1
+                ? state.teamsAvailableInRound[0]
+                : null);
+
+            return (
+              <>
+                {/* Currently Drawn Team Widget */}
+                <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-2">
+                    Sorteio da Rodada Atual:
+                  </span>
+                  {activeDisplayTeam ? (
+                    <div
+                      className="p-3 rounded-xl border-2 shadow flex items-center justify-between"
+                      style={{
+                        borderColor: TEAMS[activeDisplayTeam].color,
+                        backgroundColor: `${TEAMS[activeDisplayTeam].color}25`,
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        {TEAMS[activeDisplayTeam].logo && (
+                          <div className="w-10 h-10 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
+                            <img
+                              src={TEAMS[activeDisplayTeam].logo}
+                              alt={TEAMS[activeDisplayTeam].name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-xs text-gray-300 block">
+                            {state.drawnTeam ? 'Equipe no Microfone:' : 'Última Equipe da Rodada:'}
+                          </span>
+                          <span
+                            className="text-xl font-black uppercase"
+                            style={{ color: TEAMS[activeDisplayTeam].color }}
+                          >
+                            {TEAMS[activeDisplayTeam].name}
+                          </span>
+                        </div>
+                      </div>
+                      <Radio className="w-6 h-6 text-white animate-pulse" />
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-[#06140e] border border-[#1d5740] text-center text-xs text-gray-400 italic">
+                      Nenhuma equipe sorteada no momento.
                     </div>
                   )}
-                  <div>
-                    <span className="text-xs text-gray-300 block">Equipe no Microfone:</span>
-                    <span
-                      className="text-xl font-black uppercase"
-                      style={{ color: TEAMS[state.drawnTeam].color }}
-                    >
-                      {TEAMS[state.drawnTeam].name}
+
+                  {/* Remaining teams in round */}
+                  <div className="mt-3">
+                    <span className="text-[11px] text-gray-400 block mb-1">
+                      Restam sortear nesta rodada:
                     </span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {state.teamsAvailableInRound.map((t) => (
+                        <span
+                          key={t}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm"
+                          style={{ backgroundColor: TEAMS[t].color }}
+                        >
+                          {TEAMS[t].logo && (
+                            <img src={TEAMS[t].logo} alt={t} className="w-3 h-3 object-contain" />
+                          )}
+                          {t}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <Radio className="w-6 h-6 text-white animate-pulse" />
-              </div>
-            ) : (
-              <div className="p-3 rounded-xl bg-[#06140e] border border-[#1d5740] text-center text-xs text-gray-400 italic">
-                Nenhuma equipe sorteada no momento.
-              </div>
-            )}
 
-            {/* Remaining teams in round */}
-            <div className="mt-3">
-              <span className="text-[11px] text-gray-400 block mb-1">
-                Restam sortear nesta rodada:
-              </span>
-              <div className="flex gap-1.5 flex-wrap">
-                {state.teamsAvailableInRound.map((t) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm"
-                    style={{ backgroundColor: TEAMS[t].color }}
-                  >
-                    {TEAMS[t].logo && (
-                      <img src={TEAMS[t].logo} alt={t} className="w-3 h-3 object-contain" />
-                    )}
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+                {/* Leaderboard with Manual Point Adjustment (Type & Save) */}
+                <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                      <Trophy className="w-4 h-4 text-amber-400" />
+                      Placar ao Vivo (Ajuste de Pontos)
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Digite o novo valor e clique em <span className="text-emerald-400 font-bold">Salvar</span> para alterar imediatamente a pontuação da sociedade.
+                  </p>
 
-          {/* Leaderboard with Emergency +5 / -5 buttons */}
-          <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-1.5">
-                <Trophy className="w-4 h-4 text-amber-400" />
-                Placar ao Vivo (Ajuste Rápido)
-              </h3>
-            </div>
-            <p className="text-[11px] text-gray-400">
-              Use os botões <span className="text-red-400 font-bold">-5</span> e{' '}
-              <span className="text-emerald-400 font-bold">+5</span> para eventuais correções manuais instantâneas.
-            </p>
-
-            <Leaderboard
-              scores={state.scores}
-              actionCards={state.actionCards}
-              compact={true}
-              highlightTeam={state.drawnTeam}
-              onEmergencyAdjust={emergencyScoreAdjust}
-            />
-          </div>
+                  <Leaderboard
+                    scores={state.scores}
+                    actionCards={state.actionCards}
+                    compact={true}
+                    highlightTeam={activeDisplayTeam}
+                    onSetScore={setTeamScore}
+                  />
+                </div>
+              </>
+            );
+          })()}
 
           {/* Question List Navigator */}
           <div className="p-4 rounded-2xl bg-[#0c231a] border border-[#1d5740] flex flex-col gap-2.5">

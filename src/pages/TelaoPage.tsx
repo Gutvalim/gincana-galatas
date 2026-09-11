@@ -47,6 +47,12 @@ export const TelaoPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSound]);
 
+  const currentActiveTeam =
+    state.drawnTeam ||
+    (state.stage === 'roulette' && state.teamsAvailableInRound.length === 1
+      ? state.teamsAvailableInRound[0]
+      : null);
+
   return (
     <div className="relative w-screen h-screen bg-[#06140e] text-white flex flex-col justify-between overflow-hidden select-none font-sans">
       {/* Background Ambience / IPB Presbyterian Green & Gold Glow */}
@@ -72,20 +78,20 @@ export const TelaoPage: React.FC = () => {
 
         {/* Center Live Badge */}
         <div className="flex items-center gap-3">
-          {state.drawnTeam && TEAMS[state.drawnTeam] && (
+          {currentActiveTeam && TEAMS[currentActiveTeam] && (
             <div
               className="px-4 py-1 rounded-full border flex items-center gap-2 animate-pulse shadow-md"
               style={{
-                borderColor: TEAMS[state.drawnTeam].color,
-                backgroundColor: `${TEAMS[state.drawnTeam].color}25`,
+                borderColor: TEAMS[currentActiveTeam].color,
+                backgroundColor: `${TEAMS[currentActiveTeam].color}25`,
               }}
             >
               <span className="text-xs text-gray-300 uppercase font-semibold">Vez de:</span>
               <span
                 className="font-black text-sm uppercase"
-                style={{ color: TEAMS[state.drawnTeam].color }}
+                style={{ color: TEAMS[currentActiveTeam].color }}
               >
-                {TEAMS[state.drawnTeam].name}
+                {TEAMS[currentActiveTeam].name}
               </span>
             </div>
           )}
@@ -177,31 +183,107 @@ export const TelaoPage: React.FC = () => {
         {/* STAGE: ROULETTE */}
         {state.stage === 'roulette' && (
           <div className="flex flex-col items-center justify-center animate-fadeIn w-full max-w-4xl">
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white text-center drop-shadow mb-4">
-              Sorteio da Equipe
-            </h2>
-            <p className="text-sm sm:text-base text-gray-400 mb-6 text-center">
-              Quem responderá no microfone pelos pontos cheios?
-            </p>
-            <Roulette
-              teams={state.teamsAvailableInRound}
-              isSpinning={state.isSpinning}
-              targetTeam={state.spinningTargetTeam}
-              drawnTeam={state.drawnTeam}
-              spinSeed={state.spinSeed}
-              onFinish={finishSpin}
-            />
+            {state.teamsAvailableInRound.length === 1 ? (
+              (() => {
+                const singleTeam = state.teamsAvailableInRound[0];
+                const teamInfo = TEAMS[singleTeam];
+                return (
+                  <div className="flex flex-col items-center justify-center text-center animate-fadeIn w-full max-w-2xl py-4">
+                    <span className="px-5 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-black uppercase tracking-widest shadow-lg mb-6 animate-pulse">
+                      Última Sociedade da Rodada
+                    </span>
 
-            {/* Display active team's action cards when drawn */}
-            {state.drawnTeam && !state.isSpinning && (
-              <div className="w-full max-w-2xl mt-6 animate-fadeIn">
-                <ActionCardsHUD
-                  team={state.drawnTeam}
-                  inventory={state.actionCards?.[state.drawnTeam]}
-                  interactive={false}
-                  skipsUsedInRound={state.skipsUsedInRound || 0}
+                    <div
+                      className="w-full rounded-3xl p-8 sm:p-10 border-4 shadow-2xl flex flex-col items-center relative overflow-hidden transition-all duration-500"
+                      style={{
+                        borderColor: teamInfo.color,
+                        backgroundColor: `${teamInfo.color}18`,
+                        boxShadow: `0 0 50px ${teamInfo.color}40`,
+                      }}
+                    >
+                      {/* Ambient Glow */}
+                      <div
+                        className="absolute inset-0 opacity-20 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(circle at center, ${teamInfo.color}, transparent 70%)`,
+                        }}
+                      />
+
+                      {/* Team Logo */}
+                      <div className="relative z-10 w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-white/95 border-4 border-white/60 p-4 flex items-center justify-center shrink-0 shadow-2xl mb-6">
+                        {teamInfo.logo ? (
+                          <img
+                            src={teamInfo.logo}
+                            alt={teamInfo.name}
+                            className="w-full h-full object-contain drop-shadow"
+                          />
+                        ) : (
+                          <span
+                            className="text-5xl font-black"
+                            style={{ color: teamInfo.color }}
+                          >
+                            {singleTeam}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Team Name */}
+                      <span className="relative z-10 text-xs sm:text-sm text-gray-300 uppercase font-bold tracking-widest mb-1">
+                        Vez de Responder:
+                      </span>
+                      <h2
+                        className="relative z-10 text-4xl sm:text-6xl font-black uppercase tracking-tight drop-shadow-lg"
+                        style={{ color: teamInfo.color }}
+                      >
+                        {teamInfo.name}
+                      </h2>
+
+                      <p className="relative z-10 mt-3 text-sm sm:text-base text-gray-300 max-w-md font-medium">
+                        Única sociedade restante nesta rodada. Avance para a escolha do envelope!
+                      </p>
+
+                      {/* Action Cards HUD for this team */}
+                      <div className="relative z-10 w-full mt-6 pt-6 border-t border-white/10">
+                        <ActionCardsHUD
+                          team={singleTeam}
+                          inventory={state.actionCards?.[singleTeam]}
+                          interactive={false}
+                          skipsUsedInRound={state.skipsUsedInRound || 0}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : (
+              <>
+                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white text-center drop-shadow mb-4">
+                  Sorteio da Equipe
+                </h2>
+                <p className="text-sm sm:text-base text-gray-400 mb-6 text-center">
+                  Quem responderá no microfone pelos pontos cheios?
+                </p>
+                <Roulette
+                  teams={state.teamsAvailableInRound}
+                  isSpinning={state.isSpinning}
+                  targetTeam={state.spinningTargetTeam}
+                  drawnTeam={state.drawnTeam}
+                  spinSeed={state.spinSeed}
+                  onFinish={finishSpin}
                 />
-              </div>
+
+                {/* Display active team's action cards when drawn */}
+                {state.drawnTeam && !state.isSpinning && (
+                  <div className="w-full max-w-2xl mt-6 animate-fadeIn">
+                    <ActionCardsHUD
+                      team={state.drawnTeam}
+                      inventory={state.actionCards?.[state.drawnTeam]}
+                      interactive={false}
+                      skipsUsedInRound={state.skipsUsedInRound || 0}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

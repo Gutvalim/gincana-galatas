@@ -36,6 +36,7 @@ interface GameContextType {
   confirmOptionAnswer: (index: number) => { isCorrect: boolean };
   submitQuestionScore: (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => void;
   emergencyScoreAdjust: (team: TeamId, delta: number) => void;
+  setTeamScore: (team: TeamId, newScore: number) => void;
   selectRound: (round: number) => void;
   selectQuestion: (questionId: number) => void;
   selectCardQuestion: (questionId: number, cardIndex: number) => void;
@@ -601,6 +602,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ROULETTE
   const startRouletteSpin = useCallback((): TeamId | null => {
+    if (state.teamsAvailableInRound.length === 1) {
+      const onlyTeam = state.teamsAvailableInRound[0];
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          isSpinning: false,
+          drawnTeam: onlyTeam,
+          spinningTargetTeam: null,
+          stage: 'card_selection',
+        }),
+        { type: 'FINISH_SPIN', payload: onlyTeam }
+      );
+      return onlyTeam;
+    }
+
     const available = state.teamsAvailableInRound.length > 0 ? state.teamsAvailableInRound : ALL_TEAM_IDS;
     const randomIndex = Math.floor(Math.random() * available.length);
     const targetTeam = available[randomIndex];
@@ -1009,6 +1025,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [state.scores, updateStateAndSync]
   );
 
+  // MANUAL SET SCORE (Set directly to a typed number)
+  const setTeamScore = useCallback(
+    (team: TeamId, newScore: number) => {
+      const clamped = Math.max(0, Math.floor(newScore));
+      const oldScore = state.scores[team] || 0;
+      const delta = clamped - oldScore;
+      const newScores = {
+        ...state.scores,
+        [team]: clamped,
+      };
+
+      updateStateAndSync(
+        (prev) => ({ ...prev, scores: newScores }),
+        { type: 'EMERGENCY_SCORE', payload: { team, delta, newScores } }
+      );
+    },
+    [state.scores, updateStateAndSync]
+  );
+
   // SELECT ROUND (1 to 7)
   const selectRound = useCallback(
     (round: number) => {
@@ -1219,6 +1254,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             canAdvance: false,
           };
         }
+        if (state.teamsAvailableInRound.length === 1) {
+          const lastTeam = state.teamsAvailableInRound[0];
+          return {
+            label: `Ir para Escolha de Cards (${TEAMS[lastTeam]?.name || lastTeam})`,
+            actionDescription: 'Última equipe da rodada (definida diretamente sem roleta)',
+            canAdvance: true,
+          };
+        }
         if (!state.drawnTeam) {
           return {
             label: 'Girar Roleta',
@@ -1342,7 +1385,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       case 'roulette':
         if (state.isSpinning) return;
-        if (!state.drawnTeam) {
+        if (state.teamsAvailableInRound.length === 1) {
+          const lastTeam = state.teamsAvailableInRound[0];
+          updateStateAndSync(
+            (prev) => ({
+              ...prev,
+              drawnTeam: lastTeam,
+              isSpinning: false,
+              spinningTargetTeam: null,
+              stage: 'card_selection',
+            }),
+            { type: 'FINISH_SPIN', payload: lastTeam }
+          );
+        } else if (!state.drawnTeam) {
           startRouletteSpin();
         } else {
           setStage('card_selection');
@@ -1459,11 +1514,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       case 'leaderboard':
         if (state.teamsAvailableInRound.length > 0) {
           // Return to roulette with remaining teams!
+          const onlyOneLeft = state.teamsAvailableInRound.length === 1;
+          const preSelected = onlyOneLeft ? state.teamsAvailableInRound[0] : null;
           updateStateAndSync(
             (prev) => ({
               ...prev,
               stage: 'roulette',
-              drawnTeam: null,
+              drawnTeam: preSelected,
               isSpinning: false,
               spinningTargetTeam: null,
             }),
@@ -1543,6 +1600,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         confirmOptionAnswer,
         submitQuestionScore,
         emergencyScoreAdjust,
+        setTeamScore,
         selectRound,
         selectQuestion,
         selectCardQuestion,
