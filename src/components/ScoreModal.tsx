@@ -1,0 +1,188 @@
+import React, { useState } from 'react';
+import type { TeamId, Question } from '../types/game';
+import { TEAMS, ALL_TEAM_IDS } from '../types/game';
+import { Check, X, Award, FileText, CheckSquare, Square } from 'lucide-react';
+
+interface ScoreModalProps {
+  isOpen: boolean;
+  question: Question;
+  drawnTeam: TeamId | null;
+  onClose: () => void;
+  onConfirm: (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => void;
+}
+
+export const ScoreModal: React.FC<ScoreModalProps> = ({
+  isOpen,
+  question,
+  drawnTeam,
+  onClose,
+  onConfirm,
+}) => {
+  const [drawnCorrect, setDrawnCorrect] = useState<boolean>(true);
+  const [paperCorrectTeams, setPaperCorrectTeams] = useState<TeamId[]>([]);
+
+  if (!isOpen) return null;
+
+  const fullPts = question.pontosCheios;
+  const halfPts = question.pontosMeios;
+
+  // Teams other than the drawn team that responded on paper
+  const otherTeams = ALL_TEAM_IDS.filter((t) => t !== drawnTeam);
+
+  const togglePaperTeam = (t: TeamId) => {
+    setPaperCorrectTeams((prev) =>
+      prev.includes(t) ? prev.filter((id) => id !== t) : [...prev, t]
+    );
+  };
+
+  const handleConfirm = () => {
+    onConfirm(drawnCorrect, paperCorrectTeams);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-xl bg-[#111827] border-2 border-cyan-500/50 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)] flex flex-col gap-6">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+          <div>
+            <h3 className="text-2xl font-black text-white flex items-center gap-2">
+              <Award className="w-6 h-6 text-amber-400" />
+              Lançamento de Pontos
+            </h3>
+            <p className="text-sm text-gray-400 font-medium">
+              Pergunta #{question.id} • {question.categoria} (Microfone: {fullPts} pts | Papel: {halfPts} pts)
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Section 1: Drawn Team (Microphone) */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+              🎤 Equipe no Microfone:
+            </span>
+            {drawnTeam ? (
+              <span
+                className="px-3 py-1 rounded-full text-xs font-black text-white"
+                style={{ backgroundColor: TEAMS[drawnTeam].color }}
+              >
+                {TEAMS[drawnTeam].name} ({TEAMS[drawnTeam].fullName})
+              </span>
+            ) : (
+              <span className="text-xs text-amber-400 italic">
+                Nenhuma equipe sorteada
+              </span>
+            )}
+          </div>
+
+          {drawnTeam ? (
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDrawnCorrect(true)}
+                className={`py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 border-2 transition-all ${
+                  drawnCorrect
+                    ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.5)] scale-[1.02]'
+                    : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800'
+                }`}
+              >
+                <Check className="w-5 h-5" />
+                Acertou (+{fullPts} pts)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDrawnCorrect(false)}
+                className={`py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 border-2 transition-all ${
+                  !drawnCorrect
+                    ? 'bg-red-600 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-[1.02]'
+                    : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800'
+                }`}
+              >
+                <X className="w-5 h-5" />
+                Errou (0 pts)
+              </button>
+            </div>
+          ) : (
+            <div className="p-3 bg-gray-800/40 rounded-xl text-center text-xs text-gray-400">
+              Sorteie uma equipe na roleta antes de pontuar no microfone.
+            </div>
+          )}
+        </div>
+
+        {/* Section 2: Other 4 Teams on Paper */}
+        <div className="flex flex-col gap-3">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+            <FileText className="w-4 h-4 text-purple-400" />
+            Equipes no Papel (Concorrem a +{halfPts} pts):
+          </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {otherTeams.map((teamId) => {
+              const team = TEAMS[teamId];
+              const isChecked = paperCorrectTeams.includes(teamId);
+
+              return (
+                <button
+                  type="button"
+                  key={teamId}
+                  onClick={() => togglePaperTeam(teamId)}
+                  className={`p-3 rounded-xl border-2 flex items-center justify-between transition-all ${
+                    isChecked
+                      ? 'border-purple-400 bg-purple-950/60 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                      : 'border-gray-800 bg-[#1f2937]/70 text-gray-400 hover:border-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="w-3 h-3 rounded-full shadow"
+                      style={{ backgroundColor: team.color }}
+                    />
+                    <span className="font-bold text-sm text-gray-200">
+                      {team.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-purple-300">
+                      +{halfPts} pts
+                    </span>
+                    {isChecked ? (
+                      <CheckSquare className="w-5 h-5 text-purple-400" />
+                    ) : (
+                      <Square className="w-5 h-5 text-gray-600" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 pt-2 border-t border-gray-800">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3 px-4 rounded-xl border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-sm transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="flex-2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-sm sm:text-base uppercase tracking-wider shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all"
+          >
+            Confirmar e Atualizar Placar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
