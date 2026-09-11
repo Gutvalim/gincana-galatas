@@ -351,6 +351,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 answerStatus: action.payload ? 'correct' : 'idle',
                 selectedOptionIndex: action.payload ? prev.selectedOptionIndex : null,
                 stage: action.payload ? 'reveal' : (prev.stage === 'reveal' ? 'question' : prev.stage),
+                ...(action.payload ? { isTimerRunning: false, timerEndTimestamp: null } : {}),
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -388,6 +389,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 answerStatus: action.payload.isCorrect ? 'correct' : 'wrong',
                 scores: action.payload.newScores ?? prev.scores,
                 stage: 'reveal',
+                isTimerRunning: false,
+                timerEndTimestamp: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -689,6 +692,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         answerStatus: targetState ? 'correct' : 'idle',
         selectedOptionIndex: targetState ? prev.selectedOptionIndex : null,
         stage: targetState ? 'reveal' : (prev.stage === 'reveal' ? 'question' : prev.stage),
+        ...(targetState ? { isTimerRunning: false, timerEndTimestamp: null } : {}),
       }),
       { type: 'REVEAL_ANSWER', payload: targetState }
     );
@@ -739,6 +743,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           answerStatus: isCorrect ? 'correct' : 'wrong',
           scores: newScores,
           stage: 'reveal',
+          isTimerRunning: false,
+          timerEndTimestamp: null,
         }),
         {
           type: 'CONFIRM_ANSWER',
