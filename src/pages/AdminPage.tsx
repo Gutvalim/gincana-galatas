@@ -32,6 +32,7 @@ import {
   ArrowRight,
   Undo2,
   Check,
+  XCircle,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -54,6 +55,7 @@ export const AdminPage: React.FC = () => {
     toggleReveal,
     preselectOption,
     confirmOptionAnswer,
+    evaluateDissertativeAnswer,
     submitQuestionScore,
     setTeamScore,
     selectRound,
@@ -478,6 +480,61 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* DISSERTATIVE EVALUATION ACTION BAR (FOR ESSAY / DISSERTATIVE QUESTIONS) */}
+              {currentQuestion.tipo === 'dissertativa' && (
+                <div className="p-4 rounded-2xl bg-[#071a13] border-2 border-[#1d5740] flex flex-col gap-3 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-amber-400" />
+                      Avaliação da Resposta (Mesa Julgadora):
+                    </span>
+                    {state.answerStatus !== 'idle' && (
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase ${
+                          state.answerStatus === 'correct'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                        }`}
+                      >
+                        {state.answerStatus === 'correct' ? 'Marcado: Acertou (+pts)' : 'Marcado: Errou (0 pts)'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Botão Errou */}
+                    <button
+                      type="button"
+                      onClick={() => evaluateDissertativeAnswer(false)}
+                      className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 border-2 transition-all cursor-pointer ${
+                        state.answerStatus === 'wrong'
+                          ? 'bg-red-600 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)]'
+                          : 'bg-red-950/40 border-red-800/60 text-red-300 hover:bg-red-900/60 hover:border-red-600'
+                      }`}
+                      title="Marcar que a equipe errou no microfone (toca som de erro e não pontua)"
+                    >
+                      <XCircle className="w-4 h-4 text-red-400" />
+                      Equipe Errou (0 pts)
+                    </button>
+
+                    {/* Botão Acertou */}
+                    <button
+                      type="button"
+                      onClick={() => evaluateDissertativeAnswer(true)}
+                      className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 border-2 transition-all cursor-pointer ${
+                        state.answerStatus === 'correct'
+                          ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)]'
+                          : 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/60 hover:border-emerald-600'
+                      }`}
+                      title={`Marcar que a equipe acertou no microfone (credita +${currentQuestion.pontosCheios} pts)`}
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      Equipe Acertou (+{currentQuestion.pontosCheios} pts)
+                    </button>
+                  </div>
                 </div>
               )}
 

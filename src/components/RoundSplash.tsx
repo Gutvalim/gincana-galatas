@@ -53,7 +53,6 @@ export const RoundSplash: React.FC<RoundSplashProps> = ({ round }) => {
           <span className="text-4xl sm:text-5xl font-black text-purple-400 font-mono mt-1">
             {info.pointsHalf} <span className="text-lg text-gray-300 font-bold">PTS</span>
           </span>
-          <span className="text-xs text-gray-400 mt-1">Metade dos Pontos (Outras 4 Equipes)</span>
         </div>
       </div>
 

@@ -199,14 +199,54 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
         </div>
       )}
 
-      {/* Dissertative Answer (Revealed) */}
+      {/* Dissertative Answer (Revealed / Evaluated) */}
       {question.tipo === 'dissertativa' && (
-        <div className="w-full">
+        <div className="w-full flex flex-col gap-4">
+          {/* Wrong Answer Alert Banner */}
+          {answerStatus === 'wrong' && (
+            <div className="p-5 rounded-2xl border-2 border-red-500 bg-red-950/80 text-red-100 shadow-[0_0_35px_rgba(239,68,68,0.7)] flex items-center justify-between animate-fadeIn">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-8 h-8 text-red-400 animate-pulse shrink-0" />
+                <div>
+                  <span className="text-sm font-black uppercase tracking-wider text-red-300 block">
+                    Resposta Incorreta!
+                  </span>
+                  <span className="text-base sm:text-lg font-bold text-white">
+                    {team ? `${team.name} errou e não pontuou nesta questão.` : 'A equipe errou no microfone (0 pts).'}
+                  </span>
+                </div>
+              </div>
+              <span className="px-3.5 py-1.5 rounded-xl bg-red-600 text-white font-black text-sm uppercase shadow">
+                0 pts
+              </span>
+            </div>
+          )}
+
+          {/* Correct Answer Banner (Celebratory) */}
+          {answerStatus === 'correct' && (
+            <div className="p-5 rounded-2xl border-2 border-emerald-400 bg-emerald-950/80 text-emerald-100 shadow-[0_0_35px_rgba(16,185,129,0.7)] flex items-center justify-between animate-fadeIn">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 animate-bounce shrink-0" />
+                <div>
+                  <span className="text-sm font-black uppercase tracking-wider text-emerald-300 block">
+                    Resposta Correta!
+                  </span>
+                  <span className="text-base sm:text-lg font-bold text-white">
+                    {team ? `${team.name} acertou no microfone!` : 'A equipe acertou a resposta!'}
+                  </span>
+                </div>
+              </div>
+              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-black font-black text-sm uppercase shadow">
+                +{question.pontosCheios} pts
+              </span>
+            </div>
+          )}
+
           {isRevealed ? (
             <div className="p-6 rounded-2xl border-2 border-emerald-400 bg-emerald-950/70 text-emerald-100 shadow-[0_0_35px_rgba(16,185,129,0.4)] animate-fadeIn">
               <div className="flex items-center gap-2 text-emerald-400 text-sm font-black uppercase tracking-wider mb-2">
                 <CheckCircle2 className="w-5 h-5" />
-                Resposta Correta Oficial:
+                {answerStatus === 'wrong' ? 'Gabarito Oficial:' : 'Resposta Correta Oficial:'}
               </div>
               <p className="text-2xl sm:text-3xl font-extrabold text-white">
                 "{question.respostaCorreta}"
@@ -215,7 +255,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           ) : (
             <div className="p-6 rounded-2xl border-2 border-dashed border-gray-700 bg-gray-900/40 text-center text-gray-400">
               <span className="text-lg font-bold">
-                Pergunta Dissertativa • Responda no microfone e no papel!
+                Pergunta Dissertativa • Responda no microfone!
               </span>
             </div>
           )}

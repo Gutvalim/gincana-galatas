@@ -34,6 +34,7 @@ interface GameContextType {
   toggleReveal: (forceState?: boolean) => void;
   preselectOption: (index: number | null) => void;
   confirmOptionAnswer: (index: number) => { isCorrect: boolean };
+  evaluateDissertativeAnswer: (isCorrect: boolean) => void;
   submitQuestionScore: (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => void;
   emergencyScoreAdjust: (team: TeamId, delta: number) => void;
   setTeamScore: (team: TeamId, newScore: number) => void;
@@ -125,9 +126,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           case 'CHANGE_STAGE':
             setState((prev) => {
+              const targetTeam =
+                action.payload === 'card_selection' && prev.teamsAvailableInRound.length === 1
+                  ? prev.teamsAvailableInRound[0]
+                  : prev.drawnTeam;
               const updated = {
                 ...prev,
                 stage: action.payload,
+                drawnTeam: targetTeam,
+                isSpinning: false,
+                spinningTargetTeam: null,
                 ...(action.payload === 'question' || action.payload === 'card_selection' || action.payload === 'roulette'
                   ? {
                       isRevealed: false,
@@ -396,7 +404,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const updated: GameState = {
                 ...prev,
                 isRevealed: true,
-                selectedOptionIndex: action.payload.optionIndex,
+                selectedOptionIndex:
+                  action.payload.optionIndex >= 0 ? action.payload.optionIndex : null,
                 answerStatus: action.payload.isCorrect ? 'correct' : 'wrong',
                 scores: action.payload.newScores ?? prev.scores,
                 stage: 'reveal',
@@ -588,6 +597,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (prev) => ({
         ...prev,
         stage,
+        drawnTeam:
+          stage === 'card_selection' && prev.teamsAvailableInRound.length === 1
+            ? prev.teamsAvailableInRound[0]
+            : prev.drawnTeam,
         ...(stage === 'question' || stage === 'card_selection' || stage === 'roulette'
           ? {
               isRevealed: false,
@@ -611,8 +624,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           drawnTeam: onlyTeam,
           spinningTargetTeam: null,
           stage: 'card_selection',
+          isRevealed: false,
+          answerStatus: 'idle',
+          selectedOptionIndex: null,
         }),
-        { type: 'FINISH_SPIN', payload: onlyTeam }
+        { type: 'CHANGE_STAGE', payload: 'card_selection' }
       );
       return onlyTeam;
     }
@@ -796,6 +812,47 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       );
 
       return { isCorrect };
+    },
+    [currentQuestion, state.scores, state.drawnTeam, updateStateAndSync]
+  );
+
+  // EVALUATE DISSERTATIVE ANSWER (From Admin: marks correct or wrong, plays sounds, updates score)
+  const evaluateDissertativeAnswer = useCallback(
+    (isCorrect: boolean) => {
+      const q = currentQuestion;
+      const newScores = { ...state.scores };
+
+      if (isCorrect) {
+        sounds.playCorrectReveal();
+        const fullPts = q?.pontosCheios ?? 10;
+        if (state.drawnTeam) {
+          newScores[state.drawnTeam] = (newScores[state.drawnTeam] || 0) + fullPts;
+        }
+      } else {
+        sounds.playWrongAnswer();
+      }
+
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          isRevealed: true,
+          selectedOptionIndex: null,
+          answerStatus: isCorrect ? 'correct' : 'wrong',
+          scores: newScores,
+          stage: 'reveal',
+          isTimerRunning: false,
+          timerEndTimestamp: null,
+        }),
+        {
+          type: 'CONFIRM_ANSWER',
+          payload: {
+            optionIndex: -1,
+            isCorrect,
+            drawnTeam: state.drawnTeam,
+            newScores,
+          },
+        }
+      );
     },
     [currentQuestion, state.scores, state.drawnTeam, updateStateAndSync]
   );
@@ -1394,8 +1451,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               isSpinning: false,
               spinningTargetTeam: null,
               stage: 'card_selection',
+              isRevealed: false,
+              answerStatus: 'idle',
+              selectedOptionIndex: null,
             }),
-            { type: 'FINISH_SPIN', payload: lastTeam }
+            { type: 'CHANGE_STAGE', payload: 'card_selection' }
           );
         } else if (!state.drawnTeam) {
           startRouletteSpin();
@@ -1523,8 +1583,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               drawnTeam: preSelected,
               isSpinning: false,
               spinningTargetTeam: null,
-            }),
-            { type: 'CHANGE_STAGE', payload: 'roulette' }
+            })
           );
         } else {
           // Round completed
@@ -1598,6 +1657,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleReveal,
         preselectOption,
         confirmOptionAnswer,
+        evaluateDissertativeAnswer,
         submitQuestionScore,
         emergencyScoreAdjust,
         setTeamScore,
