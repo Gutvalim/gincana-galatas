@@ -126,26 +126,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           case 'CHANGE_STAGE':
             setState((prev) => {
-              const isSingleTeamUCP =
-                action.payload === 'card_selection' &&
-                prev.teamsAvailableInRound.length === 1 &&
-                prev.teamsAvailableInRound[0] === 'UCP';
-
-              const kidsTitularQ = isSingleTeamUCP
-                ? questions.find((q) => q.rodada === prev.currentRound && q.isKids && !q.isKidsBackup)
-                : null;
-              const effectiveStage = isSingleTeamUCP ? 'question' : action.payload;
+              const effectiveStage = action.payload;
               const targetTeam =
                 action.payload === 'card_selection' && prev.teamsAvailableInRound.length === 1
                   ? prev.teamsAvailableInRound[0]
                   : prev.drawnTeam;
-              const effectiveQId = kidsTitularQ ? kidsTitularQ.id : prev.currentQuestionId;
 
               const updated = {
                 ...prev,
                 stage: effectiveStage,
                 drawnTeam: targetTeam,
-                currentQuestionId: effectiveQId,
                 isSpinning: false,
                 spinningTargetTeam: null,
                 ...(effectiveStage === 'question' || action.payload === 'card_selection' || action.payload === 'roulette'
@@ -153,11 +143,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       isRevealed: false,
                       answerStatus: 'idle' as const,
                       selectedOptionIndex: null,
-                    }
-                  : {}),
-                ...(isSingleTeamUCP && kidsTitularQ && !prev.usedQuestionIdsInRound.includes(kidsTitularQ.id)
-                  ? {
-                      usedQuestionIdsInRound: [...prev.usedQuestionIdsInRound, kidsTitularQ.id],
                     }
                   : {}),
                 lastUpdated: Date.now(),
@@ -290,13 +275,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               } else if (cardType === 'fiftyFifty') {
                 announcement = `🌓 50/50: 2 alternativas eliminadas para ${team}!`;
               } else if (cardType === 'skip') {
-                if (team === 'UCP' && newQuestionId) {
-                  announcement = `🏃‍♂️ UCP usou a carta Pular! Pergunta Kids Reserva ativada!`;
+                if (team === 'UCP') {
+                  const nextUcpSkips = (prev.ucpSkipsInRound || 0) + 1;
+                  announcement =
+                    nextUcpSkips >= 2
+                      ? `🏃‍♂️ UCP pulou novamente! Escolha uma nova carta para a Pergunta Kids Reserva Especial!`
+                      : `🏃‍♂️ UCP usou a carta Pular! Escolha uma nova carta para a Pergunta Kids Reserva!`;
                   newTimerSeconds = 60;
                   newTimerMaxSeconds = 60;
                   newTimerEndTimestamp = null;
                   isRunning = false;
-                  nextStage = 'question';
+                  nextStage = 'card_selection';
                 } else {
                   announcement = `🏃‍♂️ ${team} Pulou a Pergunta! Resposta no Papel Liberada!`;
                 }
@@ -313,6 +302,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     : prev.eliminatedOptionIndices,
                 isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
                 skipsUsedInRound: cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : (prev.skipsUsedInRound || 0),
+                ucpSkipsInRound: cardType === 'skip' && team === 'UCP' ? (prev.ucpSkipsInRound || 0) + 1 : (prev.ucpSkipsInRound || 0),
                 timerSeconds: newTimerSeconds,
                 timerMaxSeconds: newTimerMaxSeconds,
                 timerEndTimestamp: newTimerEndTimestamp,
@@ -637,26 +627,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       updateStateAndSync(
         (prev) => {
-          const isSingleTeamUCP =
-            stage === 'card_selection' &&
-            prev.teamsAvailableInRound.length === 1 &&
-            prev.teamsAvailableInRound[0] === 'UCP';
-
-          const kidsTitularQ = isSingleTeamUCP
-            ? questions.find((q) => q.rodada === prev.currentRound && q.isKids && !q.isKidsBackup)
-            : null;
-          const effectiveStage = isSingleTeamUCP ? 'question' : stage;
+          const effectiveStage = stage;
           const effectiveDrawnTeam =
             stage === 'card_selection' && prev.teamsAvailableInRound.length === 1
               ? prev.teamsAvailableInRound[0]
               : prev.drawnTeam;
-          const effectiveQId = kidsTitularQ ? kidsTitularQ.id : prev.currentQuestionId;
 
           return {
             ...prev,
             stage: effectiveStage,
             drawnTeam: effectiveDrawnTeam,
-            currentQuestionId: effectiveQId,
             ...(effectiveStage === 'question' || stage === 'card_selection' || stage === 'roulette'
               ? {
                   isRevealed: false,
@@ -667,28 +647,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   isTimerRunning: false,
                 }
               : {}),
-            ...(isSingleTeamUCP && kidsTitularQ && !prev.usedQuestionIdsInRound.includes(kidsTitularQ.id)
-              ? {
-                  usedQuestionIdsInRound: [...prev.usedQuestionIdsInRound, kidsTitularQ.id],
-                }
-              : {}),
           };
         },
         { type: 'CHANGE_STAGE', payload: stage }
       );
     },
-    [questions, updateStateAndSync]
+    [updateStateAndSync]
   );
 
   // ROULETTE
   const startRouletteSpin = useCallback((): TeamId | null => {
     if (state.teamsAvailableInRound.length === 1) {
       const onlyTeam = state.teamsAvailableInRound[0];
-      const kidsTitularQ =
-        onlyTeam === 'UCP'
-          ? questions.find((q) => q.rodada === state.currentRound && q.isKids && !q.isKidsBackup)
-          : null;
-      const kidsQId = kidsTitularQ ? kidsTitularQ.id : null;
 
       updateStateAndSync(
         (prev) => ({
@@ -696,28 +666,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isSpinning: false,
           drawnTeam: onlyTeam,
           spinningTargetTeam: null,
-          stage: onlyTeam === 'UCP' ? 'question' : 'card_selection',
-          currentQuestionId: kidsQId !== null ? kidsQId : prev.currentQuestionId,
+          stage: 'card_selection',
           isRevealed: false,
           answerStatus: 'idle',
           selectedOptionIndex: null,
-          ...(onlyTeam === 'UCP'
-            ? {
-                timerSeconds: 60,
-                timerMaxSeconds: 60,
-                isTimerRunning: false,
-                timerEndTimestamp: null,
-                eliminatedOptionIndices: [],
-                isQuestionSkipped: false,
-                activeCardAnnouncement: null,
-                usedQuestionIdsInRound:
-                  kidsQId !== null && !prev.usedQuestionIdsInRound.includes(kidsQId)
-                    ? [...prev.usedQuestionIdsInRound, kidsQId]
-                    : prev.usedQuestionIdsInRound,
-              }
-            : {}),
         }),
-        { type: 'CHANGE_STAGE', payload: onlyTeam === 'UCP' ? 'question' : 'card_selection' }
+        { type: 'CHANGE_STAGE', payload: 'card_selection' }
       );
       return onlyTeam;
     }
@@ -739,17 +693,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     return targetTeam;
-  }, [questions, state.currentRound, state.teamsAvailableInRound, updateStateAndSync]);
+  }, [state.teamsAvailableInRound, updateStateAndSync]);
 
   const finishSpin = useCallback(
     (team: TeamId) => {
       sounds.playRouletteSelected();
-
-      const kidsTitularQ =
-        team === 'UCP'
-          ? questions.find((q) => q.rodada === state.currentRound && q.isKids && !q.isKidsBackup)
-          : null;
-      const kidsQId = kidsTitularQ ? kidsTitularQ.id : null;
 
       updateStateAndSync(
         (prev) => ({
@@ -757,7 +705,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isSpinning: false,
           drawnTeam: team,
           spinningTargetTeam: null,
-          currentQuestionId: kidsQId !== null ? kidsQId : prev.currentQuestionId,
           isRevealed: false,
           answerStatus: 'idle',
           selectedOptionIndex: null,
@@ -768,44 +715,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         { type: 'FINISH_SPIN', payload: team }
       );
 
-      // After celebratory highlight on the roulette (2s), transition smoothly
+      // After celebratory highlight on the roulette (2s), transition smoothly to card_selection
       setTimeout(() => {
-        if (team === 'UCP') {
-          // UCP loads automatically the Kids Titular question and transitions directly to stage: 'question'!
-          updateStateAndSync(
-            (prev) => ({
-              ...prev,
-              stage: 'question',
-              currentQuestionId: kidsQId !== null ? kidsQId : prev.currentQuestionId,
-              isRevealed: false,
-              answerStatus: 'idle',
-              selectedOptionIndex: null,
-              timerSeconds: 60,
-              timerMaxSeconds: 60,
-              isTimerRunning: false,
-              timerEndTimestamp: null,
-              eliminatedOptionIndices: [],
-              isQuestionSkipped: false,
-              activeCardAnnouncement: null,
-              usedQuestionIdsInRound:
-                kidsQId !== null && !prev.usedQuestionIdsInRound.includes(kidsQId)
-                  ? [...prev.usedQuestionIdsInRound, kidsQId]
-                  : prev.usedQuestionIdsInRound,
-            }),
-            { type: 'CHANGE_STAGE', payload: 'question' }
-          );
-        } else {
-          updateStateAndSync(
-            (prev) => ({
-              ...prev,
-              stage: 'card_selection',
-            }),
-            { type: 'CHANGE_STAGE', payload: 'card_selection' }
-          );
-        }
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            stage: 'card_selection',
+          }),
+          { type: 'CHANGE_STAGE', payload: 'card_selection' }
+        );
       }, 2000);
     },
-    [questions, state.currentRound, updateStateAndSync]
+    [updateStateAndSync]
   );
 
   // TIMER CONTROLS
@@ -1053,6 +974,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             stage: nextStage,
             eliminatedOptionIndices: [],
             isQuestionSkipped: false,
+            ucpSkipsInRound: 0,
             activeCardAnnouncement: null,
             history: [
               ...prev.history,
@@ -1155,18 +1077,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (cardType === 'skip') {
         sounds.playSkipCard();
         if (activeTeam === 'UCP') {
-          const kidsBackupQ = questions.find(
-            (q) => q.rodada === state.currentRound && q.isKids && q.isKidsBackup
-          );
-          if (kidsBackupQ) {
-            newQuestionId = kidsBackupQ.id;
-          }
-          announcement = `🏃‍♂️ UCP usou a carta Pular! Pergunta Kids Reserva ativada!`;
+          const nextUcpSkips = (state.ucpSkipsInRound || 0) + 1;
+          announcement =
+            nextUcpSkips >= 2
+              ? `🏃‍♂️ UCP pulou novamente! Escolha uma nova carta para a Pergunta Kids Reserva Especial!`
+              : `🏃‍♂️ UCP usou a carta Pular! Escolha uma nova carta para a Pergunta Kids Reserva!`;
           newTimerSeconds = 60;
           newTimerMaxSeconds = 60;
           newTimerEndTimestamp = null;
           isRunning = false;
-          nextStage = 'question';
+          nextStage = 'card_selection';
         } else {
           announcement = `🏃‍♂️ ${activeTeam} Pulou a Pergunta! Resposta no Papel Liberada!`;
         }
@@ -1185,6 +1105,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
           skipsUsedInRound:
             cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : (prev.skipsUsedInRound || 0),
+          ucpSkipsInRound:
+            cardType === 'skip' && activeTeam === 'UCP'
+              ? (prev.ucpSkipsInRound || 0) + 1
+              : (prev.ucpSkipsInRound || 0),
           timerSeconds: newTimerSeconds,
           timerMaxSeconds: newTimerMaxSeconds,
           timerEndTimestamp: newTimerEndTimestamp,
@@ -1228,6 +1152,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       state.timerMaxSeconds,
       state.stage,
       state.skipsUsedInRound,
+      state.ucpSkipsInRound,
       updateStateAndSync,
     ]
   );
@@ -1293,6 +1218,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
           skipsUsedInRound: 0,
+          ucpSkipsInRound: 0,
           activeCardAnnouncement: null,
         }),
         { type: 'SET_ROUND', payload: { round, questionId: qId } }
@@ -1314,16 +1240,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let resolvedQId = questionId;
 
       if (state.drawnTeam === 'UCP') {
-        const availableKidsQ =
-          questionsInRound.find(
-            (q) => q.isKids && !q.isKidsBackup && !state.usedQuestionIdsInRound.includes(q.id)
-          ) ||
-          questionsInRound.find(
-            (q) => q.isKids && !state.usedQuestionIdsInRound.includes(q.id)
-          ) ||
-          questionsInRound.find((q) => q.isKids);
-        if (availableKidsQ) {
-          resolvedQId = availableKidsQ.id;
+        const ucpSkips = state.ucpSkipsInRound || 0;
+        if (ucpSkips >= 2) {
+          // 2 pulos na mesma rodada pela UCP: reserva da rodada acima (ou rodada 5 se estiver na 6)
+          const targetRound = state.currentRound === 6 ? 5 : state.currentRound + 1;
+          const kidsBackupQ2 = questions.find(
+            (q) => q.rodada === targetRound && q.isKids && q.isKidsBackup
+          );
+          if (kidsBackupQ2) {
+            resolvedQId = kidsBackupQ2.id;
+          }
+        } else if (ucpSkips === 1 || state.isQuestionSkipped) {
+          // 1 pulo da UCP: reserva da rodada atual
+          const kidsBackupQ1 = questions.find(
+            (q) => q.rodada === state.currentRound && q.isKids && q.isKidsBackup
+          );
+          if (kidsBackupQ1) {
+            resolvedQId = kidsBackupQ1.id;
+          }
+        } else {
+          // Titular da rodada atual
+          const kidsTitularQ = questions.find(
+            (q) => q.rodada === state.currentRound && q.isKids && !q.isKidsBackup
+          );
+          if (kidsTitularQ) {
+            resolvedQId = kidsTitularQ.id;
+          }
         }
       } else {
         const naturalAdultQ = adultQuestions[cardIndex];
@@ -1384,7 +1326,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       }, 1400);
     },
-    [state.currentRound, state.drawnTeam, state.usedQuestionIdsInRound, updateStateAndSync]
+    [
+      questions,
+      state.currentRound,
+      state.drawnTeam,
+      state.isQuestionSkipped,
+      state.ucpSkipsInRound,
+      state.usedQuestionIdsInRound,
+      updateStateAndSync,
+    ]
   );
 
   // SELECT QUESTION MANUALLY
@@ -1600,84 +1550,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (state.isSpinning) return;
         if (state.teamsAvailableInRound.length === 1) {
           const lastTeam = state.teamsAvailableInRound[0];
-          if (lastTeam === 'UCP') {
-            const kidsTitularQ = questions.find(
-              (q) => q.rodada === state.currentRound && q.isKids && !q.isKidsBackup
-            );
-            const qId = kidsTitularQ ? kidsTitularQ.id : state.currentQuestionId;
-            updateStateAndSync(
-              (prev) => ({
-                ...prev,
-                drawnTeam: 'UCP',
-                isSpinning: false,
-                spinningTargetTeam: null,
-                stage: 'question',
-                currentQuestionId: qId,
-                isRevealed: false,
-                answerStatus: 'idle',
-                selectedOptionIndex: null,
-                timerSeconds: 60,
-                timerMaxSeconds: 60,
-                isTimerRunning: false,
-                timerEndTimestamp: null,
-                eliminatedOptionIndices: [],
-                isQuestionSkipped: false,
-                activeCardAnnouncement: null,
-                usedQuestionIdsInRound:
-                  !prev.usedQuestionIdsInRound.includes(qId)
-                    ? [...prev.usedQuestionIdsInRound, qId]
-                    : prev.usedQuestionIdsInRound,
-              }),
-              { type: 'CHANGE_STAGE', payload: 'question' }
-            );
-          } else {
-            updateStateAndSync(
-              (prev) => ({
-                ...prev,
-                drawnTeam: lastTeam,
-                isSpinning: false,
-                spinningTargetTeam: null,
-                stage: 'card_selection',
-                isRevealed: false,
-                answerStatus: 'idle',
-                selectedOptionIndex: null,
-              }),
-              { type: 'CHANGE_STAGE', payload: 'card_selection' }
-            );
-          }
+          updateStateAndSync(
+            (prev) => ({
+              ...prev,
+              drawnTeam: lastTeam,
+              isSpinning: false,
+              spinningTargetTeam: null,
+              stage: 'card_selection',
+              isRevealed: false,
+              answerStatus: 'idle',
+              selectedOptionIndex: null,
+            }),
+            { type: 'CHANGE_STAGE', payload: 'card_selection' }
+          );
         } else if (!state.drawnTeam) {
           startRouletteSpin();
         } else {
-          if (state.drawnTeam === 'UCP') {
-            const kidsTitularQ = questions.find(
-              (q) => q.rodada === state.currentRound && q.isKids && !q.isKidsBackup
-            );
-            const qId = kidsTitularQ ? kidsTitularQ.id : state.currentQuestionId;
-            updateStateAndSync(
-              (prev) => ({
-                ...prev,
-                stage: 'question',
-                currentQuestionId: qId,
-                isRevealed: false,
-                answerStatus: 'idle',
-                selectedOptionIndex: null,
-                timerSeconds: 60,
-                timerMaxSeconds: 60,
-                isTimerRunning: false,
-                timerEndTimestamp: null,
-                eliminatedOptionIndices: [],
-                isQuestionSkipped: false,
-                activeCardAnnouncement: null,
-                usedQuestionIdsInRound:
-                  !prev.usedQuestionIdsInRound.includes(qId)
-                    ? [...prev.usedQuestionIdsInRound, qId]
-                    : prev.usedQuestionIdsInRound,
-              }),
-              { type: 'CHANGE_STAGE', payload: 'question' }
-            );
-          } else {
-            setStage('card_selection');
-          }
+          setStage('card_selection');
         }
         break;
 

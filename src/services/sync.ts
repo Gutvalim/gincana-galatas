@@ -70,6 +70,7 @@ export const INITIAL_STATE: GameState = {
   eliminatedOptionIndices: [],
   isQuestionSkipped: false,
   skipsUsedInRound: 0,
+  ucpSkipsInRound: 0,
   activeCardAnnouncement: null,
   teamsAvailableInRound: [...ALL_TEAM_IDS],
   usedQuestionIdsInRound: [],

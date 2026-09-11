@@ -72,14 +72,14 @@ export const AdminPage: React.FC = () => {
 
   // Automatically open score modal when a question is skipped
   useEffect(() => {
-    if (state.isQuestionSkipped && (state.stage === 'question' || state.stage === 'timer' || state.stage === 'reveal')) {
+    if (state.isQuestionSkipped && state.drawnTeam !== 'UCP' && (state.stage === 'question' || state.stage === 'timer' || state.stage === 'reveal')) {
       setIsScoreModalOpen(true);
     }
-  }, [state.isQuestionSkipped, state.stage]);
+  }, [state.isQuestionSkipped, state.stage, state.drawnTeam]);
 
   const handleUseActionCard = (cardType: ActionCardType) => {
     useActionCard(cardType);
-    if (cardType === 'skip') {
+    if (cardType === 'skip' && state.drawnTeam !== 'UCP') {
       setIsScoreModalOpen(true);
     }
   };

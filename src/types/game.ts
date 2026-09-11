@@ -144,6 +144,7 @@ export interface GameState {
   eliminatedOptionIndices: number[];
   isQuestionSkipped: boolean;
   skipsUsedInRound: number;
+  ucpSkipsInRound?: number;
   activeCardAnnouncement: string | null;
   teamsAvailableInRound: TeamId[];
   usedQuestionIdsInRound: number[];

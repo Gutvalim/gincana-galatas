@@ -54,7 +54,7 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
       type: 'skip',
       name: 'Pular Pergunta',
       shortName: 'Pular',
-      desc: 'Passa a vez • Libera papel',
+      desc: team === 'UCP' ? 'Pula • Nova Carta Reserva' : 'Passa a vez • Libera papel',
       icon: <FastForward className="w-4 h-4 text-orange-400" />,
       count: inventory.skip,
       max: 2,
