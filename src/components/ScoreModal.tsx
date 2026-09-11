@@ -7,6 +7,7 @@ interface ScoreModalProps {
   isOpen: boolean;
   question: Question;
   drawnTeam: TeamId | null;
+  initialDrawnCorrect?: boolean;
   onClose: () => void;
   onConfirm: (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => void;
 }
@@ -15,11 +16,19 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
   isOpen,
   question,
   drawnTeam,
+  initialDrawnCorrect = true,
   onClose,
   onConfirm,
 }) => {
-  const [drawnCorrect, setDrawnCorrect] = useState<boolean>(true);
+  const [drawnCorrect, setDrawnCorrect] = useState<boolean>(initialDrawnCorrect);
   const [paperCorrectTeams, setPaperCorrectTeams] = useState<TeamId[]>([]);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setDrawnCorrect(initialDrawnCorrect);
+      setPaperCorrectTeams([]);
+    }
+  }, [isOpen, initialDrawnCorrect]);
 
   if (!isOpen) return null;
 

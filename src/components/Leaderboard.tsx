@@ -69,7 +69,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               <div className="flex items-center gap-2.5">
                 <span className="text-xs font-black text-gray-400 w-4">{rank + 1}º</span>
                 {team.logo ? (
-                  <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain" />
+                  <div className="w-6 h-6 rounded-lg bg-white/95 border border-white/50 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                    <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+                  </div>
                 ) : (
                   <span
                     className="w-3 h-3 rounded-full shadow"
@@ -113,11 +115,14 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4">
+    <div className="w-full max-w-5xl mx-auto space-y-4">
       {sortedTeams.map((teamId, rank) => {
         const team = TEAMS[teamId];
         const score = scores[teamId] || 0;
-        const percentage = Math.max(8, Math.min(100, (score / maxScore) * 100));
+        const percentage =
+          maxScore > 0 && score > 0
+            ? Math.min(100, Math.max(3, (score / maxScore) * 100))
+            : 0;
         const isHighlighted = highlightTeam === teamId;
 
         return (
@@ -139,11 +144,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             />
 
             <div className="relative z-10 px-6 py-4 flex items-center justify-between gap-4">
-              {/* Rank & Team Name */}
-              <div className="flex items-center gap-4 min-w-[220px]">
+              {/* Rank & Team Name - Fixed width column for perfect alignment */}
+              <div className="w-64 sm:w-80 shrink-0 flex items-center gap-3.5">
                 {getRankBadge(rank)}
                 {team.logo ? (
-                  <div className="w-12 h-12 rounded-xl bg-black/40 border border-[#1d5740] p-1.5 flex items-center justify-center shrink-0 shadow-md">
+                  <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/50 p-1 flex items-center justify-center shrink-0 shadow-md">
                     <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
                   </div>
                 ) : (
@@ -154,41 +159,42 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     {team.name.slice(0, 3)}
                   </div>
                 )}
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span
-                      className="text-2xl sm:text-3xl font-black uppercase tracking-wider"
+                      className="text-2xl sm:text-3xl font-black uppercase tracking-wider truncate"
                       style={{ color: team.color }}
                     >
                       {team.name}
                     </span>
-                    {rank === 0 && (
-                      <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase">
+                    {rank === 0 && score > 0 && (
+                      <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase shrink-0">
                         Líder
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400 hidden sm:block font-medium">
+                  <span className="text-xs text-gray-400 hidden sm:block font-medium truncate">
                     {team.fullName}
                   </span>
                 </div>
               </div>
 
-              {/* Progress Bar Line */}
+              {/* Progress Bar Line - Uniformly aligned across all teams */}
               <div className="flex-1 mx-4 hidden md:block">
-                <div className="w-full bg-gray-800/80 rounded-full h-3.5 overflow-hidden p-0.5 border border-gray-700">
+                <div className="w-full bg-gray-900/90 rounded-full h-4 overflow-hidden p-0.5 border border-gray-700/80 shadow-inner">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm"
+                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                     style={{
                       width: `${percentage}%`,
                       backgroundColor: team.color,
+                      boxShadow: percentage > 0 ? `0 0 12px ${team.color}80` : 'none',
                     }}
                   />
                 </div>
               </div>
 
-              {/* Score Number */}
-              <div className="flex items-baseline gap-1.5">
+              {/* Score Number - Fixed right column */}
+              <div className="w-28 sm:w-32 shrink-0 flex items-baseline justify-end gap-1.5">
                 <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                   {score}
                 </span>

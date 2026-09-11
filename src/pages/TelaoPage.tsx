@@ -56,24 +56,24 @@ export const TelaoPage: React.FC = () => {
       {/* Subtle Top Status Bar (Clean for projection) */}
       <header className="relative z-20 px-8 py-4 flex items-center justify-between border-b border-[#1d5740]/60 bg-[#06140e]/90 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#0c231a] flex items-center justify-center p-1 border border-amber-400/40 shadow-[0_0_20px_rgba(0,99,65,0.6)]">
+          <div className="w-11 h-11 rounded-full bg-white/95 flex items-center justify-center p-1 border-2 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] shrink-0">
             <img src="/logo.png" alt="IPBNB" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-wider uppercase text-white drop-shadow">
-              Gincana Gálatas <span className="text-amber-400">• IPBNB</span>
-            </h1>
-            <p className="text-xs text-gray-400 font-medium">
-              Igreja Presbiteriana do Brasil em Nova Brasília
+            <h2 className="text-sm font-black uppercase tracking-wider text-white">
+              Gincana Gálatas
+            </h2>
+            <p className="text-[11px] text-amber-300 font-semibold tracking-wide">
+              IPBNB • 2026
             </p>
           </div>
         </div>
 
-        {/* Center Current Stage / Drawn Team Indicator */}
-        <div className="hidden sm:flex items-center gap-3">
-          {state.drawnTeam && (
+        {/* Center Live Badge */}
+        <div className="flex items-center gap-3">
+          {state.drawnTeam && TEAMS[state.drawnTeam] && (
             <div
-              className="px-4 py-1.5 rounded-full border shadow flex items-center gap-2"
+              className="px-4 py-1 rounded-full border flex items-center gap-2 animate-pulse shadow-md"
               style={{
                 borderColor: TEAMS[state.drawnTeam].color,
                 backgroundColor: `${TEAMS[state.drawnTeam].color}25`,
@@ -118,7 +118,7 @@ export const TelaoPage: React.FC = () => {
         {/* STAGE: WELCOME */}
         {state.stage === 'welcome' && (
           <div className="flex flex-col items-center justify-center text-center animate-fadeIn max-w-3xl">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-[#0c231a] flex items-center justify-center p-4 shadow-[0_0_60px_rgba(0,99,65,0.7)] mb-8 border-4 border-amber-400">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-white/95 flex items-center justify-center p-4 shadow-[0_0_60px_rgba(251,191,36,0.5)] mb-8 border-4 border-amber-400">
               <img src="/logo.png" alt="IPBNB" className="w-full h-full object-contain drop-shadow" />
             </div>
 
@@ -210,7 +210,13 @@ export const TelaoPage: React.FC = () => {
         {/* STAGE: QUESTION */}
         {state.stage === 'question' && currentQuestion && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
-            <QuestionView question={currentQuestion} isRevealed={false} drawnTeam={state.drawnTeam} />
+            <QuestionView
+              question={currentQuestion}
+              isRevealed={state.isRevealed}
+              drawnTeam={state.drawnTeam}
+              selectedOptionIndex={state.selectedOptionIndex}
+              answerStatus={state.answerStatus}
+            />
           </div>
         )}
 
@@ -226,14 +232,27 @@ export const TelaoPage: React.FC = () => {
                 size={220}
               />
             </div>
-            <QuestionView question={currentQuestion} isRevealed={false} showPoints={false} drawnTeam={state.drawnTeam} />
+            <QuestionView
+              question={currentQuestion}
+              isRevealed={state.isRevealed}
+              showPoints={false}
+              drawnTeam={state.drawnTeam}
+              selectedOptionIndex={state.selectedOptionIndex}
+              answerStatus={state.answerStatus}
+            />
           </div>
         )}
 
         {/* STAGE: REVEAL */}
         {state.stage === 'reveal' && currentQuestion && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
-            <QuestionView question={currentQuestion} isRevealed={true} drawnTeam={state.drawnTeam} />
+            <QuestionView
+              question={currentQuestion}
+              isRevealed={state.isRevealed}
+              drawnTeam={state.drawnTeam}
+              selectedOptionIndex={state.selectedOptionIndex}
+              answerStatus={state.answerStatus}
+            />
           </div>
         )}
 

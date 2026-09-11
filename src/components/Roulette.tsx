@@ -207,7 +207,7 @@ export const Roulette: React.FC<RouletteProps> = ({
             }}
           >
             {TEAMS[drawnTeam].logo && (
-              <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/20 p-1 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
                 <img src={TEAMS[drawnTeam].logo} alt={TEAMS[drawnTeam].name} className="w-full h-full object-contain" />
               </div>
             )}

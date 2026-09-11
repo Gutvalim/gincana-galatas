@@ -43,6 +43,8 @@ export const AdminPage: React.FC = () => {
     add15Seconds,
     resetTimer,
     toggleReveal,
+    preselectOption,
+    confirmOptionAnswer,
     submitQuestionScore,
     emergencyScoreAdjust,
     selectRound,
@@ -53,6 +55,7 @@ export const AdminPage: React.FC = () => {
   } = useGame();
 
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
+  const [scoreModalInitialCorrect, setScoreModalInitialCorrect] = useState<boolean>(true);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
 
   // Open Telão in new tab/window
@@ -81,7 +84,7 @@ export const AdminPage: React.FC = () => {
       {/* HEADER */}
       <header className="px-6 py-4 bg-[#0c231a] border-b border-[#1d5740] flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#006341]/30 flex items-center justify-center p-1 border border-amber-400/40 shadow-[0_0_15px_rgba(0,99,65,0.6)]">
+          <div className="w-10 h-10 rounded-full bg-white/95 flex items-center justify-center p-1 border-2 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)] shrink-0">
             <img src="/logo.png" alt="IPBNB" className="w-full h-full object-contain" />
           </div>
           <div>
@@ -266,33 +269,107 @@ export const AdminPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Multiple Choice Options List */}
+              {/* Multiple Choice Options List with Interactive Selection */}
               {currentQuestion.tipo === 'multipla_escolha' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {currentQuestion.opcoes.map((op, idx) => {
-                    const isCorrect =
-                      op.trim().toLowerCase() === currentQuestion.respostaCorreta.trim().toLowerCase();
-                    return (
-                      <div
-                        key={idx}
-                        className={`p-3 rounded-xl border text-sm flex items-center justify-between ${
-                          isCorrect
-                            ? 'border-emerald-500 bg-emerald-950/60 text-emerald-200 font-bold'
-                            : 'border-gray-800 bg-gray-900/60 text-gray-400'
-                        }`}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                      <Radio className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                      Clique para marcar a resposta no Telão:
+                    </span>
+                    {state.selectedOptionIndex !== null && (
+                      <button
+                        onClick={() => preselectOption(null)}
+                        className="text-xs text-gray-400 hover:text-white underline cursor-pointer"
                       >
-                        <span>
-                          <strong className="mr-2 text-cyan-400">
-                            {['A', 'B', 'C', 'D'][idx] || idx + 1}:
-                          </strong>
-                          {op}
+                        Desmarcar opção
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {currentQuestion.opcoes.map((op, idx) => {
+                      const isCorrect =
+                        op.trim().toLowerCase() === currentQuestion.respostaCorreta.trim().toLowerCase();
+                      const isSelected = state.selectedOptionIndex === idx;
+
+                      let cardStyle =
+                        'border-gray-800 bg-gray-900/70 text-gray-300 hover:border-amber-400/60 hover:bg-gray-800/80';
+                      let letterStyle = 'bg-gray-800 text-cyan-400';
+
+                      if (isSelected) {
+                        cardStyle =
+                          'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)] ring-2 ring-amber-400 scale-[1.01]';
+                        letterStyle = 'bg-amber-400 text-black font-black';
+                      } else if (state.answerStatus === 'correct' && isCorrect) {
+                        cardStyle = 'border-emerald-500 bg-emerald-950/70 text-emerald-200 font-bold';
+                        letterStyle = 'bg-emerald-500 text-black font-black';
+                      } else if (state.answerStatus === 'wrong' && isSelected) {
+                        cardStyle = 'border-red-500 bg-red-950/70 text-red-200';
+                        letterStyle = 'bg-red-600 text-white font-black';
+                      }
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => preselectOption(idx)}
+                          className={`p-3 rounded-xl border text-sm flex items-center justify-between cursor-pointer transition-all ${cardStyle}`}
+                        >
+                          <div className="flex items-center gap-2.5 flex-1 pr-2">
+                            <span
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0 transition-colors ${letterStyle}`}
+                            >
+                              {['A', 'B', 'C', 'D'][idx] || idx + 1}
+                            </span>
+                            <span className="leading-snug">{op}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {isCorrect && (
+                              <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-950/90 px-2 py-0.5 rounded border border-emerald-500/50">
+                                Gabarito
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="text-xs font-black text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-400/40 animate-pulse">
+                                Marcada
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Confirmation Action Bar when an option is selected */}
+                  {state.selectedOptionIndex !== null && (
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#0d2a1f] to-[#071a13] border-2 border-amber-400/80 shadow-xl flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                          Opção selecionada no telão:
                         </span>
-                        {isCorrect && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        )}
+                        <span className="px-2.5 py-1 rounded-lg bg-amber-400 text-black font-black text-xs">
+                          {['A', 'B', 'C', 'D'][state.selectedOptionIndex]}: {currentQuestion.opcoes[state.selectedOptionIndex]}
+                        </span>
                       </div>
-                    );
-                  })}
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const res = confirmOptionAnswer(state.selectedOptionIndex!);
+                            if (!res.isCorrect) {
+                              setScoreModalInitialCorrect(false);
+                              setIsScoreModalOpen(true);
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          Confirmar Resposta Marcada
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -397,11 +474,14 @@ export const AdminPage: React.FC = () => {
 
                   {/* Open Score Modal */}
                   <button
-                    onClick={() => setIsScoreModalOpen(true)}
-                    className="py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:to-yellow-400 text-black font-black text-sm sm:text-base uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all"
+                    onClick={() => {
+                      setScoreModalInitialCorrect(true);
+                      setIsScoreModalOpen(true);
+                    }}
+                    className="py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:to-yellow-400 text-black font-black text-sm sm:text-base uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all cursor-pointer"
                   >
                     <Award className="w-5 h-5" />
-                    Lançar Pontos da Pergunta
+                    Lançar Pontos Manualmente
                   </button>
                 </div>
               </div>
@@ -426,11 +506,13 @@ export const AdminPage: React.FC = () => {
               >
                 <div className="flex items-center gap-3">
                   {TEAMS[state.drawnTeam].logo && (
-                    <img
-                      src={TEAMS[state.drawnTeam].logo}
-                      alt={TEAMS[state.drawnTeam].name}
-                      className="w-9 h-9 object-contain shrink-0"
-                    />
+                    <div className="w-10 h-10 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
+                      <img
+                        src={TEAMS[state.drawnTeam].logo}
+                        alt={TEAMS[state.drawnTeam].name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   )}
                   <div>
                     <span className="text-xs text-gray-300 block">Equipe no Microfone:</span>
@@ -531,6 +613,7 @@ export const AdminPage: React.FC = () => {
           isOpen={isScoreModalOpen}
           question={currentQuestion}
           drawnTeam={state.drawnTeam}
+          initialDrawnCorrect={scoreModalInitialCorrect}
           onClose={() => setIsScoreModalOpen(false)}
           onConfirm={(drawnCorrect, paperCorrectTeams) => {
             submitQuestionScore(drawnCorrect, paperCorrectTeams);

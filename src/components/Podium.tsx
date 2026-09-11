@@ -15,12 +15,15 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
   const second = sorted[1];
   const third = sorted[2];
 
-  // Shoot confetti repeatedly
+  // Shoot confetti repeatedly and cleanup on unmount
   useEffect(() => {
+    let animId: number;
+    let isCancelled = false;
     const duration = 15 * 1000;
     const animationEnd = Date.now() + duration;
 
     const frame = () => {
+      if (isCancelled) return;
       confetti({
         particleCount: 3,
         angle: 60,
@@ -37,11 +40,17 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
       });
 
       if (Date.now() < animationEnd) {
-        requestAnimationFrame(frame);
+        animId = requestAnimationFrame(frame);
       }
     };
 
     frame();
+
+    return () => {
+      isCancelled = true;
+      cancelAnimationFrame(animId);
+      confetti.reset();
+    };
   }, []);
 
   return (
@@ -69,7 +78,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
             }}
           >
             {TEAMS[winner].logo && (
-              <img src={TEAMS[winner].logo} alt={TEAMS[winner].name} className="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-2 drop-shadow-lg" />
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/95 border-2 border-white/60 p-2 flex items-center justify-center mb-2 shadow-lg">
+                <img src={TEAMS[winner].logo} alt={TEAMS[winner].name} className="w-full h-full object-contain drop-shadow-md" />
+              </div>
             )}
             <span
               className="text-4xl sm:text-6xl font-black tracking-widest uppercase"
@@ -95,7 +106,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
             <div className="flex flex-col items-center mb-3">
               <Medal className="w-8 h-8 text-slate-300" />
               {TEAMS[second].logo && (
-                <img src={TEAMS[second].logo} alt={TEAMS[second].name} className="w-8 h-8 object-contain my-1" />
+                <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center my-1 shadow-md">
+                  <img src={TEAMS[second].logo} alt={TEAMS[second].name} className="w-full h-full object-contain" />
+                </div>
               )}
               <span
                 className="font-black text-xl sm:text-2xl uppercase mt-1"
@@ -124,7 +137,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
             <div className="flex flex-col items-center mb-3">
               <Trophy className="w-12 h-12 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]" />
               {TEAMS[winner].logo && (
-                <img src={TEAMS[winner].logo} alt={TEAMS[winner].name} className="w-10 h-10 object-contain my-1" />
+                <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center my-1 shadow-md">
+                  <img src={TEAMS[winner].logo} alt={TEAMS[winner].name} className="w-full h-full object-contain" />
+                </div>
               )}
               <span
                 className="font-black text-2xl sm:text-3xl uppercase mt-1"
@@ -153,7 +168,9 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
             <div className="flex flex-col items-center mb-3">
               <Medal className="w-8 h-8 text-amber-700" />
               {TEAMS[third].logo && (
-                <img src={TEAMS[third].logo} alt={TEAMS[third].name} className="w-8 h-8 object-contain my-1" />
+                <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center my-1 shadow-md">
+                  <img src={TEAMS[third].logo} alt={TEAMS[third].name} className="w-full h-full object-contain" />
+                </div>
               )}
               <span
                 className="font-black text-xl sm:text-2xl uppercase mt-1"

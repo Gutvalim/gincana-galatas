@@ -134,6 +134,8 @@ export interface GameState {
   isTimerRunning: boolean;
   timerEndTimestamp: number | null;
   isRevealed: boolean;
+  selectedOptionIndex: number | null;
+  answerStatus: 'idle' | 'selected' | 'correct' | 'wrong';
   soundEnabled: boolean;
   history: ScoreEntry[];
   lastUpdated: number;

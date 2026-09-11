@@ -27,6 +27,8 @@ interface GameContextType {
   add15Seconds: () => void;
   resetTimer: () => void;
   toggleReveal: (forceState?: boolean) => void;
+  preselectOption: (index: number | null) => void;
+  confirmOptionAnswer: (index: number) => { isCorrect: boolean };
   submitQuestionScore: (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => void;
   emergencyScoreAdjust: (team: TeamId, delta: number) => void;
   selectRound: (round: number) => void;
@@ -250,7 +252,51 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               sounds.playCorrectReveal();
             }
             setState((prev) => {
-              const updated = { ...prev, isRevealed: action.payload, stage: 'reveal' as GameStage, lastUpdated: Date.now() };
+              const updated: GameState = {
+                ...prev,
+                isRevealed: action.payload,
+                answerStatus: action.payload ? 'correct' : 'idle',
+                selectedOptionIndex: action.payload ? prev.selectedOptionIndex : null,
+                stage: action.payload ? 'reveal' : (prev.stage === 'reveal' ? 'question' : prev.stage),
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'PRESELECT_OPTION':
+            if (action.payload.optionIndex !== null) {
+              sounds.playSelectionTick();
+            }
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                selectedOptionIndex: action.payload.optionIndex,
+                answerStatus: action.payload.optionIndex !== null ? 'selected' : 'idle',
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'CONFIRM_ANSWER':
+            if (action.payload.isCorrect) {
+              sounds.playCorrectReveal();
+            } else {
+              sounds.playWrongAnswer();
+            }
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                isRevealed: true,
+                selectedOptionIndex: action.payload.optionIndex,
+                answerStatus: action.payload.isCorrect ? 'correct' : 'wrong',
+                scores: action.payload.newScores ?? prev.scores,
+                stage: 'reveal',
+                lastUpdated: Date.now(),
+              };
               saveStateToStorage(updated);
               return updated;
             });
@@ -265,6 +311,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 teamsAvailableInRound: available.length > 0 ? available : [...ALL_TEAM_IDS],
                 drawnTeam: null,
                 isRevealed: false,
+                selectedOptionIndex: null,
+                answerStatus: 'idle',
                 timerSeconds: 60,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
@@ -512,7 +560,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }, [updateStateAndSync]);
 
-  // REVEAL
+  // REVEAL GABARITO TOGGLE
   const toggleReveal = useCallback((forceState?: boolean) => {
     const targetState = forceState !== undefined ? forceState : !state.isRevealed;
     if (targetState) {
@@ -522,11 +570,75 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (prev) => ({
         ...prev,
         isRevealed: targetState,
-        stage: targetState ? 'reveal' : prev.stage,
+        answerStatus: targetState ? 'correct' : 'idle',
+        selectedOptionIndex: targetState ? prev.selectedOptionIndex : null,
+        stage: targetState ? 'reveal' : (prev.stage === 'reveal' ? 'question' : prev.stage),
       }),
       { type: 'REVEAL_ANSWER', payload: targetState }
     );
   }, [state.isRevealed, updateStateAndSync]);
+
+  // PRESELECT OPTION (From Admin, live highlights on Telão)
+  const preselectOption = useCallback(
+    (index: number | null) => {
+      if (index !== null) {
+        sounds.playSelectionTick();
+      }
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          selectedOptionIndex: index,
+          answerStatus: index !== null ? 'selected' : 'idle',
+        }),
+        { type: 'PRESELECT_OPTION', payload: { optionIndex: index } }
+      );
+    },
+    [updateStateAndSync]
+  );
+
+  // CONFIRM OPTION ANSWER (From Admin: evaluates correctness, plays sounds, updates points)
+  const confirmOptionAnswer = useCallback(
+    (index: number) => {
+      const q = currentQuestion;
+      const isCorrect =
+        !!q &&
+        q.opcoes[index]?.trim().toLowerCase() === q.respostaCorreta?.trim().toLowerCase();
+
+      const newScores = { ...state.scores };
+      if (isCorrect) {
+        sounds.playCorrectReveal();
+        const fullPts = q.pontosCheios;
+        if (state.drawnTeam) {
+          newScores[state.drawnTeam] = (newScores[state.drawnTeam] || 0) + fullPts;
+        }
+      } else {
+        sounds.playWrongAnswer();
+      }
+
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          isRevealed: true,
+          selectedOptionIndex: index,
+          answerStatus: isCorrect ? 'correct' : 'wrong',
+          scores: newScores,
+          stage: 'reveal',
+        }),
+        {
+          type: 'CONFIRM_ANSWER',
+          payload: {
+            optionIndex: index,
+            isCorrect,
+            drawnTeam: state.drawnTeam,
+            newScores,
+          },
+        }
+      );
+
+      return { isCorrect };
+    },
+    [currentQuestion, state.scores, state.drawnTeam, updateStateAndSync]
+  );
 
   // SUBMIT SCORE
   const submitQuestionScore = useCallback(
@@ -775,6 +887,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         add15Seconds,
         resetTimer,
         toggleReveal,
+        preselectOption,
+        confirmOptionAnswer,
         submitQuestionScore,
         emergencyScoreAdjust,
         selectRound,

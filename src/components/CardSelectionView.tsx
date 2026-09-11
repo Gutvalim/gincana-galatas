@@ -59,7 +59,9 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
               }}
             >
               {team.logo && (
-                <img src={team.logo} alt={team.name} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
+                  <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+                </div>
               )}
               {team.name} ({team.fullName})
             </span>

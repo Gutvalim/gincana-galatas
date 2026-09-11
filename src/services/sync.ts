@@ -18,6 +18,16 @@ export type SyncAction =
   | { type: 'TIMER_RESET'; payload: { seconds: number } }
   | { type: 'TIMER_TICK'; payload: { seconds: number } }
   | { type: 'REVEAL_ANSWER'; payload: boolean }
+  | { type: 'PRESELECT_OPTION'; payload: { optionIndex: number | null } }
+  | {
+      type: 'CONFIRM_ANSWER';
+      payload: {
+        optionIndex: number;
+        isCorrect: boolean;
+        drawnTeam: TeamId | null;
+        newScores?: Record<TeamId, number>;
+      };
+    }
   | {
       type: 'SUBMIT_POINTS';
       payload: {
@@ -58,6 +68,8 @@ export const INITIAL_STATE: GameState = {
   isTimerRunning: false,
   timerEndTimestamp: null,
   isRevealed: false,
+  selectedOptionIndex: null,
+  answerStatus: 'idle',
   soundEnabled: true,
   history: [],
   lastUpdated: Date.now(),

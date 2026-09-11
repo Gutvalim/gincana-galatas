@@ -365,7 +365,7 @@
     "pontosCheios": 30,
     "pontosMeios": 12,
     "isKids": true,
-    "pergunta": "Durante uma aula da EBD infantil da tia Cleitiane: Qual é a sequência exata das características do fruto do Espírito?",
+    "pergunta": "De acordo com Gálatas 5:22-23, qual é a sequência exata das características do fruto do Espírito?",
     "tipo": "multipla_escolha",
     "opcoes": [
       "amor, alegria, paz, longanimidade, benignidade, bondade, fidelidade, mansidão, domínio próprio.",
@@ -383,12 +383,12 @@
     "categoria": "Quase Difícil",
     "pontosCheios": 30,
     "pontosMeios": 12,
-    "pergunta": "Quanto tempo depois Paulo retornou a Jerusalém com Barnabé e Tito?",
+    "pergunta": "De acordo com Gálatas 2:1, quantos anos depois Paulo subiu outra vez a Jerusalém com Barnabé, levando também a Tito?",
     "tipo": "multipla_escolha",
     "opcoes": [
-      "07 anos",
+      "7 anos",
       "14 anos",
-      "08 anos",
+      "8 anos",
       "21 anos"
     ],
     "respostaCorreta": "14 anos",
@@ -536,7 +536,7 @@
     "categoria": "Difícil",
     "pontosCheios": 40,
     "pontosMeios": 15,
-    "pergunta": "A declaração “o justo viverá pela fé” foi escrita séculos antes por qual profeta do Antigo Testamento?",
+    "pergunta": "Em Gálatas 3:11, Paulo cita a célebre declaração: “O justo viverá pela fé”. De qual profeta do Antigo Testamento vem originalmente essa afirmação?",
     "tipo": "multipla_escolha",
     "opcoes": [
       "Ageu",
@@ -710,7 +710,7 @@
     "categoria": "Especialista",
     "pontosCheios": 50,
     "pontosMeios": 20,
-    "pergunta": "Complete: “Mas, antes que viesse ______, estávamos sob a tutela da lei... a fim de que fôssemos justificados _______.”",
+    "pergunta": "Complete o versículo de Gálatas 3:23-24: “Mas, antes que viesse ______, estávamos sob a tutela da lei e nela encerrados, para ______ que, de futuro, haveria de revelar-se; de maneira que a lei nos serviu de aio para nos conduzir a Cristo, a fim de que fôssemos justificados ______.”",
     "tipo": "multipla_escolha",
     "opcoes": [
       "O amor // essa liberdade // por fé.",

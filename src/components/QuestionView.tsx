@@ -1,13 +1,15 @@
 import React from 'react';
 import type { Question, TeamId } from '../types/game';
 import { TEAMS } from '../types/game';
-import { BookOpen, CheckCircle2, Award } from 'lucide-react';
+import { BookOpen, CheckCircle2, XCircle, Award } from 'lucide-react';
 
 interface QuestionViewProps {
   question: Question;
   isRevealed: boolean;
   showPoints?: boolean;
   drawnTeam?: TeamId | null;
+  selectedOptionIndex?: number | null;
+  answerStatus?: 'idle' | 'selected' | 'correct' | 'wrong';
 }
 
 export const QuestionView: React.FC<QuestionViewProps> = ({
@@ -15,6 +17,8 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   isRevealed,
   showPoints = true,
   drawnTeam = null,
+  selectedOptionIndex = null,
+  answerStatus = 'idle',
 }) => {
   const letters = ['A', 'B', 'C', 'D'];
   const team = drawnTeam ? TEAMS[drawnTeam] : null;
@@ -33,7 +37,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
         >
           <div className="flex items-center gap-3">
             {team.logo && (
-              <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 p-1 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-white/95 border border-white/50 p-1 flex items-center justify-center shrink-0 shadow-md">
                 <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
               </div>
             )}
@@ -93,18 +97,36 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {question.opcoes.map((opcao, idx) => {
             const isCorrect = opcao.trim().toLowerCase() === question.respostaCorreta.trim().toLowerCase();
+            const isSelected = selectedOptionIndex === idx;
             const letter = letters[idx] || `${idx + 1}`;
 
             let cardStyle = 'border-[#1d5740] bg-[#0c231a]/90 text-gray-200 hover:border-emerald-500/60';
             let letterStyle = 'bg-[#133829] text-amber-300 border-[#1d5740]';
 
-            if (isRevealed) {
+            if (answerStatus === 'selected' && isSelected) {
+              cardStyle =
+                'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_30px_rgba(245,158,11,0.6)] scale-[1.02] ring-2 ring-amber-400 animate-pulse';
+              letterStyle = 'bg-amber-400 text-black border-amber-300 font-black';
+            } else if (answerStatus === 'wrong') {
+              if (isSelected) {
+                cardStyle =
+                  'border-red-500 bg-red-950/80 text-red-100 shadow-[0_0_35px_rgba(239,68,68,0.7)] scale-[1.02] ring-2 ring-red-500';
+                letterStyle = 'bg-red-600 text-white border-red-400 font-black';
+              } else if (isCorrect) {
+                cardStyle =
+                  'border-emerald-500/80 bg-emerald-950/50 text-emerald-200 ring-1 ring-emerald-500/60';
+                letterStyle = 'bg-emerald-600/80 text-white border-emerald-500 font-bold';
+              } else {
+                cardStyle = 'border-gray-900 bg-gray-950/50 text-gray-500 opacity-40';
+                letterStyle = 'bg-gray-900 text-gray-600 border-gray-800';
+              }
+            } else if (answerStatus === 'correct' || isRevealed) {
               if (isCorrect) {
                 cardStyle =
-                  'border-emerald-400 bg-emerald-950/70 text-emerald-100 shadow-[0_0_30px_rgba(16,185,129,0.5)] scale-[1.02] ring-2 ring-emerald-400/50';
+                  'border-emerald-400 bg-emerald-950/80 text-emerald-100 shadow-[0_0_35px_rgba(16,185,129,0.6)] scale-[1.02] ring-2 ring-emerald-400';
                 letterStyle = 'bg-emerald-500 text-black border-emerald-400 font-black';
               } else {
-                cardStyle = 'border-gray-900 bg-gray-950/50 text-gray-500 opacity-60';
+                cardStyle = 'border-gray-900 bg-gray-950/50 text-gray-500 opacity-40';
                 letterStyle = 'bg-gray-900 text-gray-600 border-gray-800';
               }
             }
@@ -122,8 +144,18 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                 <span className="text-lg sm:text-xl font-bold flex-1 leading-relaxed">
                   {opcao}
                 </span>
-                {isRevealed && isCorrect && (
+
+                {/* Status Badges / Icons */}
+                {answerStatus === 'selected' && isSelected && (
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-1 rounded-full border border-amber-400/40 animate-pulse">
+                    Opção Marcada
+                  </span>
+                )}
+                {(answerStatus === 'correct' || isRevealed) && isCorrect && (
                   <CheckCircle2 className="w-7 h-7 text-emerald-400 animate-bounce shrink-0" />
+                )}
+                {answerStatus === 'wrong' && isSelected && (
+                  <XCircle className="w-7 h-7 text-red-400 animate-pulse shrink-0" />
                 )}
               </div>
             );
