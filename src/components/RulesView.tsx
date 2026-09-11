@@ -22,8 +22,8 @@ export const RulesView: React.FC = () => {
     {
       icon: <FileText className="w-8 h-8 text-purple-400" />,
       title: '3. Resposta no Papel',
-      desc: 'Simultaneamente, as outras 4 equipes anotam sua resposta no papel e entregam aos jurados para concorrer à METADE DOS PONTOS.',
-      badge: 'Metade dos Pontos',
+      desc: 'Todas as equipes podem responder no papel. Porém, a pontuação só será creditada se a equipe do microfone ERRAR a pergunta. Em caso de erro, as respostas do papel serão avaliadas para valer a metade dos pontos.',
+      badge: 'Condicional ao Erro',
       border: 'border-purple-500/40',
       glow: 'shadow-[0_0_20px_rgba(168,85,247,0.2)]',
     },
@@ -83,7 +83,7 @@ export const RulesView: React.FC = () => {
 
       {/* Footer Alert Note */}
       <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800 text-center text-xs sm:text-sm text-gray-400 max-w-2xl">
-        💡 <strong className="text-gray-200">Atenção:</strong> Se a equipe sorteada errar no microfone, ela zera a rodada, mas as equipes que acertaram no papel garantem a pontuação de metade dos pontos!
+        💡 <strong className="text-amber-300">Regra de Pontuação no Papel:</strong> Todas as equipes podem responder no papel, mas a pontuação só será creditada se a equipe que está no microfone errar. Se acertar, as respostas do papel não são avaliadas.
       </div>
     </div>
   );

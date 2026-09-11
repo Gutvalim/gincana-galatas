@@ -545,13 +545,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (state.drawnTeam && drawnCorrect) {
         pointsAwarded[state.drawnTeam] = fullPts;
+      } else if (!drawnCorrect) {
+        // A pontuação no papel só é creditada se a equipe do microfone errar
+        paperCorrectTeams.forEach((t) => {
+          if (t !== state.drawnTeam) {
+            pointsAwarded[t] = (pointsAwarded[t] || 0) + halfPts;
+          }
+        });
       }
 
-      paperCorrectTeams.forEach((t) => {
-        if (t !== state.drawnTeam) {
-          pointsAwarded[t] = (pointsAwarded[t] || 0) + halfPts;
-        }
-      });
+      const evaluatedPaperTeams = drawnCorrect ? [] : paperCorrectTeams;
 
       const newScores: Record<TeamId, number> = {
         UCP: state.scores.UCP + pointsAwarded.UCP,
@@ -586,7 +589,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 questionId: prev.currentQuestionId,
                 drawnTeam: prev.drawnTeam,
                 drawnCorrect,
-                paperCorrectTeams,
+                paperCorrectTeams: evaluatedPaperTeams,
                 pointsAwarded,
                 timestamp: Date.now(),
               },
@@ -598,7 +601,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           payload: {
             drawnTeam: state.drawnTeam,
             drawnCorrect,
-            paperCorrectTeams,
+            paperCorrectTeams: evaluatedPaperTeams,
             pointsAwarded,
             newScores,
             nextQuestionId: nextQId,

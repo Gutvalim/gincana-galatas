@@ -36,7 +36,9 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
   };
 
   const handleConfirm = () => {
-    onConfirm(drawnCorrect, paperCorrectTeams);
+    // A pontuação no papel só é creditada se a equipe do microfone errar
+    const finalPaperTeams = drawnCorrect ? [] : paperCorrectTeams;
+    onConfirm(drawnCorrect, finalPaperTeams);
   };
 
   return (
@@ -121,12 +123,48 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
 
         {/* Section 2: Other 4 Teams on Paper */}
         <div className="flex flex-col gap-3">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-purple-400" />
-            Equipes no Papel (Concorrem a +{halfPts} pts):
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-purple-400" />
+              Respostas no Papel das Outras Equipes:
+            </span>
+            <span className="text-[11px] font-bold text-gray-400">
+              Valor: <strong className="text-purple-300">+{halfPts} pts</strong>
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Conditional Guidance Banner */}
+          {drawnCorrect ? (
+            <div className="p-3.5 rounded-2xl bg-[#133829] border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2.5 shadow-sm">
+              <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+              <div>
+                <strong className="text-white block font-black uppercase text-[11px]">
+                  Equipe acertou no microfone!
+                </strong>
+                <span className="text-gray-300 text-[11px]">
+                  Conforme o regulamento, as respostas no papel <strong>só são avaliadas e pontuadas em caso de erro</strong> da equipe que estava respondendo. Nenhuma pontuação no papel será creditada.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-2xl bg-amber-950/60 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2.5 shadow-[0_0_15px_rgba(245,158,11,0.2)] animate-pulse">
+              <FileText className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <strong className="text-amber-300 block font-black uppercase text-[11px]">
+                  Equipe errou no microfone!
+                </strong>
+                <span className="text-gray-200 text-[11px]">
+                  Avalie agora as respostas no papel das outras 4 equipes. Marque quem acertou para receber <strong>+{halfPts} pontos</strong>:
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 gap-2.5 transition-opacity ${
+              drawnCorrect ? 'opacity-40 pointer-events-none' : 'opacity-100'
+            }`}
+          >
             {otherTeams.map((teamId) => {
               const team = TEAMS[teamId];
               const isChecked = paperCorrectTeams.includes(teamId);
@@ -135,9 +173,10 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                 <button
                   type="button"
                   key={teamId}
+                  disabled={drawnCorrect}
                   onClick={() => togglePaperTeam(teamId)}
                   className={`p-3 rounded-xl border-2 flex items-center justify-between transition-all ${
-                    isChecked
+                    isChecked && !drawnCorrect
                       ? 'border-purple-400 bg-purple-950/60 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
                       : 'border-gray-800 bg-[#1f2937]/70 text-gray-400 hover:border-gray-700'
                   }`}
@@ -160,7 +199,7 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                     <span className="text-xs font-mono font-bold text-purple-300">
                       +{halfPts} pts
                     </span>
-                    {isChecked ? (
+                    {isChecked && !drawnCorrect ? (
                       <CheckSquare className="w-5 h-5 text-purple-400" />
                     ) : (
                       <Square className="w-5 h-5 text-gray-600" />
@@ -186,7 +225,9 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
             onClick={handleConfirm}
             className="flex-2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-[#006341] to-emerald-600 hover:from-[#007a50] hover:to-emerald-500 text-white font-black text-sm sm:text-base uppercase tracking-wider border border-emerald-400/40 shadow-[0_0_25px_rgba(0,99,65,0.6)] transition-all"
           >
-            Confirmar e Atualizar Placar
+            {drawnCorrect
+              ? `Confirmar (+${fullPts} pts para ${drawnTeam ? TEAMS[drawnTeam].name : 'Equipe'})`
+              : `Confirmar (${paperCorrectTeams.length} acertos no papel: +${paperCorrectTeams.length * halfPts} pts)`}
           </button>
         </div>
       </div>
