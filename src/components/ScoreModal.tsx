@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import type { TeamId, Question } from '../types/game';
-import { TEAMS, ALL_TEAM_IDS } from '../types/game';
+import { TEAMS, ALL_TEAM_IDS, ROUNDS_INFO } from '../types/game';
 import { Check, X, Award, FileText, CheckSquare, Square, FastForward } from 'lucide-react';
 
 interface ScoreModalProps {
   isOpen: boolean;
   question: Question;
+  round?: number;
   drawnTeam: TeamId | null;
   initialDrawnCorrect?: boolean;
   isQuestionSkipped?: boolean;
@@ -18,6 +19,7 @@ interface ScoreModalProps {
 export const ScoreModal: React.FC<ScoreModalProps> = ({
   isOpen,
   question,
+  round,
   drawnTeam,
   initialDrawnCorrect = true,
   isQuestionSkipped = false,
@@ -38,8 +40,10 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
 
   if (!isOpen) return null;
 
-  const fullPts = question.pontosCheios;
-  const halfPts = question.pontosMeios;
+  const currentRoundNum = round ?? question.rodada;
+  const roundInfo = ROUNDS_INFO[currentRoundNum];
+  const fullPts = roundInfo?.pointsFull ?? question.pontosCheios;
+  const halfPts = roundInfo?.pointsHalf ?? question.pontosMeios;
 
   // Teams other than the drawn team that responded on paper
   const otherTeams = ALL_TEAM_IDS.filter((t) => t !== drawnTeam);

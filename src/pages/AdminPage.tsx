@@ -529,10 +529,10 @@ export const AdminPage: React.FC = () => {
                           ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)]'
                           : 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/60 hover:border-emerald-600'
                       }`}
-                      title={`Marcar que a equipe acertou no microfone (credita +${currentQuestion.pontosCheios} pts)`}
+                      title={`Marcar que a equipe acertou no microfone (credita +${roundInfo.pointsFull} pts)`}
                     >
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      Equipe Acertou (+{currentQuestion.pontosCheios} pts)
+                      Equipe Acertou (+{roundInfo.pointsFull} pts)
                     </button>
                   </div>
                 </div>
@@ -802,6 +802,7 @@ export const AdminPage: React.FC = () => {
         <ScoreModal
           isOpen={isScoreModalOpen}
           question={currentQuestion}
+          round={state.currentRound}
           drawnTeam={state.drawnTeam}
           initialDrawnCorrect={scoreModalInitialCorrect}
           isQuestionSkipped={state.isQuestionSkipped}

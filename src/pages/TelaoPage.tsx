@@ -336,6 +336,7 @@ export const TelaoPage: React.FC = () => {
             )}
             <QuestionView
               question={currentQuestion}
+              round={state.currentRound}
               isRevealed={state.isRevealed}
               drawnTeam={state.drawnTeam}
               selectedOptionIndex={state.selectedOptionIndex}
@@ -375,6 +376,7 @@ export const TelaoPage: React.FC = () => {
             </div>
             <QuestionView
               question={currentQuestion}
+              round={state.currentRound}
               isRevealed={state.isRevealed}
               showPoints={false}
               drawnTeam={state.drawnTeam}
@@ -406,6 +408,7 @@ export const TelaoPage: React.FC = () => {
             )}
             <QuestionView
               question={currentQuestion}
+              round={state.currentRound}
               isRevealed={state.isRevealed}
               drawnTeam={state.drawnTeam}
               selectedOptionIndex={state.selectedOptionIndex}
@@ -441,7 +444,7 @@ export const TelaoPage: React.FC = () => {
               />
             )}
 
-            <QuestionView question={currentQuestion} isRevealed={state.isRevealed} />
+            <QuestionView question={currentQuestion} round={state.currentRound} isRevealed={state.isRevealed} />
           </div>
         )}
 

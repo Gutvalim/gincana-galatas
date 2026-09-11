@@ -834,7 +834,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newScores = { ...state.scores };
       if (isCorrect) {
         sounds.playCorrectReveal();
-        const fullPts = q.pontosCheios;
+        const roundInfo = ROUNDS_INFO[state.currentRound];
+        const fullPts = roundInfo?.pointsFull ?? q.pontosCheios;
         if (state.drawnTeam) {
           newScores[state.drawnTeam] = (newScores[state.drawnTeam] || 0) + fullPts;
         }
@@ -866,7 +867,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { isCorrect };
     },
-    [currentQuestion, state.scores, state.drawnTeam, updateStateAndSync]
+    [currentQuestion, state.scores, state.drawnTeam, state.currentRound, updateStateAndSync]
   );
 
   // EVALUATE DISSERTATIVE ANSWER (From Admin: marks correct or wrong, plays sounds, updates score)
@@ -877,7 +878,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (isCorrect) {
         sounds.playCorrectReveal();
-        const fullPts = q?.pontosCheios ?? 10;
+        const roundInfo = ROUNDS_INFO[state.currentRound];
+        const fullPts = roundInfo?.pointsFull ?? q?.pontosCheios ?? 10;
         if (state.drawnTeam) {
           newScores[state.drawnTeam] = (newScores[state.drawnTeam] || 0) + fullPts;
         }
@@ -907,15 +909,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       );
     },
-    [currentQuestion, state.scores, state.drawnTeam, updateStateAndSync]
+    [currentQuestion, state.scores, state.drawnTeam, state.currentRound, updateStateAndSync]
   );
 
   // SUBMIT SCORE
   const submitQuestionScore = useCallback(
     (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => {
       const q = currentQuestion;
-      const fullPts = q?.pontosCheios ?? 10;
-      const halfPts = q?.pontosMeios ?? 5;
+      const roundInfo = ROUNDS_INFO[state.currentRound];
+      const fullPts = roundInfo?.pointsFull ?? q?.pontosCheios ?? 10;
+      const halfPts = roundInfo?.pointsHalf ?? q?.pontosMeios ?? 5;
       const isSkipped = state.isQuestionSkipped;
 
       const pointsAwarded: Record<TeamId, number> = {
@@ -1600,7 +1603,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Complete the question turn
         const activeTeam = state.drawnTeam;
         const q = currentQuestion;
-        const fullPts = q?.pontosCheios ?? 10;
+        const roundInfo = ROUNDS_INFO[state.currentRound];
+        const fullPts = roundInfo?.pointsFull ?? q?.pontosCheios ?? 10;
         const isSkipped = state.isQuestionSkipped;
 
         let newScores = { ...state.scores };

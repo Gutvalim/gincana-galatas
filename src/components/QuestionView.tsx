@@ -1,10 +1,11 @@
 import React from 'react';
 import type { Question, TeamId } from '../types/game';
-import { TEAMS } from '../types/game';
+import { TEAMS, ROUNDS_INFO } from '../types/game';
 import { BookOpen, CheckCircle2, XCircle, Award, Sparkles, FastForward } from 'lucide-react';
 
 interface QuestionViewProps {
   question: Question;
+  round?: number;
   isRevealed: boolean;
   showPoints?: boolean;
   drawnTeam?: TeamId | null;
@@ -17,6 +18,7 @@ interface QuestionViewProps {
 
 export const QuestionView: React.FC<QuestionViewProps> = ({
   question,
+  round,
   isRevealed,
   showPoints = true,
   drawnTeam = null,
@@ -28,6 +30,11 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
 }) => {
   const letters = ['A', 'B', 'C', 'D'];
   const team = drawnTeam ? TEAMS[drawnTeam] : null;
+
+  const currentRoundNum = round ?? question.rodada;
+  const roundInfo = ROUNDS_INFO[currentRoundNum];
+  const fullPts = roundInfo?.pointsFull ?? question.pontosCheios;
+  const halfPts = roundInfo?.pointsHalf ?? question.pontosMeios;
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-5">
@@ -100,11 +107,11 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           <div className="flex items-center gap-2">
             <span className="px-4 py-1.5 rounded-xl text-sm sm:text-base font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
               <Award className="w-4 h-4 text-amber-400" />
-              Microfone: {question.pontosCheios} pts
+              Microfone: {fullPts} pts
             </span>
-            {question.pontosMeios > 0 && (
+            {halfPts > 0 && (
               <span className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Papel: {question.pontosMeios} pts
+                Papel: {halfPts} pts
               </span>
             )}
           </div>
@@ -237,7 +244,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                 </div>
               </div>
               <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-black font-black text-sm uppercase shadow">
-                +{question.pontosCheios} pts
+                +{fullPts} pts
               </span>
             </div>
           )}

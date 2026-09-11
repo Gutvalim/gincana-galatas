@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Question, TeamId } from '../types/game';
-import { TEAMS } from '../types/game';
+import { TEAMS, ROUNDS_INFO } from '../types/game';
 import { Lock, Sparkles, CheckCircle2, Award } from 'lucide-react';
 
 interface CardSelectionViewProps {
@@ -36,7 +36,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
       <div className="text-center flex flex-col items-center">
         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#006341]/30 border-2 border-amber-400/60 text-amber-300 font-black uppercase tracking-widest text-xs sm:text-sm mb-3 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
           <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-          Fase de Escolha • Rodada {round} (8 Cards de Perguntas)
+          Fase de Escolha • Rodada {round}
           <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
         </div>
 
@@ -67,10 +67,6 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
             </span>
           </div>
         )}
-
-        <p className="mt-3 text-xs sm:text-sm text-gray-300 max-w-xl font-medium">
-          A rodada possui <strong>8 cards de perguntas</strong> (7 para adultos e 1 para crianças). Cada equipe escolhe um card para responder!
-        </p>
       </div>
 
       {/* Cards Grid (8 Cards) */}
@@ -113,7 +109,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
                   {/* Top Badge */}
                   <div className="w-full flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#006341]/60 text-emerald-300 border border-emerald-500/40">
-                      R{q.rodada}
+                      R{round}
                     </span>
                     {isUsed ? (
                       <Lock className="w-4 h-4 text-red-400" />
@@ -151,7 +147,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
                     ) : (
                       <div className="flex items-center justify-center gap-1 text-xs font-black text-amber-400 bg-amber-500/10 py-1 rounded-xl border border-amber-500/30">
                         <Award className="w-3.5 h-3.5 text-amber-400" />
-                        {q.pontosCheios} pts
+                        {ROUNDS_INFO[round]?.pointsFull ?? q.pontosCheios} pts
                       </div>
                     )}
                   </div>
