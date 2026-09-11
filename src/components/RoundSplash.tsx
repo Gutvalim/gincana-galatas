@@ -28,10 +28,6 @@ export const RoundSplash: React.FC<RoundSplashProps> = ({ round }) => {
         {info.name}
       </h1>
 
-      <p className="text-xl sm:text-2xl text-gray-300 font-bold uppercase tracking-widest mt-4">
-        Categoria: <span className="text-white">{info.category}</span>
-      </p>
-
       {/* Points Cards */}
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-2xl">
         <div className="p-6 rounded-3xl bg-[#0c231a] border-2 border-amber-500/50 shadow-[0_0_25px_rgba(245,158,11,0.25)] flex flex-col items-center">

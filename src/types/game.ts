@@ -65,7 +65,7 @@ export const TEAMS: Record<TeamId, TeamInfo> = {
   Adultos: {
     id: 'Adultos',
     name: 'Adultos',
-    fullName: 'Sociedade de Adultos (SAF/UPH)',
+    fullName: 'Sociedade de Adultos',
     color: '#ca8a04',
     borderClass: 'border-amber-500',
     bgClass: 'bg-amber-500/20 text-amber-300',

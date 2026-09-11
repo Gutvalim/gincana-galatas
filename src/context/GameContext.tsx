@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import type { GameState, GameStage, TeamId, Question, ActionCardType } from '../types/game';
-import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS } from '../types/game';
+import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS, ROUNDS_INFO, TEAMS } from '../types/game';
 import questionsData from '../data/questions.json';
 import {
   CHANNEL_NAME,
@@ -19,7 +19,12 @@ interface GameContextType {
   currentQuestion: Question | undefined;
   questions: Question[];
   isConnected: boolean;
+  canUndo: boolean;
+  historyCount: number;
   setStage: (stage: GameStage) => void;
+  advanceGameStep: () => void;
+  undoLastAction: () => void;
+  getNextStepInfo: () => { label: string; actionDescription: string; canAdvance: boolean };
   startRouletteSpin: () => TeamId | null;
   finishSpin: (team: TeamId) => void;
   startTimer: () => void;
@@ -66,10 +71,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const [historyStack, setHistoryStack] = useState<GameState[]>([]);
+
   // Sync state updater that saves and broadcasts
   const updateStateAndSync = useCallback(
-    (updater: (prev: GameState) => GameState, actionToBroadcast?: SyncAction) => {
+    (updater: (prev: GameState) => GameState, actionToBroadcast?: SyncAction, skipSnapshot = false) => {
       setState((prev) => {
+        if (!skipSnapshot) {
+          setHistoryStack((stack) => [...stack.slice(-25), JSON.parse(JSON.stringify(prev))]);
+        }
         const next = updater(prev);
         next.lastUpdated = Date.now();
         saveStateToStorage(next);
@@ -368,7 +378,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const updated: GameState = {
                 ...prev,
                 scores: action.payload.newScores,
-                teamsAvailableInRound: available.length > 0 ? available : [...ALL_TEAM_IDS],
+                teamsAvailableInRound: available,
                 drawnTeam: null,
                 isRevealed: false,
                 selectedOptionIndex: null,
@@ -755,7 +765,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return {
             ...prev,
             scores: newScores,
-            teamsAvailableInRound: available.length > 0 ? available : [...ALL_TEAM_IDS],
+            teamsAvailableInRound: available,
             drawnTeam: null,
             isRevealed: false,
             timerSeconds: 60,
@@ -1033,6 +1043,322 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [updateStateAndSync]
   );
 
+  // UNDO LAST ACTION (Pops previous snapshot and restores state across tabs)
+  const undoLastAction = useCallback(() => {
+    setHistoryStack((stack) => {
+      if (stack.length === 0) return stack;
+      const previousState = stack[stack.length - 1];
+      const newStack = stack.slice(0, -1);
+
+      const restored: GameState = {
+        ...previousState,
+        lastUpdated: Date.now(),
+      };
+
+      setState(restored);
+      saveStateToStorage(restored);
+      broadcast({ type: 'SYNC_STATE', payload: restored });
+
+      return newStack;
+    });
+  }, [broadcast]);
+
+  // GET NEXT STEP INFO (Dynamic label and description for operator)
+  const getNextStepInfo = useCallback(() => {
+    switch (state.stage) {
+      case 'welcome':
+        return {
+          label: 'Iniciar Gincana (Regras)',
+          actionDescription: 'Apresentar as regras oficiais aos participantes',
+          canAdvance: true,
+        };
+      case 'rules':
+        return {
+          label: 'Iniciar Rodada 1 (Splash)',
+          actionDescription: 'Abrir tela de apresentação da 1ª Rodada',
+          canAdvance: true,
+        };
+      case 'splash': {
+        const rName = ROUNDS_INFO[state.currentRound]?.name || `Rodada ${state.currentRound}`;
+        return {
+          label: `Ir para Roleta (${rName})`,
+          actionDescription: 'Iniciar sorteio da equipe no microfone',
+          canAdvance: true,
+        };
+      }
+      case 'roulette':
+        if (state.isSpinning) {
+          return {
+            label: 'Roleta Girando...',
+            actionDescription: 'Aguarde a roleta desacelerar e definir a equipe',
+            canAdvance: false,
+          };
+        }
+        if (!state.drawnTeam) {
+          return {
+            label: 'Girar Roleta',
+            actionDescription: `Sortear entre ${state.teamsAvailableInRound.length} equipe(s) restante(s)`,
+            canAdvance: true,
+          };
+        }
+        return {
+          label: `Ir para Escolha de Cards (${TEAMS[state.drawnTeam]?.name || state.drawnTeam})`,
+          actionDescription: 'A equipe sorteada escolhe o envelope da rodada',
+          canAdvance: true,
+        };
+      case 'card_selection':
+        if (state.isCardFlipping) {
+          return {
+            label: 'Abrindo Card...',
+            actionDescription: 'Animando revelação do envelope',
+            canAdvance: false,
+          };
+        }
+        return {
+          label: 'Abrir Pergunta Selecionada',
+          actionDescription: 'Exibir a pergunta correspondente no telão',
+          canAdvance: true,
+        };
+      case 'question':
+        return {
+          label: 'Iniciar Cronômetro (60s)',
+          actionDescription: 'Começar contagem de tempo para resposta',
+          canAdvance: true,
+        };
+      case 'timer':
+        return {
+          label: 'Encerrar Tempo / Revelar Gabarito',
+          actionDescription: 'Pausar cronômetro e exibir gabarito oficial',
+          canAdvance: true,
+        };
+      case 'reveal':
+        return {
+          label: 'Confirmar Pontos e Ver Placar',
+          actionDescription: 'Creditar pontos, encerrar turno da equipe e ver ranking',
+          canAdvance: true,
+        };
+      case 'leaderboard':
+        if (state.teamsAvailableInRound.length > 0) {
+          return {
+            label: `Próxima Equipe na Roleta (${state.teamsAvailableInRound.length} restantes)`,
+            actionDescription: `Restam jogar: ${state.teamsAvailableInRound.join(', ')}`,
+            canAdvance: true,
+          };
+        }
+        if (state.currentRound < 6) {
+          const nextR = state.currentRound + 1;
+          const nextName = ROUNDS_INFO[nextR]?.name || `Rodada ${nextR}`;
+          return {
+            label: `Concluir Rodada e Ir para ${nextName}`,
+            actionDescription: `Finalizar Rodada ${state.currentRound} e abrir nova fase`,
+            canAdvance: true,
+          };
+        }
+        return {
+          label: 'Ver Pódio Final e Campeão 🏆',
+          actionDescription: 'Exibir premiação, bônus de cartas e classificação final',
+          canAdvance: true,
+        };
+      case 'podium':
+        return {
+          label: 'Torneio Finalizado',
+          actionDescription: 'Gincana Gálatas concluída com sucesso',
+          canAdvance: false,
+        };
+      case 'sudden_death':
+        return {
+          label: 'Ver Pódio Final',
+          actionDescription: 'Ir para o pódio após o desempate',
+          canAdvance: true,
+        };
+      default:
+        return {
+          label: 'Próximo Passo',
+          actionDescription: 'Avançar etapa do jogo',
+          canAdvance: true,
+        };
+    }
+  }, [state]);
+
+  // ADVANCE GAME STEP (The main intelligent stepper)
+  const advanceGameStep = useCallback(() => {
+    switch (state.stage) {
+      case 'welcome':
+        setStage('rules');
+        break;
+
+      case 'rules':
+        selectRound(1);
+        break;
+
+      case 'splash':
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            stage: 'roulette',
+            drawnTeam: null,
+            isSpinning: false,
+            spinningTargetTeam: null,
+            teamsAvailableInRound:
+              prev.teamsAvailableInRound.length > 0 ? prev.teamsAvailableInRound : [...ALL_TEAM_IDS],
+          }),
+          { type: 'CHANGE_STAGE', payload: 'roulette' }
+        );
+        break;
+
+      case 'roulette':
+        if (state.isSpinning) return;
+        if (!state.drawnTeam) {
+          startRouletteSpin();
+        } else {
+          setStage('card_selection');
+        }
+        break;
+
+      case 'card_selection': {
+        if (state.isCardFlipping) return;
+        // Auto-select next available card if none selected
+        const questionsInRound = questions.filter((q) => q.rodada === state.currentRound);
+        const availableIndices = [0, 1, 2, 3, 4].filter(
+          (idx) => !state.usedCardIndicesInRound.includes(idx) && idx < questionsInRound.length
+        );
+        if (availableIndices.length > 0) {
+          const pickIndex = availableIndices[0];
+          const qId = questionsInRound[pickIndex]?.id ?? questionsInRound[0].id;
+          selectCardQuestion(qId, pickIndex);
+        } else {
+          setStage('question');
+        }
+        break;
+      }
+
+      case 'question':
+        startTimer();
+        break;
+
+      case 'timer':
+        pauseTimer();
+        toggleReveal(true);
+        break;
+
+      case 'reveal': {
+        // Complete the question turn and transition to leaderboard!
+        const activeTeam = state.drawnTeam;
+        const q = currentQuestion;
+        const fullPts = q?.pontosCheios ?? 10;
+
+        let newScores = { ...state.scores };
+        // If answer was not marked as wrong and not yet credited to drawnTeam, credit it
+        if (state.answerStatus !== 'wrong' && activeTeam) {
+          if (state.answerStatus === 'idle') {
+            newScores[activeTeam] = (newScores[activeTeam] || 0) + fullPts;
+          }
+        }
+
+        const remainingTeams = state.teamsAvailableInRound.filter((t) => t !== activeTeam);
+        let nextQId = state.currentQuestionId + 1;
+        if (nextQId > questions.length) nextQId = questions.length;
+
+        const pointsAwarded: Record<TeamId, number> = {
+          UCP: 0,
+          UPA: 0,
+          UMP: 0,
+          Casais: 0,
+          Adultos: 0,
+        };
+        if (activeTeam && state.answerStatus !== 'wrong') {
+          pointsAwarded[activeTeam] = fullPts;
+        }
+
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            scores: newScores,
+            teamsAvailableInRound: remainingTeams,
+            drawnTeam: null,
+            isRevealed: false,
+            selectedOptionIndex: null,
+            answerStatus: 'idle',
+            timerSeconds: 60,
+            isTimerRunning: false,
+            timerEndTimestamp: null,
+            currentQuestionId: nextQId,
+            stage: 'leaderboard',
+            eliminatedOptionIndices: [],
+            isQuestionSkipped: false,
+            activeCardAnnouncement: null,
+            history: [
+              ...prev.history,
+              {
+                round: prev.currentRound,
+                questionId: prev.currentQuestionId,
+                drawnTeam: activeTeam,
+                drawnCorrect: prev.answerStatus !== 'wrong',
+                paperCorrectTeams: [],
+                pointsAwarded,
+                timestamp: Date.now(),
+              },
+            ],
+          }),
+          {
+            type: 'SUBMIT_POINTS',
+            payload: {
+              drawnTeam: activeTeam,
+              drawnCorrect: state.answerStatus !== 'wrong',
+              paperCorrectTeams: [],
+              pointsAwarded,
+              newScores,
+              nextQuestionId: nextQId,
+            },
+          }
+        );
+        break;
+      }
+
+      case 'leaderboard':
+        if (state.teamsAvailableInRound.length > 0) {
+          // Return to roulette with remaining teams!
+          updateStateAndSync(
+            (prev) => ({
+              ...prev,
+              stage: 'roulette',
+              drawnTeam: null,
+              isSpinning: false,
+              spinningTargetTeam: null,
+            }),
+            { type: 'CHANGE_STAGE', payload: 'roulette' }
+          );
+        } else {
+          // Round completed
+          if (state.currentRound < 6) {
+            selectRound(state.currentRound + 1);
+          } else {
+            setStage('podium');
+          }
+        }
+        break;
+
+      case 'podium':
+        break;
+
+      case 'sudden_death':
+        setStage('podium');
+        break;
+    }
+  }, [
+    state,
+    currentQuestion,
+    questions,
+    setStage,
+    selectRound,
+    startRouletteSpin,
+    selectCardQuestion,
+    startTimer,
+    pauseTimer,
+    toggleReveal,
+    updateStateAndSync,
+  ]);
+
   // RESET GAME
   const resetGameToStart = useCallback(() => {
     const fresh = { ...INITIAL_STATE, lastUpdated: Date.now() };
@@ -1059,7 +1385,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentQuestion,
         questions,
         isConnected,
+        canUndo: historyStack.length > 0,
+        historyCount: historyStack.length,
         setStage,
+        advanceGameStep,
+        undoLastAction,
+        getNextStepInfo,
         startRouletteSpin,
         finishSpin,
         startTimer,

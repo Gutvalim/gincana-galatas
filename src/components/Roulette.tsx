@@ -219,7 +219,7 @@ export const Roulette: React.FC<RouletteProps> = ({
                 className="text-2xl sm:text-3xl font-black uppercase tracking-widest drop-shadow-md"
                 style={{ color: TEAMS[drawnTeam].color }}
               >
-                {TEAMS[drawnTeam].name} ({TEAMS[drawnTeam].fullName})
+                {TEAMS[drawnTeam].name} • {TEAMS[drawnTeam].fullName}
               </span>
             </div>
           </div>

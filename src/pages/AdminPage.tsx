@@ -29,6 +29,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Layers,
+  ArrowRight,
+  Undo2,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -37,7 +39,12 @@ export const AdminPage: React.FC = () => {
     currentQuestion,
     questions,
     isConnected,
+    canUndo,
+    historyCount,
     setStage,
+    advanceGameStep,
+    undoLastAction,
+    getNextStepInfo,
     startRouletteSpin,
     startTimer,
     pauseTimer,
@@ -59,6 +66,8 @@ export const AdminPage: React.FC = () => {
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
   const [scoreModalInitialCorrect, setScoreModalInitialCorrect] = useState<boolean>(true);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+
+  const stepInfo = getNextStepInfo();
 
   // Open Telão in new tab/window
   const handleOpenTelao = () => {
@@ -140,10 +149,68 @@ export const AdminPage: React.FC = () => {
         </div>
       </header>
 
-      {/* STAGE STEPPER BAR */}
+      {/* AUTOMATIC WORKFLOW CONTROL PANEL (STEPPER & UNDO) */}
+      <div className="bg-gradient-to-r from-[#0d2a1f] via-[#091f16] to-[#0d2a1f] border-b-2 border-amber-400/60 px-6 py-4 shadow-2xl relative z-30">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Current Status Info */}
+          <div className="flex items-center gap-3.5 w-full md:w-auto">
+            <div className="w-12 h-12 rounded-2xl bg-amber-400/10 border-2 border-amber-400/50 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+              <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-300 px-2 py-0.5 rounded bg-amber-400/15 border border-amber-400/30">
+                  {roundInfo.name}
+                </span>
+                <span className="text-xs text-gray-500">•</span>
+                <span className="text-xs font-bold text-gray-300">
+                  Etapa no Telão: <strong className="text-white uppercase">{stages.find((s) => s.key === state.stage)?.label || state.stage}</strong>
+                </span>
+                {state.drawnTeam && (
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black text-white shadow"
+                    style={{ backgroundColor: TEAMS[state.drawnTeam].color }}
+                  >
+                    🎤 {TEAMS[state.drawnTeam].name}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm sm:text-base font-extrabold text-white mt-0.5 flex items-center gap-2">
+                <span>{stepInfo.actionDescription}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Stepper Controls: Undo & Next Step */}
+          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            {/* Retroceder / Desfazer Button */}
+            <button
+              onClick={undoLastAction}
+              disabled={!canUndo}
+              title="Desfazer a última ação e restaurar o estado e pontos anteriores"
+              className="px-4 py-3 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed bg-[#133829] hover:bg-[#1a4a37] text-gray-200 border-[#1d5740] shadow-sm hover:border-gray-500 active:scale-95"
+            >
+              <Undo2 className="w-4 h-4 text-amber-400" />
+              <span>Retroceder {historyCount > 0 && `(${historyCount})`}</span>
+            </button>
+
+            {/* Próximo Passo Button */}
+            <button
+              onClick={advanceGameStep}
+              disabled={!stepInfo.canAdvance}
+              className="flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider flex items-center justify-center gap-2.5 border-2 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-black border-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.6)] transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>{stepInfo.label}</span>
+              <ArrowRight className="w-5 h-5 text-black stroke-[3]" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* STAGE STEPPER BAR (MANUAL OVERRIDE) */}
       <div className="bg-[#0c231a]/90 border-b border-[#1d5740] px-6 py-2.5 overflow-x-auto scrollbar-none flex items-center gap-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-amber-300 mr-2 shrink-0">
-          Etapa no Telão:
+        <span className="text-xs font-bold uppercase tracking-wider text-gray-400 mr-2 shrink-0">
+          Atalhos Manuais:
         </span>
         {stages.map((st) => {
           const isActive = state.stage === st.key;
