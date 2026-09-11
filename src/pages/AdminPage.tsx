@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import type { GameStage } from '../types/game';
+import type { GameStage, ActionCardType } from '../types/game';
 import { TEAMS, ROUNDS_INFO } from '../types/game';
 import { ScoreModal } from '../components/ScoreModal';
 import { Leaderboard } from '../components/Leaderboard';
@@ -66,6 +66,20 @@ export const AdminPage: React.FC = () => {
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
   const [scoreModalInitialCorrect, setScoreModalInitialCorrect] = useState<boolean>(true);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+
+  // Automatically open score modal when a question is skipped
+  useEffect(() => {
+    if (state.isQuestionSkipped && (state.stage === 'question' || state.stage === 'timer' || state.stage === 'reveal')) {
+      setIsScoreModalOpen(true);
+    }
+  }, [state.isQuestionSkipped, state.stage]);
+
+  const handleUseActionCard = (cardType: ActionCardType) => {
+    useActionCard(cardType);
+    if (cardType === 'skip') {
+      setIsScoreModalOpen(true);
+    }
+  };
 
   const stepInfo = getNextStepInfo();
 
@@ -335,10 +349,11 @@ export const AdminPage: React.FC = () => {
                     team={state.drawnTeam}
                     inventory={state.actionCards?.[state.drawnTeam]}
                     interactive={true}
-                    onUseCard={useActionCard}
+                    onUseCard={handleUseActionCard}
                     isMultipleChoice={currentQuestion.tipo === 'multipla_escolha'}
                     isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
                     isQuestionSkipped={state.isQuestionSkipped}
+                    skipsUsedInRound={state.skipsUsedInRound || 0}
                   />
                 </div>
               )}
@@ -708,8 +723,12 @@ export const AdminPage: React.FC = () => {
           drawnTeam={state.drawnTeam}
           initialDrawnCorrect={scoreModalInitialCorrect}
           isQuestionSkipped={state.isQuestionSkipped}
-          canSkip={state.drawnTeam ? (state.actionCards?.[state.drawnTeam]?.skip ?? 0) > 0 : false}
-          onTriggerSkip={() => useActionCard('skip')}
+          canSkip={
+            state.drawnTeam
+              ? (state.actionCards?.[state.drawnTeam]?.skip ?? 0) > 0 && (state.skipsUsedInRound || 0) < 2
+              : false
+          }
+          onTriggerSkip={() => handleUseActionCard('skip')}
           onClose={() => setIsScoreModalOpen(false)}
           onConfirm={(drawnCorrect, paperCorrectTeams) => {
             submitQuestionScore(drawnCorrect, paperCorrectTeams);

@@ -267,6 +267,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 eliminatedOptionIndices:
                   eliminatedOptionIndices !== undefined ? eliminatedOptionIndices : prev.eliminatedOptionIndices,
                 isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
+                skipsUsedInRound: cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : (prev.skipsUsedInRound || 0),
                 timerSeconds: newTimerSeconds,
                 timerEndTimestamp: newTimerEndTimestamp,
                 activeCardAnnouncement: announcement,
@@ -400,12 +401,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           case 'SUBMIT_POINTS':
             setState((prev) => {
-              const available = prev.teamsAvailableInRound.filter((t) => t !== action.payload.drawnTeam);
+              const wasSkipped = action.payload.wasSkipped ?? prev.isQuestionSkipped;
+              const nextStage: GameStage = wasSkipped ? 'card_selection' : 'leaderboard';
+              const nextDrawnTeam = wasSkipped ? prev.drawnTeam : null;
+              const available = wasSkipped
+                ? prev.teamsAvailableInRound
+                : prev.teamsAvailableInRound.filter((t) => t !== action.payload.drawnTeam);
               const updated: GameState = {
                 ...prev,
                 scores: action.payload.newScores,
                 teamsAvailableInRound: available,
-                drawnTeam: null,
+                drawnTeam: nextDrawnTeam,
                 isRevealed: false,
                 selectedOptionIndex: null,
                 answerStatus: 'idle',
@@ -413,7 +419,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isTimerRunning: false,
                 timerEndTimestamp: null,
                 currentQuestionId: action.payload.nextQuestionId ?? prev.currentQuestionId,
-                stage: 'leaderboard',
+                stage: nextStage,
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
@@ -450,6 +456,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 stage: action.payload.round === 7 ? 'sudden_death' : 'splash',
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
+                skipsUsedInRound: 0,
                 activeCardAnnouncement: null,
                 lastUpdated: Date.now(),
               };
@@ -768,6 +775,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const q = currentQuestion;
       const fullPts = q?.pontosCheios ?? 10;
       const halfPts = q?.pontosMeios ?? 5;
+      const isSkipped = state.isQuestionSkipped;
 
       const pointsAwarded: Record<TeamId, number> = {
         UCP: 0,
@@ -777,9 +785,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         Adultos: 0,
       };
 
-      if (state.drawnTeam && drawnCorrect) {
+      if (!isSkipped && state.drawnTeam && drawnCorrect) {
         pointsAwarded[state.drawnTeam] = fullPts;
-      } else if (state.isQuestionSkipped) {
+      } else if (isSkipped) {
         // A pontuação no papel só é avaliada e creditada quando a equipe decide pular a pergunta
         paperCorrectTeams.forEach((t) => {
           if (t !== state.drawnTeam) {
@@ -788,7 +796,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
 
-      const evaluatedPaperTeams = state.isQuestionSkipped ? paperCorrectTeams : [];
+      const evaluatedPaperTeams = isSkipped ? paperCorrectTeams : [];
 
       const newScores: Record<TeamId, number> = {
         UCP: state.scores.UCP + pointsAwarded.UCP,
@@ -802,20 +810,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let nextQId = state.currentQuestionId + 1;
       if (nextQId > questions.length) nextQId = questions.length;
 
+      const nextStage: GameStage = isSkipped ? 'card_selection' : 'leaderboard';
+      const nextDrawnTeam = isSkipped ? state.drawnTeam : null;
+
       updateStateAndSync(
         (prev) => {
-          const available = prev.teamsAvailableInRound.filter((t) => t !== prev.drawnTeam);
+          const available = isSkipped
+            ? prev.teamsAvailableInRound
+            : prev.teamsAvailableInRound.filter((t) => t !== prev.drawnTeam);
           return {
             ...prev,
             scores: newScores,
             teamsAvailableInRound: available,
-            drawnTeam: null,
+            drawnTeam: nextDrawnTeam,
             isRevealed: false,
+            selectedOptionIndex: null,
+            answerStatus: 'idle',
             timerSeconds: 60,
             isTimerRunning: false,
             timerEndTimestamp: null,
             currentQuestionId: nextQId,
-            stage: 'leaderboard',
+            stage: nextStage,
             eliminatedOptionIndices: [],
             isQuestionSkipped: false,
             activeCardAnnouncement: null,
@@ -825,7 +840,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 round: prev.currentRound,
                 questionId: prev.currentQuestionId,
                 drawnTeam: prev.drawnTeam,
-                drawnCorrect,
+                drawnCorrect: !isSkipped && drawnCorrect,
                 paperCorrectTeams: evaluatedPaperTeams,
                 pointsAwarded,
                 timestamp: Date.now(),
@@ -837,11 +852,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           type: 'SUBMIT_POINTS',
           payload: {
             drawnTeam: state.drawnTeam,
-            drawnCorrect,
+            drawnCorrect: !isSkipped && drawnCorrect,
             paperCorrectTeams: evaluatedPaperTeams,
             pointsAwarded,
             newScores,
             nextQuestionId: nextQId,
+            wasSkipped: isSkipped,
           },
         }
       );
@@ -854,6 +870,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (cardType: ActionCardType) => {
       const activeTeam = state.drawnTeam;
       if (!activeTeam) return;
+
+      if (cardType === 'skip' && (state.skipsUsedInRound || 0) >= 2) {
+        return;
+      }
 
       const teamCards = state.actionCards?.[activeTeam] || INITIAL_ACTION_CARDS[activeTeam];
       if (!teamCards || teamCards[cardType] <= 0) return;
@@ -921,6 +941,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           eliminatedOptionIndices:
             eliminatedIndices !== undefined ? eliminatedIndices : prev.eliminatedOptionIndices,
           isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
+          skipsUsedInRound:
+            cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : (prev.skipsUsedInRound || 0),
           timerSeconds: newTimerSeconds,
           timerEndTimestamp: newTimerEndTimestamp,
           activeCardAnnouncement: announcement,
@@ -944,6 +966,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       state.isTimerRunning,
       state.timerEndTimestamp,
       state.timerSeconds,
+      state.skipsUsedInRound,
       updateStateAndSync,
     ]
   );
@@ -988,6 +1011,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           stage: round === 7 ? 'sudden_death' : 'splash',
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
+          skipsUsedInRound: 0,
           activeCardAnnouncement: null,
         }),
         { type: 'SET_ROUND', payload: { round, questionId: qId } }
@@ -1002,15 +1026,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sounds.playCorrectReveal();
 
       // Resolve question based on drawn team:
-      // If UCP is the drawn team, ALWAYS assign the Kids question of the current round
+      // If UCP is the drawn team, assign the Kids question of current round (or fallback if already used)
       const questionsInRound = questions.filter((q) => q.rodada === state.currentRound);
-      const kidsQ = questionsInRound.find((q) => q.isKids) || questionsInRound[0];
       const adultQuestions = questionsInRound.filter((q) => !q.isKids);
 
       let resolvedQId = questionId;
 
       if (state.drawnTeam === 'UCP') {
-        resolvedQId = kidsQ.id;
+        const availableKidsQ = questionsInRound.find(
+          (q) => q.isKids && !state.usedQuestionIdsInRound.includes(q.id)
+        );
+        if (availableKidsQ) {
+          resolvedQId = availableKidsQ.id;
+        } else {
+          const availableQuestions = questionsInRound.filter(
+            (q) => !state.usedQuestionIdsInRound.includes(q.id)
+          );
+          const naturalQ = questionsInRound[cardIndex];
+          if (naturalQ && availableQuestions.some((q) => q.id === naturalQ.id)) {
+            resolvedQId = naturalQ.id;
+          } else if (availableQuestions.length > 0) {
+            resolvedQId = availableQuestions[0].id;
+          } else {
+            resolvedQId = naturalQ ? naturalQ.id : questionId;
+          }
+        }
       } else {
         // Non-UCP teams must never receive the kids question
         const availableAdultQuestions = adultQuestions.filter(
@@ -1174,8 +1214,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         }
         return {
-          label: 'Abrir Pergunta Selecionada',
-          actionDescription: 'Exibir a pergunta correspondente no telão',
+          label: state.drawnTeam
+            ? `Escolher Envelope (${TEAMS[state.drawnTeam]?.name || state.drawnTeam})`
+            : 'Abrir Pergunta Selecionada',
+          actionDescription: 'A equipe sorteada escolhe o envelope da rodada',
           canAdvance: true,
         };
       case 'question':
@@ -1191,6 +1233,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           canAdvance: true,
         };
       case 'reveal':
+        if (state.isQuestionSkipped) {
+          return {
+            label: `Escolher Novo Envelope (${state.drawnTeam ? TEAMS[state.drawnTeam]?.name : 'Equipe'})`,
+            actionDescription: 'A equipe que pulou escolhe um novo envelope para responder',
+            canAdvance: true,
+          };
+        }
         return {
           label: 'Confirmar Pontos e Ver Placar',
           actionDescription: 'Creditar pontos, encerrar turno da equipe e ver ranking',
@@ -1278,8 +1327,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (state.isCardFlipping) return;
         // Auto-select next available card if none selected
         const questionsInRound = questions.filter((q) => q.rodada === state.currentRound);
-        const availableIndices = [0, 1, 2, 3, 4].filter(
-          (idx) => !state.usedCardIndicesInRound.includes(idx) && idx < questionsInRound.length
+        const availableIndices = Array.from({ length: questionsInRound.length }, (_, i) => i).filter(
+          (idx) => !state.usedCardIndicesInRound.includes(idx)
         );
         if (availableIndices.length > 0) {
           const pickIndex = availableIndices[0];
@@ -1301,20 +1350,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         break;
 
       case 'reveal': {
-        // Complete the question turn and transition to leaderboard!
+        // Complete the question turn
         const activeTeam = state.drawnTeam;
         const q = currentQuestion;
         const fullPts = q?.pontosCheios ?? 10;
+        const isSkipped = state.isQuestionSkipped;
 
         let newScores = { ...state.scores };
-        // If answer was not marked as wrong and not yet credited to drawnTeam, credit it
-        if (state.answerStatus !== 'wrong' && activeTeam) {
+        // If answer was not marked as wrong, was not skipped, and not yet credited to drawnTeam, credit it
+        if (!isSkipped && state.answerStatus !== 'wrong' && activeTeam) {
           if (state.answerStatus === 'idle') {
             newScores[activeTeam] = (newScores[activeTeam] || 0) + fullPts;
           }
         }
 
-        const remainingTeams = state.teamsAvailableInRound.filter((t) => t !== activeTeam);
+        const remainingTeams = isSkipped
+          ? state.teamsAvailableInRound
+          : state.teamsAvailableInRound.filter((t) => t !== activeTeam);
+        const nextStage: GameStage = isSkipped ? 'card_selection' : 'leaderboard';
+        const nextDrawnTeam = isSkipped ? activeTeam : null;
+
         let nextQId = state.currentQuestionId + 1;
         if (nextQId > questions.length) nextQId = questions.length;
 
@@ -1325,7 +1380,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           Casais: 0,
           Adultos: 0,
         };
-        if (activeTeam && state.answerStatus !== 'wrong') {
+        if (!isSkipped && activeTeam && state.answerStatus !== 'wrong') {
           pointsAwarded[activeTeam] = fullPts;
         }
 
@@ -1334,7 +1389,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...prev,
             scores: newScores,
             teamsAvailableInRound: remainingTeams,
-            drawnTeam: null,
+            drawnTeam: nextDrawnTeam,
             isRevealed: false,
             selectedOptionIndex: null,
             answerStatus: 'idle',
@@ -1342,7 +1397,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isTimerRunning: false,
             timerEndTimestamp: null,
             currentQuestionId: nextQId,
-            stage: 'leaderboard',
+            stage: nextStage,
             eliminatedOptionIndices: [],
             isQuestionSkipped: false,
             activeCardAnnouncement: null,
@@ -1352,7 +1407,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 round: prev.currentRound,
                 questionId: prev.currentQuestionId,
                 drawnTeam: activeTeam,
-                drawnCorrect: prev.answerStatus !== 'wrong',
+                drawnCorrect: !isSkipped && prev.answerStatus !== 'wrong',
                 paperCorrectTeams: [],
                 pointsAwarded,
                 timestamp: Date.now(),
@@ -1363,11 +1418,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             type: 'SUBMIT_POINTS',
             payload: {
               drawnTeam: activeTeam,
-              drawnCorrect: state.answerStatus !== 'wrong',
+              drawnCorrect: !isSkipped && state.answerStatus !== 'wrong',
               paperCorrectTeams: [],
               pointsAwarded,
               newScores,
               nextQuestionId: nextQId,
+              wasSkipped: isSkipped,
             },
           }
         );

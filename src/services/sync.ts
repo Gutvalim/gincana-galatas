@@ -46,6 +46,7 @@ export type SyncAction =
         pointsAwarded: Record<TeamId, number>;
         newScores: Record<TeamId, number>;
         nextQuestionId?: number;
+        wasSkipped?: boolean;
       };
     }
   | { type: 'EMERGENCY_SCORE'; payload: { team: TeamId; delta: number; newScores: Record<TeamId, number> } }
@@ -67,6 +68,7 @@ export const INITIAL_STATE: GameState = {
   actionCards: INITIAL_ACTION_CARDS,
   eliminatedOptionIndices: [],
   isQuestionSkipped: false,
+  skipsUsedInRound: 0,
   activeCardAnnouncement: null,
   teamsAvailableInRound: [...ALL_TEAM_IDS],
   usedQuestionIdsInRound: [],
@@ -102,6 +104,7 @@ export function loadSavedState(): GameState {
           actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,
+          skipsUsedInRound: parsed.skipsUsedInRound || 0,
           activeCardAnnouncement: null,
           usedCardIndicesInRound: parsed.usedCardIndicesInRound || [],
           usedQuestionIdsInRound: parsed.usedQuestionIdsInRound || [],

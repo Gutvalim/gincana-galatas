@@ -142,6 +142,7 @@ export interface GameState {
   actionCards: Record<TeamId, ActionCardsInventory>;
   eliminatedOptionIndices: number[];
   isQuestionSkipped: boolean;
+  skipsUsedInRound: number;
   activeCardAnnouncement: string | null;
   teamsAvailableInRound: TeamId[];
   usedQuestionIdsInRound: number[];

@@ -199,6 +199,7 @@ export const TelaoPage: React.FC = () => {
                   team={state.drawnTeam}
                   inventory={state.actionCards?.[state.drawnTeam]}
                   interactive={false}
+                  skipsUsedInRound={state.skipsUsedInRound || 0}
                 />
               </div>
             )}
@@ -215,6 +216,7 @@ export const TelaoPage: React.FC = () => {
                   inventory={state.actionCards?.[state.drawnTeam]}
                   interactive={false}
                   compact={true}
+                  skipsUsedInRound={state.skipsUsedInRound || 0}
                 />
               </div>
             )}
@@ -246,6 +248,7 @@ export const TelaoPage: React.FC = () => {
                   isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
                   isQuestionSkipped={state.isQuestionSkipped}
                   compact={true}
+                  skipsUsedInRound={state.skipsUsedInRound || 0}
                 />
               </div>
             )}
@@ -275,6 +278,7 @@ export const TelaoPage: React.FC = () => {
                   isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
                   isQuestionSkipped={state.isQuestionSkipped}
                   compact={true}
+                  skipsUsedInRound={state.skipsUsedInRound || 0}
                 />
               </div>
             )}
@@ -314,6 +318,7 @@ export const TelaoPage: React.FC = () => {
                   isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
                   isQuestionSkipped={state.isQuestionSkipped}
                   compact={true}
+                  skipsUsedInRound={state.skipsUsedInRound || 0}
                 />
               </div>
             )}

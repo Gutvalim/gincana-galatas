@@ -17,6 +17,7 @@ interface ActionCardsHUDProps {
   isQuestionSkipped?: boolean;
   disabled?: boolean;
   compact?: boolean;
+  skipsUsedInRound?: number;
 }
 
 export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
@@ -29,6 +30,7 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
   isQuestionSkipped = false,
   disabled = false,
   compact = false,
+  skipsUsedInRound = 0,
 }) => {
   const teamInfo = TEAMS[team];
   const totalUnused = (inventory.skip || 0) + (inventory.bible || 0) + (inventory.fiftyFifty || 0);
@@ -56,12 +58,14 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
       icon: <FastForward className="w-4 h-4 text-orange-400" />,
       count: inventory.skip,
       max: 2,
-      canUse: inventory.skip > 0 && !isQuestionSkipped && !disabled,
+      canUse: inventory.skip > 0 && !isQuestionSkipped && !disabled && skipsUsedInRound < 2,
       disabledReason:
         inventory.skip <= 0
           ? 'Esgotado'
           : isQuestionSkipped
           ? 'Já pulada'
+          : skipsUsedInRound >= 2
+          ? 'Limite da rodada atingido (2/2)'
           : undefined,
       badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
       bgGradient: 'from-orange-950/40 to-black/60',
