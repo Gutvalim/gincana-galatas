@@ -112,7 +112,7 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                 {TEAMS[drawnTeam].logo && (
                   <img src={TEAMS[drawnTeam].logo} alt={TEAMS[drawnTeam].name} className="w-4 h-4 object-contain" />
                 )}
-                {TEAMS[drawnTeam].name} • {TEAMS[drawnTeam].fullName}
+                {TEAMS[drawnTeam].name}
               </span>
             ) : (
               <span className="text-xs text-amber-400 italic">

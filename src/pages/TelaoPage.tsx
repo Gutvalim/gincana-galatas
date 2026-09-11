@@ -286,7 +286,7 @@ export const TelaoPage: React.FC = () => {
             <div className="flex flex-col items-center">
               <CircularTimer
                 seconds={state.timerSeconds}
-                maxSeconds={60}
+                maxSeconds={state.timerMaxSeconds || 60}
                 isRunning={state.isTimerRunning}
                 size={220}
               />

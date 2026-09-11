@@ -183,6 +183,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 answerStatus: 'idle',
                 selectedOptionIndex: null,
                 timerSeconds: 60,
+                timerMaxSeconds: 60,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
                 usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(action.payload.questionId)
@@ -210,6 +211,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 answerStatus: 'idle',
                 selectedOptionIndex: null,
                 timerSeconds: 60,
+                timerMaxSeconds: 60,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
                 eliminatedOptionIndices: [],
@@ -223,7 +225,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             break;
 
           case 'USE_ACTION_CARD': {
-            const { team, cardType, eliminatedOptionIndices, additionalSeconds } = action.payload;
+            const { team, cardType, eliminatedOptionIndices } = action.payload;
             if (cardType === 'fiftyFifty') {
               sounds.playCard5050();
             } else if (cardType === 'bible') {
@@ -244,17 +246,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               };
 
               let newTimerSeconds = prev.timerSeconds;
+              let newTimerMaxSeconds = prev.timerMaxSeconds || 60;
               let newTimerEndTimestamp = prev.timerEndTimestamp;
+              let isRunning = prev.isTimerRunning;
+              let nextStage = prev.stage;
               let announcement = '';
 
               if (cardType === 'bible') {
-                const added = additionalSeconds ?? 30;
-                newTimerSeconds = prev.timerSeconds + added;
-                newTimerEndTimestamp =
-                  prev.isTimerRunning && prev.timerEndTimestamp
-                    ? prev.timerEndTimestamp + added * 1000
-                    : null;
-                announcement = `📖 Consulta Bíblica: +${added}s para ${team}!`;
+                newTimerSeconds = 30;
+                newTimerMaxSeconds = 30;
+                newTimerEndTimestamp = Date.now() + 30 * 1000;
+                isRunning = true;
+                if (nextStage === 'question') {
+                  nextStage = 'timer';
+                }
+                announcement = `📖 Consulta Bíblica: 30s para pesquisar na Bíblia!`;
               } else if (cardType === 'fiftyFifty') {
                 announcement = `🌓 50/50: 2 alternativas eliminadas para ${team}!`;
               } else if (cardType === 'skip') {
@@ -269,7 +275,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
                 skipsUsedInRound: cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : (prev.skipsUsedInRound || 0),
                 timerSeconds: newTimerSeconds,
+                timerMaxSeconds: newTimerMaxSeconds,
                 timerEndTimestamp: newTimerEndTimestamp,
+                isTimerRunning: isRunning,
+                stage: nextStage,
                 activeCardAnnouncement: announcement,
                 lastUpdated: Date.now(),
               };
@@ -416,6 +425,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 selectedOptionIndex: null,
                 answerStatus: 'idle',
                 timerSeconds: 60,
+                timerMaxSeconds: 60,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
                 currentQuestionId: action.payload.nextQuestionId ?? prev.currentQuestionId,
@@ -452,6 +462,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 drawnTeam: null,
                 isRevealed: false,
                 timerSeconds: 60,
+                timerMaxSeconds: 60,
                 isTimerRunning: false,
                 stage: action.payload.round === 7 ? 'sudden_death' : 'splash',
                 eliminatedOptionIndices: [],
@@ -474,6 +485,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 answerStatus: 'idle' as const,
                 selectedOptionIndex: null,
                 timerSeconds: 60,
+                timerMaxSeconds: 60,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
                 stage: prev.stage === 'reveal' ? ('question' as GameStage) : prev.stage,
@@ -636,18 +648,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const startTimer = useCallback(() => {
     const currentSecs = state.timerSeconds > 0 ? state.timerSeconds : 60;
     const endTimestamp = Date.now() + currentSecs * 1000;
+    const maxSecs = state.timerMaxSeconds && state.timerMaxSeconds > 0 ? state.timerMaxSeconds : 60;
 
     updateStateAndSync(
       (prev) => ({
         ...prev,
         timerSeconds: currentSecs,
+        timerMaxSeconds: maxSecs,
         timerEndTimestamp: endTimestamp,
         isTimerRunning: true,
         stage: 'timer',
       }),
-      { type: 'TIMER_START', payload: { seconds: currentSecs, endTimestamp } }
+      { type: 'TIMER_START', payload: { seconds: currentSecs, endTimestamp, maxSeconds: maxSecs } }
     );
-  }, [state.timerSeconds, updateStateAndSync]);
+  }, [state.timerSeconds, state.timerMaxSeconds, updateStateAndSync]);
 
   const pauseTimer = useCallback(() => {
     updateStateAndSync(
@@ -679,6 +693,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (prev) => ({
         ...prev,
         timerSeconds: 60,
+        timerMaxSeconds: 60,
         isTimerRunning: false,
         timerEndTimestamp: null,
       }),
@@ -879,7 +894,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!teamCards || teamCards[cardType] <= 0) return;
 
       let eliminatedIndices: number[] | undefined = undefined;
-      let additionalSeconds: number | undefined = undefined;
 
       if (cardType === 'fiftyFifty') {
         if (!currentQuestion || !currentQuestion.opcoes || currentQuestion.opcoes.length <= 2) {
@@ -900,9 +914,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const shuffled = [...wrongIndices].sort(() => 0.5 - Math.random());
         eliminatedIndices = shuffled.slice(0, 2);
-      } else if (cardType === 'bible') {
-        sounds.playBibleConsult();
-        additionalSeconds = 30;
       } else if (cardType === 'skip') {
         sounds.playSkipCard();
       }
@@ -917,20 +928,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       let newTimerSeconds = state.timerSeconds;
+      let newTimerMaxSeconds = state.timerMaxSeconds || 60;
       let newTimerEndTimestamp = state.timerEndTimestamp;
+      let isRunning = state.isTimerRunning;
+      let nextStage = state.stage;
       let announcement = '';
 
       if (cardType === 'bible') {
-        const added = additionalSeconds ?? 30;
-        newTimerSeconds = state.timerSeconds + added;
-        newTimerEndTimestamp =
-          state.isTimerRunning && state.timerEndTimestamp
-            ? state.timerEndTimestamp + added * 1000
-            : null;
-        announcement = `📖 Consulta Bíblica: +${added}s para ${activeTeam}!`;
+        sounds.playBibleConsult();
+        newTimerSeconds = 30;
+        newTimerMaxSeconds = 30;
+        newTimerEndTimestamp = Date.now() + 30 * 1000;
+        isRunning = true;
+        if (nextStage === 'question') {
+          nextStage = 'timer';
+        }
+        announcement = `📖 Consulta Bíblica: 30s para pesquisar na Bíblia!`;
       } else if (cardType === 'fiftyFifty') {
         announcement = `🌓 50/50: 2 alternativas eliminadas para ${activeTeam}!`;
       } else if (cardType === 'skip') {
+        sounds.playSkipCard();
         announcement = `🏃‍♂️ ${activeTeam} Pulou a Pergunta! Resposta no Papel Liberada!`;
       }
 
@@ -944,7 +961,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           skipsUsedInRound:
             cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : (prev.skipsUsedInRound || 0),
           timerSeconds: newTimerSeconds,
+          timerMaxSeconds: newTimerMaxSeconds,
           timerEndTimestamp: newTimerEndTimestamp,
+          isTimerRunning: isRunning,
+          stage: nextStage,
           activeCardAnnouncement: announcement,
         }),
         {
@@ -953,7 +973,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             team: activeTeam,
             cardType,
             eliminatedOptionIndices: eliminatedIndices,
-            additionalSeconds,
+            additionalSeconds: 30,
           },
         }
       );
@@ -966,6 +986,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       state.isTimerRunning,
       state.timerEndTimestamp,
       state.timerSeconds,
+      state.timerMaxSeconds,
+      state.stage,
       state.skipsUsedInRound,
       updateStateAndSync,
     ]
@@ -1007,6 +1029,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           drawnTeam: null,
           isRevealed: false,
           timerSeconds: 60,
+          timerMaxSeconds: 60,
           isTimerRunning: false,
           stage: round === 7 ? 'sudden_death' : 'splash',
           eliminatedOptionIndices: [],
@@ -1077,6 +1100,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           answerStatus: 'idle',
           selectedOptionIndex: null,
           timerSeconds: 60,
+          timerMaxSeconds: 60,
           isTimerRunning: false,
           timerEndTimestamp: null,
           usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(resolvedQId)
@@ -1101,6 +1125,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             answerStatus: 'idle',
             selectedOptionIndex: null,
             timerSeconds: 60,
+            timerMaxSeconds: 60,
             isTimerRunning: false,
             timerEndTimestamp: null,
             eliminatedOptionIndices: [],
@@ -1129,6 +1154,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           answerStatus: 'idle',
           selectedOptionIndex: null,
           timerSeconds: 60,
+          timerMaxSeconds: 60,
           isTimerRunning: false,
           timerEndTimestamp: null,
           stage: prev.stage === 'reveal' ? 'question' : prev.stage,

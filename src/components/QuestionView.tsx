@@ -52,7 +52,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                 Equipe no Microfone:
               </span>
               <span className="text-base sm:text-xl font-black uppercase tracking-wide" style={{ color: team.color }}>
-                {team.name} <span className="text-xs font-normal text-gray-300 hidden sm:inline">• {team.fullName}</span>
+                {team.name}
               </span>
             </div>
           </div>

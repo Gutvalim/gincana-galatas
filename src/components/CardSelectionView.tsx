@@ -63,7 +63,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
                   <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
                 </div>
               )}
-              {team.name} • {team.fullName}
+              {team.name}
             </span>
           </div>
         )}

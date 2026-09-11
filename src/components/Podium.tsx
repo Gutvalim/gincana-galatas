@@ -99,9 +99,6 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
             >
               {TEAMS[winner].name}
             </span>
-            <span className="text-base sm:text-lg text-gray-300 font-semibold mt-1">
-              {TEAMS[winner].fullName}
-            </span>
             <span className="mt-2 text-2xl sm:text-3xl font-black text-yellow-400 font-mono">
               {getFinalScore(winner)} PONTOS
             </span>

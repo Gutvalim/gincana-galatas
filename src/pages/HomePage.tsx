@@ -132,9 +132,6 @@ export const HomePage: React.FC = () => {
                 <span className="font-black text-sm uppercase tracking-wide" style={{ color: team.color }}>
                   {team.name}
                 </span>
-                <span className="text-[10px] text-gray-400 font-medium text-center leading-tight line-clamp-2">
-                  {team.fullName}
-                </span>
               </div>
             ))}
           </div>

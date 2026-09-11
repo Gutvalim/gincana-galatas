@@ -74,8 +74,8 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
     {
       type: 'bible',
       name: 'Consulta Bíblica',
-      shortName: 'Bíblia (+30s)',
-      desc: '+30 segundos no cronômetro',
+      shortName: 'Bíblia (30s)',
+      desc: 'Inicia timer de 30 segundos',
       icon: <BookOpen className="w-4 h-4 text-cyan-400" />,
       count: inventory.bible,
       max: 1,

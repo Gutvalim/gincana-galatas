@@ -12,7 +12,7 @@ export type SyncAction =
   | { type: 'FINISH_SPIN'; payload: TeamId }
   | { type: 'SELECT_CARD'; payload: { questionId: number; cardIndex: number } }
   | { type: 'FINISH_CARD_FLIP'; payload: { questionId: number } }
-  | { type: 'TIMER_START'; payload: { seconds: number; endTimestamp: number } }
+  | { type: 'TIMER_START'; payload: { seconds: number; endTimestamp: number; maxSeconds?: number } }
   | { type: 'TIMER_PAUSE'; payload: { remainingSeconds: number } }
   | { type: 'TIMER_ADD_15'; payload: { seconds: number; endTimestamp: number } }
   | { type: 'TIMER_RESET'; payload: { seconds: number } }
@@ -80,6 +80,7 @@ export const INITIAL_STATE: GameState = {
   spinningTargetTeam: null,
   spinSeed: 0,
   timerSeconds: 60,
+  timerMaxSeconds: 60,
   isTimerRunning: false,
   timerEndTimestamp: null,
   isRevealed: false,
@@ -101,6 +102,7 @@ export function loadSavedState(): GameState {
         return {
           ...INITIAL_STATE,
           ...parsed,
+          timerMaxSeconds: parsed.timerMaxSeconds || 60,
           actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,

@@ -154,6 +154,7 @@ export interface GameState {
   spinningTargetTeam: TeamId | null;
   spinSeed: number;
   timerSeconds: number;
+  timerMaxSeconds: number;
   isTimerRunning: boolean;
   timerEndTimestamp: number | null;
   isRevealed: boolean;

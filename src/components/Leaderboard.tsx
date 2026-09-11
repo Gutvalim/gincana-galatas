@@ -163,7 +163,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
             <div className="relative z-10 px-6 py-4 flex items-center justify-between gap-4">
               {/* Rank & Team Name - Fixed width column for perfect alignment */}
-              <div className="w-64 sm:w-80 shrink-0 flex items-center gap-3.5">
+              <div className="w-72 sm:w-88 md:w-96 shrink-0 flex items-center gap-3.5">
                 {getRankBadge(rank)}
                 {team.logo ? (
                   <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/50 p-1 flex items-center justify-center shrink-0 shadow-md">
@@ -177,23 +177,18 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     {team.name.slice(0, 3)}
                   </div>
                 )}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-2xl sm:text-3xl font-black uppercase tracking-wider truncate"
-                      style={{ color: team.color }}
-                    >
-                      {team.name}
-                    </span>
-                    {rank === 0 && score > 0 && (
-                      <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase shrink-0">
-                        Líder
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-400 hidden sm:block font-medium truncate">
-                    {team.fullName}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="text-2xl sm:text-3xl font-black uppercase tracking-wider whitespace-nowrap"
+                    style={{ color: team.color }}
+                  >
+                    {team.name}
                   </span>
+                  {rank === 0 && score > 0 && (
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase shrink-0 shadow-sm">
+                      Líder
+                    </span>
+                  )}
                 </div>
               </div>
 
