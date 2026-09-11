@@ -1,10 +1,11 @@
 import React from 'react';
-import type { TeamId } from '../types/game';
+import type { TeamId, ActionCardsInventory } from '../types/game';
 import { TEAMS, ALL_TEAM_IDS } from '../types/game';
-import { Trophy, Award, Medal } from 'lucide-react';
+import { Trophy, Award, Medal, Sparkles } from 'lucide-react';
 
 interface LeaderboardProps {
   scores: Record<TeamId, number>;
+  actionCards?: Record<TeamId, ActionCardsInventory>;
   compact?: boolean;
   highlightTeam?: TeamId | null;
   onEmergencyAdjust?: (team: TeamId, delta: number) => void;
@@ -12,10 +13,17 @@ interface LeaderboardProps {
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({
   scores,
+  actionCards,
   compact = false,
   highlightTeam = null,
   onEmergencyAdjust,
 }) => {
+  const getCardBonus = (teamId: TeamId) => {
+    if (!actionCards || !actionCards[teamId]) return 0;
+    const inv = actionCards[teamId];
+    return ((inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0)) * 15;
+  };
+
   // Sort teams by points descending
   const sortedTeams = [...ALL_TEAM_IDS].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
   const maxScore = Math.max(...Object.values(scores), 60);
@@ -82,9 +90,19 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="font-black text-base text-yellow-400 font-mono">
-                  {score} <span className="text-xs text-gray-400 font-normal">pts</span>
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="font-black text-base text-yellow-400 font-mono leading-tight">
+                    {score} <span className="text-xs text-gray-400 font-normal">pts</span>
+                  </span>
+                  {getCardBonus(teamId) > 0 && (
+                    <span
+                      className="text-[10px] text-amber-300 font-bold"
+                      title={`${getCardBonus(teamId)} pts bônus de ${getCardBonus(teamId) / 15} cartas de ação guardadas (+15 pts cada)`}
+                    >
+                      +{getCardBonus(teamId)} cartas
+                    </span>
+                  )}
+                </div>
 
                 {onEmergencyAdjust && (
                   <div className="flex items-center gap-1">
@@ -194,13 +212,26 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               </div>
 
               {/* Score Number - Fixed right column */}
-              <div className="w-28 sm:w-32 shrink-0 flex items-baseline justify-end gap-1.5">
-                <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                  {score}
-                </span>
-                <span className="text-sm font-semibold text-gray-400 uppercase">
-                  pts
-                </span>
+              <div className="w-32 sm:w-44 shrink-0 flex flex-col items-end justify-center">
+                <div className="flex items-baseline justify-end gap-1.5">
+                  <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                    {score}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-400 uppercase">
+                    pts
+                  </span>
+                </div>
+                {getCardBonus(teamId) > 0 && (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span
+                      className="text-[11px] font-bold text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 shadow-sm"
+                      title="Bônus de 15 pontos para cada carta de ação não utilizada ao final"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-400" />
+                      +{getCardBonus(teamId)} cartas ({getCardBonus(teamId) / 15} un.)
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

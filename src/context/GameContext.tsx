@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import type { GameState, GameStage, TeamId, Question } from '../types/game';
-import { ALL_TEAM_IDS } from '../types/game';
+import type { GameState, GameStage, TeamId, Question, ActionCardType } from '../types/game';
+import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS } from '../types/game';
 import questionsData from '../data/questions.json';
 import {
   CHANNEL_NAME,
@@ -36,6 +36,7 @@ interface GameContextType {
   selectCardQuestion: (questionId: number, cardIndex: number) => void;
   resetGameToStart: () => void;
   toggleSound: () => void;
+  useActionCard: (cardType: ActionCardType) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -178,12 +179,71 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 currentQuestionId: action.payload.questionId,
                 isCardFlipping: false,
                 selectedCardIndex: null,
+                eliminatedOptionIndices: [],
+                isQuestionSkipped: false,
+                activeCardAnnouncement: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
               return updated;
             });
             break;
+
+          case 'USE_ACTION_CARD': {
+            const { team, cardType, eliminatedOptionIndices, additionalSeconds } = action.payload;
+            if (cardType === 'fiftyFifty') {
+              sounds.playCard5050();
+            } else if (cardType === 'bible') {
+              sounds.playBibleConsult();
+            } else if (cardType === 'skip') {
+              sounds.playSkipCard();
+            }
+
+            setState((prev) => {
+              const currentCards = prev.actionCards?.[team] || INITIAL_ACTION_CARDS[team];
+              const updatedCount = Math.max(0, (currentCards[cardType] || 0) - 1);
+              const newCards = {
+                ...prev.actionCards,
+                [team]: {
+                  ...currentCards,
+                  [cardType]: updatedCount,
+                },
+              };
+
+              let newTimerSeconds = prev.timerSeconds;
+              let newTimerEndTimestamp = prev.timerEndTimestamp;
+              let announcement = '';
+
+              if (cardType === 'bible') {
+                const added = additionalSeconds ?? 30;
+                newTimerSeconds = prev.timerSeconds + added;
+                newTimerEndTimestamp =
+                  prev.isTimerRunning && prev.timerEndTimestamp
+                    ? prev.timerEndTimestamp + added * 1000
+                    : null;
+                announcement = `📖 Consulta Bíblica: +${added}s para ${team}!`;
+              } else if (cardType === 'fiftyFifty') {
+                announcement = `🌓 50/50: 2 alternativas eliminadas para ${team}!`;
+              } else if (cardType === 'skip') {
+                announcement = `🏃‍♂️ ${team} Pulou a Pergunta! Resposta no Papel Liberada!`;
+              }
+
+              const updated: GameState = {
+                ...prev,
+                actionCards: newCards,
+                eliminatedOptionIndices:
+                  eliminatedOptionIndices !== undefined ? eliminatedOptionIndices : prev.eliminatedOptionIndices,
+                isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
+                timerSeconds: newTimerSeconds,
+                timerEndTimestamp: newTimerEndTimestamp,
+                activeCardAnnouncement: announcement,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+          }
 
           case 'TIMER_START':
             setState((prev) => {
@@ -318,6 +378,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 timerEndTimestamp: null,
                 currentQuestionId: action.payload.nextQuestionId ?? prev.currentQuestionId,
                 stage: 'leaderboard',
+                eliminatedOptionIndices: [],
+                isQuestionSkipped: false,
+                activeCardAnnouncement: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -349,6 +412,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 timerSeconds: 60,
                 isTimerRunning: false,
                 stage: action.payload.round === 7 ? 'sudden_death' : 'splash',
+                eliminatedOptionIndices: [],
+                isQuestionSkipped: false,
+                activeCardAnnouncement: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -364,6 +430,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isRevealed: false,
                 timerSeconds: 60,
                 isTimerRunning: false,
+                eliminatedOptionIndices: [],
+                isQuestionSkipped: false,
+                activeCardAnnouncement: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -657,8 +726,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (state.drawnTeam && drawnCorrect) {
         pointsAwarded[state.drawnTeam] = fullPts;
-      } else if (!drawnCorrect) {
-        // A pontuação no papel só é creditada se a equipe do microfone errar
+      } else if (state.isQuestionSkipped) {
+        // A pontuação no papel só é avaliada e creditada quando a equipe decide pular a pergunta
         paperCorrectTeams.forEach((t) => {
           if (t !== state.drawnTeam) {
             pointsAwarded[t] = (pointsAwarded[t] || 0) + halfPts;
@@ -666,7 +735,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
 
-      const evaluatedPaperTeams = drawnCorrect ? [] : paperCorrectTeams;
+      const evaluatedPaperTeams = state.isQuestionSkipped ? paperCorrectTeams : [];
 
       const newScores: Record<TeamId, number> = {
         UCP: state.scores.UCP + pointsAwarded.UCP,
@@ -694,6 +763,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timerEndTimestamp: null,
             currentQuestionId: nextQId,
             stage: 'leaderboard',
+            eliminatedOptionIndices: [],
+            isQuestionSkipped: false,
+            activeCardAnnouncement: null,
             history: [
               ...prev.history,
               {
@@ -721,7 +793,106 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       );
     },
-    [currentQuestion, state.drawnTeam, state.scores, state.currentQuestionId, updateStateAndSync]
+    [currentQuestion, state.drawnTeam, state.scores, state.currentQuestionId, state.isQuestionSkipped, updateStateAndSync]
+  );
+
+  // USE ACTION CARD
+  const useActionCard = useCallback(
+    (cardType: ActionCardType) => {
+      const activeTeam = state.drawnTeam;
+      if (!activeTeam) return;
+
+      const teamCards = state.actionCards?.[activeTeam] || INITIAL_ACTION_CARDS[activeTeam];
+      if (!teamCards || teamCards[cardType] <= 0) return;
+
+      let eliminatedIndices: number[] | undefined = undefined;
+      let additionalSeconds: number | undefined = undefined;
+
+      if (cardType === 'fiftyFifty') {
+        if (!currentQuestion || !currentQuestion.opcoes || currentQuestion.opcoes.length <= 2) {
+          return;
+        }
+        if (state.eliminatedOptionIndices && state.eliminatedOptionIndices.length > 0) {
+          return;
+        }
+
+        sounds.playCard5050();
+        const correctText = currentQuestion.respostaCorreta.trim().toLowerCase();
+        const wrongIndices: number[] = [];
+        currentQuestion.opcoes.forEach((op, idx) => {
+          if (op.trim().toLowerCase() !== correctText) {
+            wrongIndices.push(idx);
+          }
+        });
+
+        const shuffled = [...wrongIndices].sort(() => 0.5 - Math.random());
+        eliminatedIndices = shuffled.slice(0, 2);
+      } else if (cardType === 'bible') {
+        sounds.playBibleConsult();
+        additionalSeconds = 30;
+      } else if (cardType === 'skip') {
+        sounds.playSkipCard();
+      }
+
+      const updatedCount = Math.max(0, teamCards[cardType] - 1);
+      const newActionCards = {
+        ...state.actionCards,
+        [activeTeam]: {
+          ...teamCards,
+          [cardType]: updatedCount,
+        },
+      };
+
+      let newTimerSeconds = state.timerSeconds;
+      let newTimerEndTimestamp = state.timerEndTimestamp;
+      let announcement = '';
+
+      if (cardType === 'bible') {
+        const added = additionalSeconds ?? 30;
+        newTimerSeconds = state.timerSeconds + added;
+        newTimerEndTimestamp =
+          state.isTimerRunning && state.timerEndTimestamp
+            ? state.timerEndTimestamp + added * 1000
+            : null;
+        announcement = `📖 Consulta Bíblica: +${added}s para ${activeTeam}!`;
+      } else if (cardType === 'fiftyFifty') {
+        announcement = `🌓 50/50: 2 alternativas eliminadas para ${activeTeam}!`;
+      } else if (cardType === 'skip') {
+        announcement = `🏃‍♂️ ${activeTeam} Pulou a Pergunta! Resposta no Papel Liberada!`;
+      }
+
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          actionCards: newActionCards,
+          eliminatedOptionIndices:
+            eliminatedIndices !== undefined ? eliminatedIndices : prev.eliminatedOptionIndices,
+          isQuestionSkipped: cardType === 'skip' ? true : prev.isQuestionSkipped,
+          timerSeconds: newTimerSeconds,
+          timerEndTimestamp: newTimerEndTimestamp,
+          activeCardAnnouncement: announcement,
+        }),
+        {
+          type: 'USE_ACTION_CARD',
+          payload: {
+            team: activeTeam,
+            cardType,
+            eliminatedOptionIndices: eliminatedIndices,
+            additionalSeconds,
+          },
+        }
+      );
+    },
+    [
+      currentQuestion,
+      state.actionCards,
+      state.drawnTeam,
+      state.eliminatedOptionIndices,
+      state.isTimerRunning,
+      state.timerEndTimestamp,
+      state.timerSeconds,
+      updateStateAndSync,
+    ]
   );
 
   // EMERGENCY SCORE ADJUST (+5 / -5)
@@ -762,6 +933,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           timerSeconds: 60,
           isTimerRunning: false,
           stage: round === 7 ? 'sudden_death' : 'splash',
+          eliminatedOptionIndices: [],
+          isQuestionSkipped: false,
+          activeCardAnnouncement: null,
         }),
         { type: 'SET_ROUND', payload: { round, questionId: qId } }
       );
@@ -824,6 +998,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             stage: 'question',
             isCardFlipping: false,
             selectedCardIndex: null,
+            eliminatedOptionIndices: [],
+            isQuestionSkipped: false,
+            activeCardAnnouncement: null,
           }),
           { type: 'FINISH_CARD_FLIP', payload: { questionId: resolvedQId } }
         );
@@ -846,6 +1023,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isRevealed: false,
           timerSeconds: 60,
           isTimerRunning: false,
+          eliminatedOptionIndices: [],
+          isQuestionSkipped: false,
+          activeCardAnnouncement: null,
         }),
         { type: 'SET_QUESTION', payload: questionId }
       );
@@ -896,6 +1076,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectCardQuestion,
         resetGameToStart,
         toggleSound,
+        useActionCard,
       }}
     >
       {children}

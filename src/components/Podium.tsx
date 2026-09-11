@@ -1,16 +1,27 @@
 import React, { useEffect } from 'react';
-import type { TeamId } from '../types/game';
+import type { TeamId, ActionCardsInventory } from '../types/game';
 import { TEAMS, ALL_TEAM_IDS } from '../types/game';
 import confetti from 'canvas-confetti';
 import { Trophy, Crown, Sparkles, Medal } from 'lucide-react';
 
 interface PodiumProps {
   scores: Record<TeamId, number>;
+  actionCards?: Record<TeamId, ActionCardsInventory>;
 }
 
-export const Podium: React.FC<PodiumProps> = ({ scores }) => {
-  // Sort teams
-  const sorted = [...ALL_TEAM_IDS].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
+  const getCardBonus = (teamId: TeamId) => {
+    if (!actionCards || !actionCards[teamId]) return 0;
+    const inv = actionCards[teamId];
+    return ((inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0)) * 15;
+  };
+
+  const getFinalScore = (teamId: TeamId) => {
+    return (scores[teamId] || 0) + getCardBonus(teamId);
+  };
+
+  // Sort teams by final score (base + unused cards bonus)
+  const sorted = [...ALL_TEAM_IDS].sort((a, b) => getFinalScore(b) - getFinalScore(a));
   const winner = sorted[0];
   const second = sorted[1];
   const third = sorted[2];
@@ -92,8 +103,13 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
               {TEAMS[winner].fullName}
             </span>
             <span className="mt-2 text-2xl sm:text-3xl font-black text-yellow-400 font-mono">
-              {scores[winner] || 0} PONTOS
+              {getFinalScore(winner)} PONTOS
             </span>
+            {getCardBonus(winner) > 0 && (
+              <span className="text-xs text-amber-300/90 font-medium text-center">
+                ({scores[winner] || 0} pts gincana + {getCardBonus(winner)} pts de {getCardBonus(winner) / 15} cartas guardadas)
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -103,7 +119,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
         {/* 2nd Place */}
         {second && (
           <div className="flex flex-col items-center">
-            <div className="flex flex-col items-center mb-3">
+            <div className="flex flex-col items-center mb-3 text-center">
               <Medal className="w-8 h-8 text-slate-300" />
               {TEAMS[second].logo && (
                 <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center my-1 shadow-md">
@@ -117,8 +133,13 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
                 {TEAMS[second].name}
               </span>
               <span className="font-bold text-sm text-slate-300 font-mono">
-                {scores[second] || 0} pts
+                {getFinalScore(second)} pts
               </span>
+              {getCardBonus(second) > 0 && (
+                <span className="text-[10px] text-slate-400 font-medium">
+                  ({scores[second] || 0} + {getCardBonus(second)} cartas)
+                </span>
+              )}
             </div>
             <div className="w-full h-40 sm:h-52 bg-gradient-to-t from-slate-900 to-slate-700/80 border-2 border-slate-400/50 rounded-t-2xl flex flex-col items-center justify-start pt-4 shadow-xl">
               <span className="text-3xl sm:text-4xl font-black text-slate-300">
@@ -134,7 +155,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
         {/* 1st Place */}
         {winner && (
           <div className="flex flex-col items-center">
-            <div className="flex flex-col items-center mb-3">
+            <div className="flex flex-col items-center mb-3 text-center">
               <Trophy className="w-12 h-12 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]" />
               {TEAMS[winner].logo && (
                 <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center my-1 shadow-md">
@@ -148,8 +169,13 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
                 {TEAMS[winner].name}
               </span>
               <span className="font-black text-base sm:text-lg text-yellow-300 font-mono">
-                {scores[winner] || 0} pts
+                {getFinalScore(winner)} pts
               </span>
+              {getCardBonus(winner) > 0 && (
+                <span className="text-[10px] text-amber-300 font-medium">
+                  ({scores[winner] || 0} + {getCardBonus(winner)} cartas)
+                </span>
+              )}
             </div>
             <div className="w-full h-56 sm:h-72 bg-gradient-to-t from-amber-950 to-amber-600/80 border-2 border-amber-400 rounded-t-2xl flex flex-col items-center justify-start pt-6 shadow-[0_0_35px_rgba(245,158,11,0.4)]">
               <span className="text-5xl sm:text-6xl font-black text-yellow-300">
@@ -165,7 +191,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
         {/* 3rd Place */}
         {third && (
           <div className="flex flex-col items-center">
-            <div className="flex flex-col items-center mb-3">
+            <div className="flex flex-col items-center mb-3 text-center">
               <Medal className="w-8 h-8 text-amber-700" />
               {TEAMS[third].logo && (
                 <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center my-1 shadow-md">
@@ -179,8 +205,13 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
                 {TEAMS[third].name}
               </span>
               <span className="font-bold text-sm text-amber-600 font-mono">
-                {scores[third] || 0} pts
+                {getFinalScore(third)} pts
               </span>
+              {getCardBonus(third) > 0 && (
+                <span className="text-[10px] text-amber-500/80 font-medium">
+                  ({scores[third] || 0} + {getCardBonus(third)} cartas)
+                </span>
+              )}
             </div>
             <div className="w-full h-32 sm:h-40 bg-gradient-to-t from-amber-950/80 to-amber-800/60 border-2 border-amber-700/50 rounded-t-2xl flex flex-col items-center justify-start pt-4 shadow-xl">
               <span className="text-3xl sm:text-4xl font-black text-amber-500">
@@ -202,7 +233,14 @@ export const Podium: React.FC<PodiumProps> = ({ scores }) => {
             <span className="font-bold text-sm" style={{ color: TEAMS[t].color }}>
               {TEAMS[t].name}
             </span>
-            <span className="font-mono text-xs text-gray-300">{scores[t] || 0}p</span>
+            <span className="font-mono text-xs text-gray-200 font-black">
+              {getFinalScore(t)}p
+            </span>
+            {getCardBonus(t) > 0 && (
+              <span className="text-[9px] text-amber-400/90 font-mono">
+                (+{getCardBonus(t)})
+              </span>
+            )}
           </div>
         ))}
       </div>

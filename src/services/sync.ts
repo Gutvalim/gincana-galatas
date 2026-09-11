@@ -1,5 +1,5 @@
-import type { GameState, TeamId, GameStage } from '../types/game';
-import { ALL_TEAM_IDS } from '../types/game';
+import type { GameState, TeamId, GameStage, ActionCardType } from '../types/game';
+import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS } from '../types/game';
 
 export const CHANNEL_NAME = 'gincana_galatas';
 export const STORAGE_KEY = 'gincana_galatas_state_v1';
@@ -29,6 +29,15 @@ export type SyncAction =
       };
     }
   | {
+      type: 'USE_ACTION_CARD';
+      payload: {
+        team: TeamId;
+        cardType: ActionCardType;
+        eliminatedOptionIndices?: number[];
+        additionalSeconds?: number;
+      };
+    }
+  | {
       type: 'SUBMIT_POINTS';
       payload: {
         drawnTeam: TeamId | null;
@@ -55,6 +64,10 @@ export const INITIAL_STATE: GameState = {
     Casais: 0,
     Adultos: 0,
   },
+  actionCards: INITIAL_ACTION_CARDS,
+  eliminatedOptionIndices: [],
+  isQuestionSkipped: false,
+  activeCardAnnouncement: null,
   teamsAvailableInRound: [...ALL_TEAM_IDS],
   usedQuestionIdsInRound: [],
   usedCardIndicesInRound: [],
@@ -86,6 +99,10 @@ export function loadSavedState(): GameState {
         return {
           ...INITIAL_STATE,
           ...parsed,
+          actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,
+          eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
+          isQuestionSkipped: parsed.isQuestionSkipped || false,
+          activeCardAnnouncement: null,
           usedCardIndicesInRound: parsed.usedCardIndicesInRound || [],
           usedQuestionIdsInRound: parsed.usedQuestionIdsInRound || [],
         };

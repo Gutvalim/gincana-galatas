@@ -116,11 +116,33 @@ export interface ScoreEntry {
   timestamp: number;
 }
 
+export type ActionCardType = 'skip' | 'bible' | 'fiftyFifty';
+
+export interface ActionCardsInventory {
+  skip: number;       // 2 unidades
+  bible: number;      // 1 unidade (30s)
+  fiftyFifty: number; // 1 unidade (elimina 2 alternativas)
+}
+
+export const INITIAL_ACTION_CARDS: Record<TeamId, ActionCardsInventory> = {
+  UCP: { skip: 2, bible: 1, fiftyFifty: 1 },
+  UPA: { skip: 2, bible: 1, fiftyFifty: 1 },
+  UMP: { skip: 2, bible: 1, fiftyFifty: 1 },
+  Casais: { skip: 2, bible: 1, fiftyFifty: 1 },
+  Adultos: { skip: 2, bible: 1, fiftyFifty: 1 },
+};
+
+export const CARD_BONUS_POINTS = 15;
+
 export interface GameState {
   currentRound: number;
   currentQuestionId: number;
   stage: GameStage;
   scores: Record<TeamId, number>;
+  actionCards: Record<TeamId, ActionCardsInventory>;
+  eliminatedOptionIndices: number[];
+  isQuestionSkipped: boolean;
+  activeCardAnnouncement: string | null;
   teamsAvailableInRound: TeamId[];
   usedQuestionIdsInRound: number[];
   usedCardIndicesInRound: number[];

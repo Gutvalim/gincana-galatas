@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Question, TeamId } from '../types/game';
 import { TEAMS } from '../types/game';
-import { BookOpen, CheckCircle2, XCircle, Award } from 'lucide-react';
+import { BookOpen, CheckCircle2, XCircle, Award, Sparkles, FastForward } from 'lucide-react';
 
 interface QuestionViewProps {
   question: Question;
@@ -10,6 +10,9 @@ interface QuestionViewProps {
   drawnTeam?: TeamId | null;
   selectedOptionIndex?: number | null;
   answerStatus?: 'idle' | 'selected' | 'correct' | 'wrong';
+  eliminatedOptionIndices?: number[];
+  activeCardAnnouncement?: string | null;
+  isQuestionSkipped?: boolean;
 }
 
 export const QuestionView: React.FC<QuestionViewProps> = ({
@@ -19,6 +22,9 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   drawnTeam = null,
   selectedOptionIndex = null,
   answerStatus = 'idle',
+  eliminatedOptionIndices = [],
+  activeCardAnnouncement = null,
+  isQuestionSkipped = false,
 }) => {
   const letters = ['A', 'B', 'C', 'D'];
   const team = drawnTeam ? TEAMS[drawnTeam] : null;
@@ -55,6 +61,26 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
             style={{ backgroundColor: team.color }}
           >
             Vez de Responder
+          </span>
+        </div>
+      )}
+
+      {/* Active Card Announcement Banner */}
+      {activeCardAnnouncement && (
+        <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-500/25 via-emerald-500/25 to-cyan-500/25 border-2 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.4)] flex items-center justify-center gap-3 text-center animate-bounce">
+          <Sparkles className="w-6 h-6 text-amber-300 shrink-0" />
+          <span className="text-base sm:text-xl font-black uppercase tracking-wide text-white drop-shadow">
+            {activeCardAnnouncement}
+          </span>
+        </div>
+      )}
+
+      {/* Question Skipped Notice */}
+      {isQuestionSkipped && (
+        <div className="w-full p-3.5 rounded-xl bg-orange-950/70 border-2 border-orange-500/80 text-orange-200 flex items-center justify-center gap-2 shadow-lg">
+          <FastForward className="w-5 h-5 text-orange-400 shrink-0" />
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-center">
+            Pergunta Pulada pela Equipe! Apenas respostas avaliadas no papel pontuarão nesta questão.
           </span>
         </div>
       )}
@@ -98,12 +124,17 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           {question.opcoes.map((opcao, idx) => {
             const isCorrect = opcao.trim().toLowerCase() === question.respostaCorreta.trim().toLowerCase();
             const isSelected = selectedOptionIndex === idx;
+            const isEliminated = eliminatedOptionIndices.includes(idx);
             const letter = letters[idx] || `${idx + 1}`;
 
             let cardStyle = 'border-[#1d5740] bg-[#0c231a]/90 text-gray-200 hover:border-emerald-500/60';
             let letterStyle = 'bg-[#133829] text-amber-300 border-[#1d5740]';
 
-            if (answerStatus === 'selected' && isSelected) {
+            if (isEliminated) {
+              cardStyle =
+                'border-dashed border-gray-800 bg-gray-950/40 text-gray-600 line-through opacity-30 pointer-events-none filter grayscale';
+              letterStyle = 'bg-gray-900 text-gray-700 border-gray-800';
+            } else if (answerStatus === 'selected' && isSelected) {
               cardStyle =
                 'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_30px_rgba(245,158,11,0.6)] scale-[1.02] ring-2 ring-amber-400 animate-pulse';
               letterStyle = 'bg-amber-400 text-black border-amber-300 font-black';
@@ -146,15 +177,20 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                 </span>
 
                 {/* Status Badges / Icons */}
-                {answerStatus === 'selected' && isSelected && (
+                {isEliminated && (
+                  <span className="text-[11px] font-black uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-md border border-purple-500/30 shrink-0">
+                    50/50 Eliminada
+                  </span>
+                )}
+                {!isEliminated && answerStatus === 'selected' && isSelected && (
                   <span className="text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-1 rounded-full border border-amber-400/40 animate-pulse">
                     Opção Marcada
                   </span>
                 )}
-                {(answerStatus === 'correct' || isRevealed) && isCorrect && (
+                {!isEliminated && (answerStatus === 'correct' || isRevealed) && isCorrect && (
                   <CheckCircle2 className="w-7 h-7 text-emerald-400 animate-bounce shrink-0" />
                 )}
-                {answerStatus === 'wrong' && isSelected && (
+                {!isEliminated && answerStatus === 'wrong' && isSelected && (
                   <XCircle className="w-7 h-7 text-red-400 animate-pulse shrink-0" />
                 )}
               </div>

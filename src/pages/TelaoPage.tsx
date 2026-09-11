@@ -9,6 +9,7 @@ import { RoundSplash } from '../components/RoundSplash';
 import { RulesView } from '../components/RulesView';
 import { Podium } from '../components/Podium';
 import { CardSelectionView } from '../components/CardSelectionView';
+import { ActionCardsHUD } from '../components/ActionCardsHUD';
 import { Play, Maximize, Volume2, VolumeX, ShieldAlert } from 'lucide-react';
 
 export const TelaoPage: React.FC = () => {
@@ -162,7 +163,11 @@ export const TelaoPage: React.FC = () => {
                 Placar Geral
               </h2>
             </div>
-            <Leaderboard scores={state.scores} highlightTeam={state.drawnTeam} />
+            <Leaderboard
+              scores={state.scores}
+              actionCards={state.actionCards}
+              highlightTeam={state.drawnTeam}
+            />
           </div>
         )}
 
@@ -171,7 +176,7 @@ export const TelaoPage: React.FC = () => {
 
         {/* STAGE: ROULETTE */}
         {state.stage === 'roulette' && (
-          <div className="flex flex-col items-center justify-center animate-fadeIn">
+          <div className="flex flex-col items-center justify-center animate-fadeIn w-full max-w-4xl">
             <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white text-center drop-shadow mb-4">
               Sorteio da Equipe
             </h2>
@@ -186,12 +191,33 @@ export const TelaoPage: React.FC = () => {
               spinSeed={state.spinSeed}
               onFinish={finishSpin}
             />
+
+            {/* Display active team's action cards when drawn */}
+            {state.drawnTeam && !state.isSpinning && (
+              <div className="w-full max-w-2xl mt-6 animate-fadeIn">
+                <ActionCardsHUD
+                  team={state.drawnTeam}
+                  inventory={state.actionCards?.[state.drawnTeam]}
+                  interactive={false}
+                />
+              </div>
+            )}
           </div>
         )}
 
         {/* STAGE: CARD SELECTION */}
         {state.stage === 'card_selection' && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
+            {state.drawnTeam && (
+              <div className="w-full max-w-3xl mb-4 animate-fadeIn">
+                <ActionCardsHUD
+                  team={state.drawnTeam}
+                  inventory={state.actionCards?.[state.drawnTeam]}
+                  interactive={false}
+                  compact={true}
+                />
+              </div>
+            )}
             <CardSelectionView
               round={state.currentRound}
               questionsInRound={questions.filter((q) => q.rodada === state.currentRound)}
@@ -209,21 +235,50 @@ export const TelaoPage: React.FC = () => {
 
         {/* STAGE: QUESTION */}
         {state.stage === 'question' && currentQuestion && (
-          <div className="w-full flex flex-col items-center animate-fadeIn">
+          <div className="w-full flex flex-col items-center gap-4 animate-fadeIn">
+            {state.drawnTeam && (
+              <div className="w-full max-w-5xl animate-fadeIn">
+                <ActionCardsHUD
+                  team={state.drawnTeam}
+                  inventory={state.actionCards?.[state.drawnTeam]}
+                  interactive={false}
+                  isMultipleChoice={currentQuestion.tipo === 'multipla_escolha'}
+                  isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
+                  isQuestionSkipped={state.isQuestionSkipped}
+                  compact={true}
+                />
+              </div>
+            )}
             <QuestionView
               question={currentQuestion}
               isRevealed={state.isRevealed}
               drawnTeam={state.drawnTeam}
               selectedOptionIndex={state.selectedOptionIndex}
               answerStatus={state.answerStatus}
+              eliminatedOptionIndices={state.eliminatedOptionIndices}
+              activeCardAnnouncement={state.activeCardAnnouncement}
+              isQuestionSkipped={state.isQuestionSkipped}
             />
           </div>
         )}
 
         {/* STAGE: TIMER */}
         {state.stage === 'timer' && currentQuestion && (
-          <div className="w-full flex flex-col items-center gap-6 animate-fadeIn">
-            {/* Split layout: Circular timer above or beside question */}
+          <div className="w-full flex flex-col items-center gap-4 animate-fadeIn">
+            {state.drawnTeam && (
+              <div className="w-full max-w-5xl animate-fadeIn">
+                <ActionCardsHUD
+                  team={state.drawnTeam}
+                  inventory={state.actionCards?.[state.drawnTeam]}
+                  interactive={false}
+                  isMultipleChoice={currentQuestion.tipo === 'multipla_escolha'}
+                  isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
+                  isQuestionSkipped={state.isQuestionSkipped}
+                  compact={true}
+                />
+              </div>
+            )}
+            {/* Split layout: Circular timer above question */}
             <div className="flex flex-col items-center">
               <CircularTimer
                 seconds={state.timerSeconds}
@@ -239,19 +294,38 @@ export const TelaoPage: React.FC = () => {
               drawnTeam={state.drawnTeam}
               selectedOptionIndex={state.selectedOptionIndex}
               answerStatus={state.answerStatus}
+              eliminatedOptionIndices={state.eliminatedOptionIndices}
+              activeCardAnnouncement={state.activeCardAnnouncement}
+              isQuestionSkipped={state.isQuestionSkipped}
             />
           </div>
         )}
 
         {/* STAGE: REVEAL */}
         {state.stage === 'reveal' && currentQuestion && (
-          <div className="w-full flex flex-col items-center animate-fadeIn">
+          <div className="w-full flex flex-col items-center gap-4 animate-fadeIn">
+            {state.drawnTeam && (
+              <div className="w-full max-w-5xl animate-fadeIn">
+                <ActionCardsHUD
+                  team={state.drawnTeam}
+                  inventory={state.actionCards?.[state.drawnTeam]}
+                  interactive={false}
+                  isMultipleChoice={currentQuestion.tipo === 'multipla_escolha'}
+                  isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
+                  isQuestionSkipped={state.isQuestionSkipped}
+                  compact={true}
+                />
+              </div>
+            )}
             <QuestionView
               question={currentQuestion}
               isRevealed={state.isRevealed}
               drawnTeam={state.drawnTeam}
               selectedOptionIndex={state.selectedOptionIndex}
               answerStatus={state.answerStatus}
+              eliminatedOptionIndices={state.eliminatedOptionIndices}
+              activeCardAnnouncement={state.activeCardAnnouncement}
+              isQuestionSkipped={state.isQuestionSkipped}
             />
           </div>
         )}
@@ -285,7 +359,7 @@ export const TelaoPage: React.FC = () => {
         )}
 
         {/* STAGE: PODIUM / VICTORY */}
-        {state.stage === 'podium' && <Podium scores={state.scores} />}
+        {state.stage === 'podium' && <Podium scores={state.scores} actionCards={state.actionCards} />}
       </main>
 
       {/* Subtle Footer Bar */}

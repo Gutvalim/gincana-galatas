@@ -5,6 +5,7 @@ import { TEAMS, ROUNDS_INFO } from '../types/game';
 import { ScoreModal } from '../components/ScoreModal';
 import { Leaderboard } from '../components/Leaderboard';
 import { CardSelectionView } from '../components/CardSelectionView';
+import { ActionCardsHUD } from '../components/ActionCardsHUD';
 import {
   ExternalLink,
   Play,
@@ -52,6 +53,7 @@ export const AdminPage: React.FC = () => {
     selectCardQuestion,
     resetGameToStart,
     toggleSound,
+    useActionCard,
   } = useGame();
 
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
@@ -259,6 +261,21 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Action Cards HUD for Active Team */}
+              {state.drawnTeam && (
+                <div className="animate-fadeIn">
+                  <ActionCardsHUD
+                    team={state.drawnTeam}
+                    inventory={state.actionCards?.[state.drawnTeam]}
+                    interactive={true}
+                    onUseCard={useActionCard}
+                    isMultipleChoice={currentQuestion.tipo === 'multipla_escolha'}
+                    isFiftyFiftyUsed={(state.eliminatedOptionIndices?.length ?? 0) > 0}
+                    isQuestionSkipped={state.isQuestionSkipped}
+                  />
+                </div>
+              )}
+
               {/* Question Text */}
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
@@ -292,12 +309,17 @@ export const AdminPage: React.FC = () => {
                       const isCorrect =
                         op.trim().toLowerCase() === currentQuestion.respostaCorreta.trim().toLowerCase();
                       const isSelected = state.selectedOptionIndex === idx;
+                      const isEliminated = state.eliminatedOptionIndices?.includes(idx);
 
                       let cardStyle =
                         'border-gray-800 bg-gray-900/70 text-gray-300 hover:border-amber-400/60 hover:bg-gray-800/80';
                       let letterStyle = 'bg-gray-800 text-cyan-400';
 
-                      if (isSelected) {
+                      if (isEliminated) {
+                        cardStyle =
+                          'border-dashed border-gray-800 bg-gray-950/40 text-gray-600 line-through opacity-30 pointer-events-none filter grayscale';
+                        letterStyle = 'bg-gray-900 text-gray-700';
+                      } else if (isSelected) {
                         cardStyle =
                           'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)] ring-2 ring-amber-400 scale-[1.01]';
                         letterStyle = 'bg-amber-400 text-black font-black';
@@ -312,8 +334,10 @@ export const AdminPage: React.FC = () => {
                       return (
                         <div
                           key={idx}
-                          onClick={() => preselectOption(idx)}
-                          className={`p-3 rounded-xl border text-sm flex items-center justify-between cursor-pointer transition-all ${cardStyle}`}
+                          onClick={() => !isEliminated && preselectOption(idx)}
+                          className={`p-3 rounded-xl border text-sm flex items-center justify-between transition-all ${cardStyle} ${
+                            isEliminated ? 'cursor-not-allowed' : 'cursor-pointer'
+                          }`}
                         >
                           <div className="flex items-center gap-2.5 flex-1 pr-2">
                             <span
@@ -325,6 +349,11 @@ export const AdminPage: React.FC = () => {
                           </div>
 
                           <div className="flex items-center gap-1.5 shrink-0">
+                            {isEliminated && (
+                              <span className="text-[10px] uppercase font-bold text-purple-400 bg-purple-950/90 px-2 py-0.5 rounded border border-purple-500/50">
+                                50/50 Eliminada
+                              </span>
+                            )}
                             {isCorrect && (
                               <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-950/90 px-2 py-0.5 rounded border border-emerald-500/50">
                                 Gabarito
@@ -569,6 +598,7 @@ export const AdminPage: React.FC = () => {
 
             <Leaderboard
               scores={state.scores}
+              actionCards={state.actionCards}
               compact={true}
               highlightTeam={state.drawnTeam}
               onEmergencyAdjust={emergencyScoreAdjust}
@@ -614,6 +644,9 @@ export const AdminPage: React.FC = () => {
           question={currentQuestion}
           drawnTeam={state.drawnTeam}
           initialDrawnCorrect={scoreModalInitialCorrect}
+          isQuestionSkipped={state.isQuestionSkipped}
+          canSkip={state.drawnTeam ? (state.actionCards?.[state.drawnTeam]?.skip ?? 0) > 0 : false}
+          onTriggerSkip={() => useActionCard('skip')}
           onClose={() => setIsScoreModalOpen(false)}
           onConfirm={(drawnCorrect, paperCorrectTeams) => {
             submitQuestionScore(drawnCorrect, paperCorrectTeams);

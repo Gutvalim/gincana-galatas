@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import type { TeamId, Question } from '../types/game';
 import { TEAMS, ALL_TEAM_IDS } from '../types/game';
-import { Check, X, Award, FileText, CheckSquare, Square } from 'lucide-react';
+import { Check, X, Award, FileText, CheckSquare, Square, FastForward } from 'lucide-react';
 
 interface ScoreModalProps {
   isOpen: boolean;
   question: Question;
   drawnTeam: TeamId | null;
   initialDrawnCorrect?: boolean;
+  isQuestionSkipped?: boolean;
+  canSkip?: boolean;
+  onTriggerSkip?: () => void;
   onClose: () => void;
   onConfirm: (drawnCorrect: boolean, paperCorrectTeams: TeamId[]) => void;
 }
@@ -17,18 +20,21 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
   question,
   drawnTeam,
   initialDrawnCorrect = true,
+  isQuestionSkipped = false,
+  canSkip = false,
+  onTriggerSkip,
   onClose,
   onConfirm,
 }) => {
-  const [drawnCorrect, setDrawnCorrect] = useState<boolean>(initialDrawnCorrect);
+  const [drawnCorrect, setDrawnCorrect] = useState<boolean>(!isQuestionSkipped && initialDrawnCorrect);
   const [paperCorrectTeams, setPaperCorrectTeams] = useState<TeamId[]>([]);
 
   React.useEffect(() => {
     if (isOpen) {
-      setDrawnCorrect(initialDrawnCorrect);
+      setDrawnCorrect(isQuestionSkipped ? false : initialDrawnCorrect);
       setPaperCorrectTeams([]);
     }
-  }, [isOpen, initialDrawnCorrect]);
+  }, [isOpen, initialDrawnCorrect, isQuestionSkipped]);
 
   if (!isOpen) return null;
 
@@ -45,14 +51,14 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
   };
 
   const handleConfirm = () => {
-    // A pontuação no papel só é creditada se a equipe do microfone errar
-    const finalPaperTeams = drawnCorrect ? [] : paperCorrectTeams;
+    // A pontuação no papel só acontece quando uma equipe pular a pergunta
+    const finalPaperTeams = isQuestionSkipped ? paperCorrectTeams : [];
     onConfirm(drawnCorrect, finalPaperTeams);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-xl bg-[#0c231a] border-2 border-[#1d5740] rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(0,99,65,0.5)] flex flex-col gap-6">
+      <div className="w-full max-w-xl bg-[#0c231a] border-2 border-[#1d5740] rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(0,99,65,0.5)] flex flex-col gap-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#1d5740] pb-4">
           <div>
@@ -66,11 +72,31 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition-colors"
+            className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
+
+        {/* Action Skip Notification Banner if question was skipped */}
+        {isQuestionSkipped && (
+          <div className="p-3.5 rounded-2xl bg-orange-950/80 border-2 border-orange-500/80 text-orange-200 flex items-center justify-between gap-3 shadow-lg animate-pulse">
+            <div className="flex items-center gap-2.5">
+              <FastForward className="w-5 h-5 text-orange-400 shrink-0" />
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider block text-orange-100">
+                  Carta Pular Pergunta Ativada!
+                </span>
+                <span className="text-[11px] text-orange-300">
+                  {drawnTeam ? TEAMS[drawnTeam].name : 'A equipe'} pulou. A pontuação no papel está <strong>liberada</strong>!
+                </span>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-400/50 text-[10px] font-black uppercase text-orange-300 shrink-0">
+              Papel Liberado
+            </span>
+          </div>
+        )}
 
         {/* Section 1: Drawn Team (Microphone) */}
         <div className="flex flex-col gap-3">
@@ -99,11 +125,14 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
+                disabled={isQuestionSkipped}
                 onClick={() => setDrawnCorrect(true)}
                 className={`py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 border-2 transition-all ${
-                  drawnCorrect
-                    ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.5)] scale-[1.02]'
-                    : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800'
+                  isQuestionSkipped
+                    ? 'opacity-30 border-gray-800 bg-gray-900 text-gray-600 cursor-not-allowed'
+                    : drawnCorrect
+                    ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.5)] scale-[1.02] cursor-pointer'
+                    : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800 cursor-pointer'
                 }`}
               >
                 <Check className="w-5 h-5" />
@@ -115,12 +144,12 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                 onClick={() => setDrawnCorrect(false)}
                 className={`py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 border-2 transition-all ${
                   !drawnCorrect
-                    ? 'bg-red-600 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-[1.02]'
-                    : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800'
+                    ? 'bg-red-600 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-[1.02] cursor-pointer'
+                    : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800 cursor-pointer'
                 }`}
               >
                 <X className="w-5 h-5" />
-                Errou (0 pts)
+                {isQuestionSkipped ? 'Pulou (0 pts)' : 'Errou (0 pts)'}
               </button>
             </div>
           ) : (
@@ -143,7 +172,19 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
           </div>
 
           {/* Conditional Guidance Banner */}
-          {drawnCorrect ? (
+          {isQuestionSkipped ? (
+            <div className="p-3.5 rounded-2xl bg-purple-950/60 border border-purple-500/50 text-purple-200 text-xs flex items-center gap-2.5 shadow-[0_0_15px_rgba(168,85,247,0.25)] animate-pulse">
+              <CheckSquare className="w-5 h-5 text-purple-400 shrink-0" />
+              <div>
+                <strong className="text-purple-300 block font-black uppercase text-[11px]">
+                  Papel liberado pelo Pulo!
+                </strong>
+                <span className="text-gray-200 text-[11px]">
+                  Marque abaixo as equipes que acertaram a resposta no papel para creditar <strong>+{halfPts} pontos</strong> a cada uma:
+                </span>
+              </div>
+            </div>
+          ) : drawnCorrect ? (
             <div className="p-3.5 rounded-2xl bg-[#133829] border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2.5 shadow-sm">
               <Check className="w-5 h-5 text-emerald-400 shrink-0" />
               <div>
@@ -151,27 +192,39 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                   Equipe acertou no microfone!
                 </strong>
                 <span className="text-gray-300 text-[11px]">
-                  Conforme o regulamento, as respostas no papel <strong>só são avaliadas e pontuadas em caso de erro</strong> da equipe que estava respondendo. Nenhuma pontuação no papel será creditada.
+                  Pontuação total creditada à equipe do microfone. Conforme o regulamento, respostas no papel só ocorrem quando a equipe pula.
                 </span>
               </div>
             </div>
           ) : (
-            <div className="p-3.5 rounded-2xl bg-amber-950/60 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2.5 shadow-[0_0_15px_rgba(245,158,11,0.2)] animate-pulse">
-              <FileText className="w-5 h-5 text-amber-400 shrink-0" />
-              <div>
-                <strong className="text-amber-300 block font-black uppercase text-[11px]">
-                  Equipe errou no microfone!
-                </strong>
-                <span className="text-gray-200 text-[11px]">
-                  Avalie agora as respostas no papel das outras 4 equipes. Marque quem acertou para receber <strong>+{halfPts} pontos</strong>:
-                </span>
+            <div className="p-3.5 rounded-2xl bg-gray-900/90 border border-gray-800 text-gray-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <FileText className="w-5 h-5 text-gray-500 shrink-0" />
+                <div>
+                  <strong className="text-amber-300 block font-black uppercase text-[11px]">
+                    Equipe respondeu no microfone e errou!
+                  </strong>
+                  <span className="text-gray-400 text-[11px]">
+                    Pela nova regra, o papel só pontua se a equipe <strong>Pular a Pergunta</strong>.
+                  </span>
+                </div>
               </div>
+              {canSkip && onTriggerSkip && (
+                <button
+                  type="button"
+                  onClick={onTriggerSkip}
+                  className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer shadow transition-all"
+                >
+                  <FastForward className="w-3.5 h-3.5" />
+                  Ativar Carta Pular
+                </button>
+              )}
             </div>
           )}
 
           <div
             className={`grid grid-cols-1 sm:grid-cols-2 gap-2.5 transition-opacity ${
-              drawnCorrect ? 'opacity-40 pointer-events-none' : 'opacity-100'
+              isQuestionSkipped ? 'opacity-100' : 'opacity-35 pointer-events-none'
             }`}
           >
             {otherTeams.map((teamId) => {
@@ -182,11 +235,11 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                 <button
                   type="button"
                   key={teamId}
-                  disabled={drawnCorrect}
+                  disabled={!isQuestionSkipped}
                   onClick={() => togglePaperTeam(teamId)}
-                  className={`p-3 rounded-xl border-2 flex items-center justify-between transition-all ${
-                    isChecked && !drawnCorrect
-                      ? 'border-purple-400 bg-purple-950/60 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                  className={`p-3 rounded-xl border-2 flex items-center justify-between transition-all cursor-pointer ${
+                    isChecked && isQuestionSkipped
+                      ? 'border-purple-400 bg-purple-950/70 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] ring-1 ring-purple-400'
                       : 'border-gray-800 bg-[#1f2937]/70 text-gray-400 hover:border-gray-700'
                   }`}
                 >
@@ -208,7 +261,7 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({
                     <span className="text-xs font-mono font-bold text-purple-300">
                       +{halfPts} pts
                     </span>
-                    {isChecked && !drawnCorrect ? (
+                    {isChecked && isQuestionSkipped ? (
                       <CheckSquare className="w-5 h-5 text-purple-400" />
                     ) : (
                       <Square className="w-5 h-5 text-gray-600" />
