@@ -124,7 +124,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           case 'CHANGE_STAGE':
             setState((prev) => {
-              const updated = { ...prev, stage: action.payload, lastUpdated: Date.now() };
+              const updated = {
+                ...prev,
+                stage: action.payload,
+                ...(action.payload === 'question' || action.payload === 'card_selection' || action.payload === 'roulette'
+                  ? {
+                      isRevealed: false,
+                      answerStatus: 'idle' as const,
+                      selectedOptionIndex: null,
+                    }
+                  : {}),
+                lastUpdated: Date.now(),
+              };
               saveStateToStorage(updated);
               return updated;
             });
@@ -168,6 +179,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 selectedCardIndex: action.payload.cardIndex,
                 isCardFlipping: true,
                 currentQuestionId: action.payload.questionId,
+                isRevealed: false,
+                answerStatus: 'idle',
+                selectedOptionIndex: null,
+                timerSeconds: 60,
+                isTimerRunning: false,
+                timerEndTimestamp: null,
                 usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(action.payload.questionId)
                   ? prev.usedQuestionIdsInRound
                   : [...prev.usedQuestionIdsInRound, action.payload.questionId],
@@ -189,6 +206,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 currentQuestionId: action.payload.questionId,
                 isCardFlipping: false,
                 selectedCardIndex: null,
+                isRevealed: false,
+                answerStatus: 'idle',
+                selectedOptionIndex: null,
+                timerSeconds: 60,
+                isTimerRunning: false,
+                timerEndTimestamp: null,
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
@@ -438,8 +461,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 ...prev,
                 currentQuestionId: action.payload,
                 isRevealed: false,
+                answerStatus: 'idle' as const,
+                selectedOptionIndex: null,
                 timerSeconds: 60,
                 isTimerRunning: false,
+                timerEndTimestamp: null,
+                stage: prev.stage === 'reveal' ? ('question' as GameStage) : prev.stage,
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
@@ -535,7 +562,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sounds.playVictoryFanfare();
     }
     updateStateAndSync(
-      (prev) => ({ ...prev, stage }),
+      (prev) => ({
+        ...prev,
+        stage,
+        ...(stage === 'question' || stage === 'card_selection' || stage === 'roulette'
+          ? {
+              isRevealed: false,
+              answerStatus: 'idle' as const,
+              selectedOptionIndex: null,
+            }
+          : {}),
+      }),
       { type: 'CHANGE_STAGE', payload: stage }
     );
   }, [updateStateAndSync]);
@@ -990,6 +1027,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           selectedCardIndex: cardIndex,
           isCardFlipping: true,
           currentQuestionId: resolvedQId,
+          isRevealed: false,
+          answerStatus: 'idle',
+          selectedOptionIndex: null,
+          timerSeconds: 60,
+          isTimerRunning: false,
+          timerEndTimestamp: null,
           usedQuestionIdsInRound: prev.usedQuestionIdsInRound.includes(resolvedQId)
             ? prev.usedQuestionIdsInRound
             : [...prev.usedQuestionIdsInRound, resolvedQId],
@@ -1008,6 +1051,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             stage: 'question',
             isCardFlipping: false,
             selectedCardIndex: null,
+            isRevealed: false,
+            answerStatus: 'idle',
+            selectedOptionIndex: null,
+            timerSeconds: 60,
+            isTimerRunning: false,
+            timerEndTimestamp: null,
             eliminatedOptionIndices: [],
             isQuestionSkipped: false,
             activeCardAnnouncement: null,
@@ -1031,8 +1080,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           currentQuestionId: questionId,
           currentRound: q.rodada,
           isRevealed: false,
+          answerStatus: 'idle',
+          selectedOptionIndex: null,
           timerSeconds: 60,
           isTimerRunning: false,
+          timerEndTimestamp: null,
+          stage: prev.stage === 'reveal' ? 'question' : prev.stage,
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
           activeCardAnnouncement: null,
