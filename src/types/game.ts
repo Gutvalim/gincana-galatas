@@ -149,11 +149,11 @@ export interface RoundInfo {
 }
 
 export const ROUNDS_INFO: Record<number, RoundInfo> = {
-  1: { number: 1, name: 'Rodada 1: Aquecimento', category: 'Aquecimento', pointsFull: 10, pointsHalf: 5, color: '#38bdf8' },
-  2: { number: 2, name: 'Rodada 2: Fácil', category: 'Fácil', pointsFull: 20, pointsHalf: 10, color: '#4ade80' },
-  3: { number: 3, name: 'Rodada 3: Médio', category: 'Médio', pointsFull: 30, pointsHalf: 15, color: '#fbbf24' },
-  4: { number: 4, name: 'Rodada 4: Quase Difícil', category: 'Quase Difícil', pointsFull: 40, pointsHalf: 20, color: '#fb923c' },
-  5: { number: 5, name: 'Rodada 5: Difícil', category: 'Difícil', pointsFull: 50, pointsHalf: 25, color: '#f87171' },
-  6: { number: 6, name: 'Rodada 6: Especialista', category: 'Especialista', pointsFull: 60, pointsHalf: 30, color: '#c084fc' },
+  1: { number: 1, name: 'Rodada 1: Aquecimento', category: 'Aquecimento', pointsFull: 15, pointsHalf: 5, color: '#38bdf8' },
+  2: { number: 2, name: 'Rodada 2: Fácil', category: 'Fácil', pointsFull: 20, pointsHalf: 8, color: '#4ade80' },
+  3: { number: 3, name: 'Rodada 3: Médio', category: 'Médio', pointsFull: 25, pointsHalf: 10, color: '#fbbf24' },
+  4: { number: 4, name: 'Rodada 4: Quase Difícil', category: 'Quase Difícil', pointsFull: 30, pointsHalf: 12, color: '#fb923c' },
+  5: { number: 5, name: 'Rodada 5: Difícil', category: 'Difícil', pointsFull: 40, pointsHalf: 15, color: '#f87171' },
+  6: { number: 6, name: 'Rodada 6: Especialista', category: 'Especialista', pointsFull: 50, pointsHalf: 20, color: '#c084fc' },
   7: { number: 7, name: 'Morte Súbita: Desempate', category: 'Morte Súbita', pointsFull: 0, pointsHalf: 0, color: '#ef4444' },
 };

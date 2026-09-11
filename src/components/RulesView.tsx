@@ -14,7 +14,7 @@ export const RulesView: React.FC = () => {
     {
       icon: <Mic className="w-8 h-8 text-amber-400" />,
       title: '2. Resposta no Microfone',
-      desc: 'A equipe sorteada responde ao vivo no microfone. Se acertar, conquista os PONTOS CHEIOS da rodada (10 a 60 pts). Se errar, recebe 0.',
+      desc: 'A equipe sorteada responde ao vivo no microfone. Se acertar, conquista os PONTOS CHEIOS da rodada (15 a 50 pts). Se errar, recebe 0.',
       badge: 'Pontos Cheios',
       border: 'border-amber-500/40',
       glow: 'shadow-[0_0_20px_rgba(245,158,11,0.2)]',
@@ -22,7 +22,7 @@ export const RulesView: React.FC = () => {
     {
       icon: <FileText className="w-8 h-8 text-purple-400" />,
       title: '3. Resposta no Papel',
-      desc: 'Todas as equipes podem responder no papel. Porém, a pontuação só será creditada se a equipe do microfone ERRAR a pergunta. Em caso de erro, as respostas do papel serão avaliadas para valer a metade dos pontos.',
+      desc: 'Todas as equipes podem responder no papel. Porém, a pontuação só será creditada se a equipe do microfone ERRAR a pergunta. Em caso de erro, as respostas certas no papel conquistam a pontuação de papel da rodada (5 a 20 pts).',
       badge: 'Condicional ao Erro',
       border: 'border-purple-500/40',
       glow: 'shadow-[0_0_20px_rgba(168,85,247,0.2)]',
