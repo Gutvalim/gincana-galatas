@@ -135,19 +135,17 @@ export const Roulette: React.FC<RouletteProps> = ({
           </div>
         </div>
 
-        {/* Pointer / Needle at Top with Jewel & Gold Finish */}
-        <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+        {/* Pointer / Needle at Top with Jewel & Gold Finish (Always pointing straight down into wheel) */}
+        <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] pointer-events-none">
           {/* Top Gold Stud */}
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-700 border-2 border-amber-200 shadow-md flex items-center justify-center -mb-2 z-10">
             <div className="w-2.5 h-2.5 rounded-full bg-red-600 border border-white shadow" />
           </div>
-          {/* Needle Arrowhead */}
+          {/* Needle Arrowhead - Points straight down into the wheel */}
           <div
-            className={`w-7 h-10 sm:w-8 sm:h-12 bg-gradient-to-b from-red-600 via-amber-500 to-yellow-400 shadow-xl transform rotate-180 transition-transform ${
-              isSpinning ? 'animate-bounce' : ''
-            }`}
+            className="w-7 h-10 sm:w-8 sm:h-12 bg-gradient-to-b from-amber-300 via-amber-500 to-red-600 shadow-xl"
             style={{
-              clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+              clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)',
             }}
           />
         </div>
