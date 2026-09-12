@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import type { ActionCardType, TeamId } from '../types/game';
 import { TEAMS } from '../types/game';
 import { BookOpen, Sparkles, FastForward, Zap, Flame } from 'lucide-react';
@@ -19,15 +19,20 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
   duration = 2700,
 }) => {
   const [visible, setVisible] = useState<boolean>(false);
+  const playedTimestampRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (cardType && team) {
-      setVisible(true);
-      const timer = setTimeout(() => {
-        setVisible(false);
-        if (onDismiss) onDismiss();
-      }, duration);
-      return () => clearTimeout(timer);
+    if (cardType && team && timestamp) {
+      // Only play animation if this specific timestamp hasn't played yet
+      if (timestamp !== playedTimestampRef.current) {
+        playedTimestampRef.current = timestamp;
+        setVisible(true);
+        const timer = setTimeout(() => {
+          setVisible(false);
+          if (onDismiss) onDismiss();
+        }, duration);
+        return () => clearTimeout(timer);
+      }
     } else {
       setVisible(false);
     }

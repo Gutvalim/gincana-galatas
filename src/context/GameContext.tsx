@@ -44,6 +44,7 @@ interface GameContextType {
   resetGameToStart: () => void;
   toggleSound: () => void;
   useActionCard: (cardType: ActionCardType) => void;
+  clearLastCardUsed: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -333,6 +334,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             break;
           }
+
+          case 'CLEAR_LAST_CARD_USED':
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                lastCardUsed: null,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
 
           case 'TIMER_START':
             setState((prev) => {
@@ -1176,6 +1189,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ]
   );
 
+  // CLEAR LAST CARD USED (Dismiss overlay and prevent replay)
+  const clearLastCardUsed = useCallback(() => {
+    updateStateAndSync(
+      (prev) => {
+        if (!prev.lastCardUsed) return prev;
+        return {
+          ...prev,
+          lastCardUsed: null,
+        };
+      },
+      { type: 'CLEAR_LAST_CARD_USED' },
+      true
+    );
+  }, [updateStateAndSync]);
+
   // EMERGENCY SCORE ADJUST (+5 / -5)
   const emergencyScoreAdjust = useCallback(
     (team: TeamId, delta: number) => {
@@ -1800,6 +1828,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetGameToStart,
         toggleSound,
         useActionCard,
+        clearLastCardUsed,
       }}
     >
       {children}

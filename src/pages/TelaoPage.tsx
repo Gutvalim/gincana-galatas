@@ -22,6 +22,7 @@ export const TelaoPage: React.FC = () => {
     setStage,
     selectCardQuestion,
     toggleSound,
+    clearLastCardUsed,
   } = useGame();
 
   // Fullscreen helper
@@ -455,6 +456,7 @@ export const TelaoPage: React.FC = () => {
           cardType={state.lastCardUsed.type}
           team={state.lastCardUsed.team}
           timestamp={state.lastCardUsed.timestamp}
+          onDismiss={clearLastCardUsed}
         />
       )}
 

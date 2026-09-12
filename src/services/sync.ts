@@ -53,7 +53,8 @@ export type SyncAction =
   | { type: 'EMERGENCY_SCORE'; payload: { team: TeamId; delta: number; newScores: Record<TeamId, number> } }
   | { type: 'SET_ROUND'; payload: { round: number; questionId: number } }
   | { type: 'SET_QUESTION'; payload: number }
-  | { type: 'RESET_GAME'; payload: GameState };
+  | { type: 'RESET_GAME'; payload: GameState }
+  | { type: 'CLEAR_LAST_CARD_USED' };
 
 export const INITIAL_STATE: GameState = {
   currentRound: 1,
@@ -90,6 +91,7 @@ export const INITIAL_STATE: GameState = {
   answerStatus: 'idle',
   soundEnabled: true,
   history: [],
+  lastCardUsed: null,
   lastUpdated: Date.now(),
 };
 
