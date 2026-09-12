@@ -120,10 +120,10 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               <div className="flex items-center gap-2 shrink-0">
                 {getCardBonus(teamId) > 0 && (
                   <span
-                    className="text-[10px] text-amber-300 font-bold hidden sm:inline"
-                    title={`${getCardBonus(teamId)} pts bônus de ${getCardBonus(teamId) / 15} cartas de ação guardadas (+15 pts cada)`}
+                    className="text-[10px] text-amber-300 font-bold hidden sm:inline whitespace-nowrap"
+                    title={`${getCardBonus(teamId)} pts bônus de ${Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} cartas guardadas (+${CARD_BONUS_POINTS} pts cada)`}
                   >
-                    +{getCardBonus(teamId)}c
+                    +{getCardBonus(teamId)} pts
                   </span>
                 )}
 
@@ -174,10 +174,10 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                       </span>
                       {getCardBonus(teamId) > 0 && (
                         <span
-                          className="text-[10px] text-amber-300 font-bold"
-                          title={`${getCardBonus(teamId)} pts bônus de ${getCardBonus(teamId) / 15} cartas de ação guardadas (+15 pts cada)`}
+                          className="text-[10px] text-amber-300 font-bold whitespace-nowrap"
+                          title={`${getCardBonus(teamId)} pts bônus de ${Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} cartas guardadas (+${CARD_BONUS_POINTS} pts cada)`}
                         >
-                          +{getCardBonus(teamId)} cartas
+                          +{getCardBonus(teamId)} pts ({Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} {Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS) === 1 ? 'carta' : 'cartas'})
                         </span>
                       )}
                     </div>
@@ -299,11 +299,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                 {getCardBonus(teamId) > 0 && (
                   <div className="flex items-center gap-1 mt-0.5">
                     <span
-                      className="text-[11px] font-bold text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 shadow-sm"
-                      title="Bônus de 15 pontos para cada carta de ação não utilizada ao final"
+                      className="text-[11px] font-bold text-amber-300 bg-amber-500/15 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 shadow-sm whitespace-nowrap"
+                      title={`Bônus de ${CARD_BONUS_POINTS} pontos para cada carta de ação preservada ao final`}
                     >
                       <Sparkles className="w-3 h-3 text-amber-400" />
-                      +{getCardBonus(teamId)} cartas ({getCardBonus(teamId) / 15} un.)
+                      +{getCardBonus(teamId)} pts ({Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} {Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS) === 1 ? 'carta' : 'cartas'})
                     </span>
                   </div>
                 )}

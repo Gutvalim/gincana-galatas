@@ -134,7 +134,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
               </span>
               {getCardBonus(second) > 0 && (
                 <span className="text-[10px] text-slate-400 font-medium">
-                  ({scores[second] || 0} + {getCardBonus(second)} cartas)
+                  ({scores[second] || 0} + {getCardBonus(second)} pts bônus)
                 </span>
               )}
             </div>
@@ -170,7 +170,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
               </span>
               {getCardBonus(winner) > 0 && (
                 <span className="text-[10px] text-amber-300 font-medium">
-                  ({scores[winner] || 0} + {getCardBonus(winner)} cartas)
+                  ({scores[winner] || 0} + {getCardBonus(winner)} pts bônus)
                 </span>
               )}
             </div>
@@ -206,7 +206,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
               </span>
               {getCardBonus(third) > 0 && (
                 <span className="text-[10px] text-amber-500/80 font-medium">
-                  ({scores[third] || 0} + {getCardBonus(third)} cartas)
+                  ({scores[third] || 0} + {getCardBonus(third)} pts bônus)
                 </span>
               )}
             </div>
@@ -235,7 +235,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
             </span>
             {getCardBonus(t) > 0 && (
               <span className="text-[9px] text-amber-400/90 font-mono">
-                (+{getCardBonus(t)})
+                (+{getCardBonus(t)} pts)
               </span>
             )}
           </div>

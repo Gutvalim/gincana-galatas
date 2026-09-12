@@ -191,6 +191,83 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
           {questionsInRound.length - usedCardIndices.length} de {questionsInRound.length}
         </strong>
       </div>
+
+      {/* CINEMATIC ZOOM OVERLAY: CARD FLIES TO SCREEN FOR EASY AUDIENCE READING */}
+      {isCardFlipping && selectedCardIndex !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          {/* Ambient Gold Halo behind zooming card */}
+          <div className="absolute w-[500px] h-[500px] rounded-full bg-amber-500/25 blur-3xl animate-pulse pointer-events-none" />
+
+          {/* Large Card Flying and Flipping into Center */}
+          <div className="relative w-full max-w-lg sm:max-w-xl h-[460px] sm:h-[500px] rounded-3xl [transform-style:preserve-3d] animate-cardFlyZoomIn shadow-[0_0_80px_rgba(251,191,36,0.9)] border-4 border-amber-400">
+            {/* FRONT FACE (Visible in initial fly-up) */}
+            <div className="absolute inset-0 rounded-3xl p-8 flex flex-col justify-between items-center text-center [backface-visibility:hidden] bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-2 border-amber-400">
+              <div className="w-full flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-[#006341]/80 text-emerald-300 border border-emerald-500 shadow">
+                  Rodada {round}
+                </span>
+                <Sparkles className="w-7 h-7 text-amber-400 animate-pulse" />
+              </div>
+
+              <div className="flex flex-col items-center gap-3 my-auto">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-[#006341] to-[#043322] border-2 border-amber-400 text-amber-300 flex items-center justify-center text-5xl sm:text-6xl shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+                  📖
+                </div>
+                <span className="text-3xl sm:text-4xl font-black uppercase tracking-widest text-amber-300">
+                  Card {selectedCardIndex + 1}
+                </span>
+                <span className="text-xs sm:text-sm text-gray-300 font-bold uppercase tracking-wider">
+                  Envelope Escolhido!
+                </span>
+              </div>
+
+              <span className="text-xs text-amber-400 uppercase tracking-widest animate-pulse font-bold">
+                Revelando pergunta...
+              </span>
+            </div>
+
+            {/* BACK FACE (Rotated 180deg, revealed in center screen for audience to read!) */}
+            <div className="absolute inset-0 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center [transform:rotateY(180deg)] [backface-visibility:hidden] bg-gradient-to-br from-[#006341] via-[#0c2e1f] to-[#06140e] text-white border-2 border-amber-400 shadow-2xl">
+              {/* Header */}
+              <div className="w-full flex items-center justify-between border-b border-amber-400/40 pb-3">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  Envelope Card {selectedCardIndex + 1}
+                </span>
+                <span className="px-3.5 py-1 rounded-full bg-amber-400 text-black font-black text-xs sm:text-sm uppercase shadow">
+                  {ROUNDS_INFO[round]?.pointsFull ?? (currentQuestion?.pontosCheios || 15)} pts
+                </span>
+              </div>
+
+              {/* Question Metadata & Enunciado */}
+              <div className="my-auto flex flex-col items-center gap-3 w-full">
+                <div className="flex items-center gap-2 flex-wrap justify-center">
+                  <span className="text-2xl sm:text-3xl font-black text-amber-300 font-mono">
+                    Pergunta #{currentQuestion?.id || '?'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-3.5 py-1 rounded-full border border-emerald-500/50">
+                    {currentQuestion?.categoria || 'Gálatas'}
+                  </span>
+                </div>
+
+                <div className="w-full p-4 sm:p-5 rounded-2xl bg-black/50 border-2 border-amber-400/40 shadow-inner">
+                  <p className="text-base sm:text-xl font-extrabold text-white leading-relaxed text-center">
+                    "{currentQuestion?.pergunta}"
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Loading */}
+              <div className="w-full flex items-center justify-center gap-2 pt-2 border-t border-white/10">
+                <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
+                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300 animate-pulse">
+                  Abrindo opções no telão...
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

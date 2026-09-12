@@ -10,6 +10,7 @@ import { RulesView } from '../components/RulesView';
 import { Podium } from '../components/Podium';
 import { CardSelectionView } from '../components/CardSelectionView';
 import { ActionCardsHUD } from '../components/ActionCardsHUD';
+import { ActionCardActivationOverlay } from '../components/ActionCardActivationOverlay';
 import { Play, Maximize, Volume2, VolumeX, ShieldAlert } from 'lucide-react';
 
 export const TelaoPage: React.FC = () => {
@@ -54,14 +55,14 @@ export const TelaoPage: React.FC = () => {
       : null);
 
   return (
-    <div className="relative w-screen h-screen bg-[#06140e] text-white flex flex-col justify-between overflow-hidden select-none font-sans">
+    <div className="relative w-screen h-screen bg-[#06140e] text-white flex flex-col justify-between overflow-y-auto overflow-x-hidden select-none font-sans scrollbar-none">
       {/* Background Ambience / IPB Presbyterian Green & Gold Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(0,99,65,0.25),transparent_65%)] pointer-events-none" />
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#006341]/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Subtle Top Status Bar (Clean for projection) */}
-      <header className="relative z-20 px-8 py-4 flex items-center justify-between border-b border-[#1d5740]/60 bg-[#06140e]/90 backdrop-blur-md">
+      <header className="relative z-20 px-6 py-2.5 sm:px-8 sm:py-3 flex items-center justify-between border-b border-[#1d5740]/60 bg-[#06140e]/90 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full bg-white/95 flex items-center justify-center p-1 border-2 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] shrink-0">
             <img src="/logo.png" alt="IPBNB" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
@@ -121,7 +122,7 @@ export const TelaoPage: React.FC = () => {
       </header>
 
       {/* Main Presentation Stage */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 sm:p-10 max-w-7xl mx-auto w-full">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-2 sm:p-4 max-w-6xl mx-auto w-full">
         {/* STAGE: WELCOME */}
         {state.stage === 'welcome' && (
           <div className="flex flex-col items-center justify-center text-center animate-fadeIn max-w-3xl">
@@ -139,10 +140,6 @@ export const TelaoPage: React.FC = () => {
 
             <p className="mt-4 text-xl sm:text-2xl text-amber-400 font-bold uppercase tracking-widest drop-shadow">
               "Para a liberdade foi que Cristo nos libertou"
-            </p>
-
-            <p className="mt-2 text-sm sm:text-base text-gray-300 max-w-xl">
-              Competição bíblica intersocietária: UCP, UPA, UMP, Sociedade de Casais e Sociedade de Adultos.
             </p>
 
             <button
@@ -371,7 +368,7 @@ export const TelaoPage: React.FC = () => {
                 seconds={state.timerSeconds}
                 maxSeconds={state.timerMaxSeconds || 60}
                 isRunning={state.isTimerRunning}
-                size={220}
+                size={180}
               />
             </div>
             <QuestionView
@@ -452,8 +449,17 @@ export const TelaoPage: React.FC = () => {
         {state.stage === 'podium' && <Podium scores={state.scores} actionCards={state.actionCards} />}
       </main>
 
+      {/* CINEMATIC ACTION CARD ACTIVATION OVERLAY */}
+      {state.lastCardUsed && (
+        <ActionCardActivationOverlay
+          cardType={state.lastCardUsed.type}
+          team={state.lastCardUsed.team}
+          timestamp={state.lastCardUsed.timestamp}
+        />
+      )}
+
       {/* Subtle Footer Bar */}
-      <footer className="relative z-20 px-8 py-3 flex items-center justify-between border-t border-gray-800/40 bg-[#0b0f19]/60 text-xs text-gray-500">
+      <footer className="relative z-20 px-6 py-2 sm:px-8 sm:py-2.5 flex items-center justify-between border-t border-gray-800/40 bg-[#0b0f19]/60 text-xs text-gray-500">
         <span>Gincana Bíblica Gálatas • Transmissão Oficial</span>
         <span className="font-mono">IPBNB © 2026</span>
       </footer>

@@ -122,30 +122,69 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        {cardsConfig.map((card) => {
-          const isUsable = interactive && card.canUse;
-          return (
-            <button
-              key={card.type}
-              type="button"
-              disabled={!isUsable}
-              onClick={() => interactive && onUseCard && onUseCard(card.type)}
-              title={card.disabledReason || card.name}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold transition-all ${
-                card.count > 0
-                  ? `${card.badgeColor} ${isUsable ? 'cursor-pointer hover:scale-105 active:scale-95' : 'opacity-80'}`
-                  : 'bg-gray-900/50 border-gray-800 text-gray-600 opacity-40 cursor-not-allowed'
-              }`}
-            >
-              {card.icon}
-              <span>{card.shortName}:</span>
-              <span className="px-1.5 py-0.2 rounded bg-black/40 text-[11px] font-mono font-black">
-                {card.count}
-              </span>
-            </button>
-          );
-        })}
+      <div className="w-full flex items-center justify-between gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-2xl bg-gradient-to-r from-[#0c231a]/95 via-[#071d14] to-[#0c231a]/95 border-2 border-emerald-500/40 shadow-xl backdrop-blur-md">
+        {/* Left Team Label */}
+        <div className="flex items-center gap-2 pl-1 shrink-0">
+          {teamInfo?.logo && (
+            <div className="w-7 h-7 rounded-lg bg-white p-0.5 flex items-center justify-center shrink-0 shadow">
+              <img src={teamInfo.logo} alt={teamInfo.name} className="w-full h-full object-contain" />
+            </div>
+          )}
+          <div className="hidden sm:flex flex-col">
+            <span className="text-[10px] uppercase font-bold text-gray-400 leading-none">Arsenal da Equipe</span>
+            <span className="text-xs font-black uppercase text-white leading-tight" style={{ color: teamInfo.color }}>
+              {teamInfo.name}
+            </span>
+          </div>
+        </div>
+
+        {/* 3 Prominent Action Cards */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-1 justify-center max-w-xl">
+          {cardsConfig.map((card) => {
+            const isAvailable = card.count > 0;
+            return (
+              <div
+                key={card.type}
+                className={`flex-1 flex items-center justify-between gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border-2 transition-all shadow-md ${
+                  isAvailable
+                    ? `bg-gradient-to-r ${card.bgGradient} ${card.borderColor}`
+                    : 'bg-black/50 border-gray-800 text-gray-500 opacity-40'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="p-1 rounded-lg bg-black/40 border border-white/10 shrink-0">
+                    {React.cloneElement(card.icon as React.ReactElement<{ className?: string }>, { className: 'w-4 h-4 text-current' })}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-black uppercase tracking-tight text-white leading-tight truncate">
+                      {card.shortName}
+                    </span>
+                    <span className="text-[9px] text-gray-400 hidden md:inline leading-none">
+                      {isAvailable ? 'Disponível' : 'Esgotada'}
+                    </span>
+                  </div>
+                </div>
+
+                <span
+                  className={`px-2 py-0.5 rounded-lg text-xs sm:text-sm font-black font-mono border shadow-inner shrink-0 ${
+                    isAvailable
+                      ? `${card.badgeColor} scale-105`
+                      : 'bg-gray-800 text-gray-500 border-gray-700'
+                  }`}
+                >
+                  {card.count}x
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bonus indicator */}
+        <div className="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold shrink-0 whitespace-nowrap">
+          <Award className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-mono font-black">+{potentialBonus} pts</span>
+          <span className="text-[10px] text-amber-400/80">({totalUnused} un.)</span>
+        </div>
       </div>
     );
   }
@@ -167,13 +206,13 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
 
         {/* Bonus Badge */}
         <div
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold shadow-sm"
-          title="Cada carta não utilizada ao término da gincana adiciona +15 pontos no placar final!"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold shadow-sm whitespace-nowrap"
+          title={`Cada carta não utilizada ao término da gincana concede +${CARD_BONUS_POINTS} pontos no pódio final!`}
         >
           <Award className="w-3.5 h-3.5 text-amber-400" />
-          <span>Bônus não-uso:</span>
+          <span>Bônus final:</span>
           <span className="font-mono font-black text-amber-200">+{potentialBonus} pts</span>
-          <span className="text-[10px] text-amber-400/80">({totalUnused} un.)</span>
+          <span className="text-[10px] text-amber-400/80">({totalUnused} {totalUnused === 1 ? 'carta' : 'cartas'})</span>
         </div>
       </div>
 

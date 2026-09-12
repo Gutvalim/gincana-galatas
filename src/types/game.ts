@@ -164,6 +164,11 @@ export interface GameState {
   answerStatus: 'idle' | 'selected' | 'correct' | 'wrong';
   soundEnabled: boolean;
   history: ScoreEntry[];
+  lastCardUsed?: {
+    type: ActionCardType;
+    team: TeamId;
+    timestamp: number;
+  } | null;
   lastUpdated: number;
 }
 

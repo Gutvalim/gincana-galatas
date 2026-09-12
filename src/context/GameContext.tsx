@@ -325,6 +325,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   cardType === 'skip' && team === 'UCP' && newQuestionId && !prev.usedQuestionIdsInRound.includes(newQuestionId)
                     ? [...prev.usedQuestionIdsInRound, newQuestionId]
                     : prev.usedQuestionIdsInRound,
+                lastCardUsed: { type: cardType, team, timestamp: Date.now() },
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -1143,6 +1144,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             cardType === 'skip' && activeTeam === 'UCP' && newQuestionId && !prev.usedQuestionIdsInRound.includes(newQuestionId)
               ? [...prev.usedQuestionIdsInRound, newQuestionId]
               : prev.usedQuestionIdsInRound,
+          lastCardUsed: { type: cardType, team: activeTeam, timestamp: Date.now() },
         }),
         {
           type: 'USE_ACTION_CARD',
@@ -1341,7 +1343,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }),
           { type: 'FINISH_CARD_FLIP', payload: { questionId: resolvedQId } }
         );
-      }, 1400);
+      }, 2800);
     },
     [
       questions,

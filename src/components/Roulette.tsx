@@ -91,23 +91,70 @@ export const Roulette: React.FC<RouletteProps> = ({
     prevSpinningRef.current = isSpinning;
   }, [isSpinning, targetTeam, activeTeams, sliceAngle, spinSeed, onFinish]);
 
-  return (
-    <div className="flex flex-col items-center justify-center p-4">
-      {/* Outer Glowing Container */}
-      <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center">
-        {/* Outer IPB Glow Ring */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#006341]/30 via-amber-500/20 to-emerald-500/25 blur-2xl animate-pulse" />
+  // 20 LEDs around the wheel perimeter
+  const numLeds = 20;
+  const leds = Array.from({ length: numLeds }, (_, i) => {
+    const angle = (i * (360 / numLeds) - 90) * (Math.PI / 180);
+    const x = 50 + 47.5 * Math.cos(angle);
+    const y = 50 + 47.5 * Math.sin(angle);
+    return { x, y, id: i };
+  });
 
-        {/* Pointer / Needle at Top */}
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center filter drop-shadow-[0_4px_10px_rgba(239,68,68,0.8)]">
-          <div className="w-8 h-10 bg-gradient-to-b from-red-500 to-amber-500 clip-triangle shadow-lg transform rotate-180"
-               style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-          <div className="w-4 h-4 rounded-full bg-white border-2 border-red-500 -mt-2 shadow" />
+  return (
+    <div className="flex flex-col items-center justify-center p-2 relative">
+      {/* Outer Chassis with Gold Ring & Chasing Lights */}
+      <div className="relative w-72 h-72 sm:w-88 sm:h-88 md:w-[390px] md:h-[390px] flex items-center justify-center select-none">
+        {/* Outer Halo Glow */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#006341]/40 via-amber-500/30 to-emerald-500/35 blur-3xl animate-pulse pointer-events-none" />
+
+        {/* Casino Gold Metallic Outer Bezel */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d97706] via-[#f59e0b] to-[#78350f] p-3.5 sm:p-4 shadow-[0_0_60px_rgba(245,158,11,0.5),inset_0_2px_8px_rgba(255,255,255,0.4)] border-4 border-amber-300">
+          {/* Circular Track */}
+          <div className="w-full h-full rounded-full bg-[#05140d] border-2 border-amber-600/60 shadow-inner relative flex items-center justify-center">
+            {/* Chasing Perimeter LED Bulbs */}
+            {leds.map((led, idx) => {
+              const isAlternate = idx % 2 === 0;
+              return (
+                <div
+                  key={led.id}
+                  className={`absolute w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-amber-200 transition-all ${
+                    isSpinning
+                      ? isAlternate
+                        ? 'bg-amber-300 shadow-[0_0_10px_#fde047] animate-bulbPulse'
+                        : 'bg-emerald-300 shadow-[0_0_10px_#6ee7b7] animate-bulbPulse [animation-delay:0.5s]'
+                      : 'bg-amber-400 shadow-[0_0_6px_#fbbf24]'
+                  }`}
+                  style={{
+                    left: `${led.x}%`,
+                    top: `${led.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        {/* Wheel SVG */}
+        {/* Pointer / Needle at Top with Jewel & Gold Finish */}
+        <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+          {/* Top Gold Stud */}
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-700 border-2 border-amber-200 shadow-md flex items-center justify-center -mb-2 z-10">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-600 border border-white shadow" />
+          </div>
+          {/* Needle Arrowhead */}
+          <div
+            className={`w-7 h-10 sm:w-8 sm:h-12 bg-gradient-to-b from-red-600 via-amber-500 to-yellow-400 shadow-xl transform rotate-180 transition-transform ${
+              isSpinning ? 'animate-bounce' : ''
+            }`}
+            style={{
+              clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+            }}
+          />
+        </div>
+
+        {/* Main Spinning Wheel SVG */}
         <div
-          className="w-full h-full rounded-full border-4 border-amber-400/80 shadow-[0_0_50px_rgba(0,99,65,0.6)] overflow-hidden transition-transform"
+          className="relative z-10 w-[78%] h-[78%] rounded-full overflow-hidden shadow-[inset_0_0_25px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.6)] border-4 border-amber-400"
           style={{
             transform: `rotate(${rotation}deg)`,
             transitionDuration: isSpinning ? '5000ms' : '0ms',
@@ -116,14 +163,15 @@ export const Roulette: React.FC<RouletteProps> = ({
         >
           <svg viewBox="0 0 400 400" className="w-full h-full">
             <defs>
-              <filter id="inner-shadow">
-                <feOffset dx="0" dy="0" />
-                <feGaussianBlur stdDeviation="6" result="offset-blur" />
-                <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
-                <feFlood floodColor="black" floodOpacity="0.4" result="color" />
-                <feComposite operator="in" in="color" in2="inverse" result="shadow" />
-                <feComposite operator="over" in="shadow" in2="SourceGraphic" />
-              </filter>
+              <linearGradient id="goldRimGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#fef08a" />
+                <stop offset="50%" stopColor="#f59e0b" />
+                <stop offset="100%" stopColor="#b45309" />
+              </linearGradient>
+              <radialGradient id="centerBulb" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
+              </radialGradient>
             </defs>
 
             {activeTeams.map((teamId, idx) => {
@@ -140,34 +188,42 @@ export const Roulette: React.FC<RouletteProps> = ({
 
               // Mid angle for text
               const midA = ((idx + 0.5) * sliceAngle - 90) * (Math.PI / 180);
-              const textX = 200 + 130 * Math.cos(midA);
-              const textY = 200 + 130 * Math.sin(midA);
+              const textX = 200 + 125 * Math.cos(midA);
+              const textY = 200 + 125 * Math.sin(midA);
               const textRot = (idx + 0.5) * sliceAngle;
 
               const team = TEAMS[teamId];
 
               return (
                 <g key={teamId}>
+                  {/* Slice Wedge */}
                   <path
                     d={pathData}
                     fill={team.color}
-                    stroke="#111827"
-                    strokeWidth="3"
+                    stroke="#f59e0b"
+                    strokeWidth="3.5"
                     className="transition-colors hover:brightness-110"
+                  />
+                  {/* Slice Shading Overlay */}
+                  <path
+                    d={pathData}
+                    fill="url(#centerBulb)"
+                    stroke="none"
+                    pointerEvents="none"
                   />
                   {/* Team Label */}
                   <text
                     x={textX}
                     y={textY}
                     fill="#ffffff"
-                    fontSize="22"
-                    fontWeight="800"
+                    fontSize="21"
+                    fontWeight="900"
                     fontFamily="Poppins, Inter, sans-serif"
                     textAnchor="middle"
                     dominantBaseline="central"
                     transform={`rotate(${textRot + 90}, ${textX}, ${textY})`}
                     style={{
-                      textShadow: '0 2px 6px rgba(0,0,0,0.8)',
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.9))',
                       letterSpacing: '1px',
                     }}
                   >
@@ -177,18 +233,19 @@ export const Roulette: React.FC<RouletteProps> = ({
               );
             })}
 
-            {/* Center Cap */}
-            <circle cx="200" cy="200" r="44" fill="#06140e" stroke="#f59e0b" strokeWidth="4" />
+            {/* Center Cap Medallion with Gold Bevel and IPB Logo */}
+            <circle cx="200" cy="200" r="48" fill="url(#goldRimGradient)" stroke="#fef08a" strokeWidth="3" />
+            <circle cx="200" cy="200" r="42" fill="#06140e" stroke="#78350f" strokeWidth="2" />
             <clipPath id="centerLogoClip">
-              <circle cx="200" cy="200" r="38" />
+              <circle cx="200" cy="200" r="37" />
             </clipPath>
-            <circle cx="200" cy="200" r="40" fill="#ffffff" />
+            <circle cx="200" cy="200" r="38" fill="#ffffff" />
             <image
               href="/logo.png"
-              x="162"
-              y="162"
-              width="76"
-              height="76"
+              x="163"
+              y="163"
+              width="74"
+              height="74"
               clipPath="url(#centerLogoClip)"
               preserveAspectRatio="xMidYMid meet"
             />
@@ -196,24 +253,24 @@ export const Roulette: React.FC<RouletteProps> = ({
         </div>
       </div>
 
-      {/* Selected Team Highlight Banner */}
+      {/* Selected Team Highlight Banner with Glow and Animation */}
       {drawnTeam && !isSpinning && (
-        <div className="mt-8 animate-bounce">
+        <div className="mt-5 animate-bounce">
           <div
-            className="px-8 py-3 rounded-2xl border-2 shadow-[0_0_30px_rgba(251,191,36,0.6)] flex items-center gap-4"
+            className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-2xl border-2 shadow-[0_0_40px_rgba(251,191,36,0.7)] flex items-center gap-4"
             style={{
               borderColor: TEAMS[drawnTeam].color,
               backgroundColor: `${TEAMS[drawnTeam].color}25`,
             }}
           >
             {TEAMS[drawnTeam].logo && (
-              <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
                 <img src={TEAMS[drawnTeam].logo} alt={TEAMS[drawnTeam].name} className="w-full h-full object-contain" />
               </div>
             )}
             <div>
-              <span className="text-xs sm:text-sm text-gray-300 font-semibold uppercase tracking-wider block">
-                Equipe Sorteada:
+              <span className="text-[11px] sm:text-xs text-gray-300 font-semibold uppercase tracking-wider block">
+                🎉 Equipe Sorteada:
               </span>
               <span
                 className="text-2xl sm:text-3xl font-black uppercase tracking-widest drop-shadow-md"
@@ -226,18 +283,18 @@ export const Roulette: React.FC<RouletteProps> = ({
         </div>
       )}
 
-      {/* Remaining Teams Counter */}
-      <div className="mt-4 flex items-center gap-2 text-sm text-gray-400 font-medium">
-        <span>Equipes nesta rodada:</span>
-        <div className="flex gap-2 flex-wrap justify-center">
+      {/* Remaining Teams Counter (Compact for 4:3) */}
+      <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 font-medium">
+        <span>Restam jogar:</span>
+        <div className="flex gap-1.5 flex-wrap justify-center">
           {activeTeams.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white shadow"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow"
               style={{ backgroundColor: TEAMS[t].color }}
             >
               {TEAMS[t].logo && (
-                <img src={TEAMS[t].logo} alt={t} className="w-4 h-4 object-contain" />
+                <img src={TEAMS[t].logo} alt={t} className="w-3.5 h-3.5 object-contain" />
               )}
               {t}
             </span>

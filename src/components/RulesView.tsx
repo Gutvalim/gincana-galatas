@@ -54,42 +54,42 @@ export const RulesView: React.FC = () => {
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-8 py-6 px-4 animate-fadeIn">
-      {/* Rules Header */}
+    <div className="w-full max-w-6xl mx-auto flex flex-col items-center justify-between gap-3 sm:gap-4 py-1 sm:py-2 px-3 animate-fadeIn">
+      {/* Rules Header (Compact for 4:3) */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#006341]/40 border border-emerald-500/50 text-emerald-300 font-bold uppercase tracking-widest text-xs sm:text-sm mb-3">
-          <CheckCircle2 className="w-4 h-4 text-amber-400" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#006341]/40 border border-emerald-500/50 text-emerald-300 font-bold uppercase tracking-widest text-[10px] sm:text-xs mb-1.5 shadow-sm">
+          <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
           Regulamento Oficial da Gincana
         </div>
-        <h2 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight drop-shadow-md">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-white tracking-tight drop-shadow-md leading-tight">
           Regras e Cartas de Ação
         </h2>
-        <p className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto mt-2">
-          Gincana Bíblica IPBNB sobre Gálatas • Mecânicas estratégicas e sistema de pontuação oficial.
+        <p className="text-xs sm:text-sm text-gray-300 max-w-xl mx-auto mt-1">
+          Gincana Bíblica IPBNB sobre Gálatas • Mecânicas estratégicas e pontuação oficial.
         </p>
       </div>
 
-      {/* Rules Grid (2 cols on md, 3 cols on xl) */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Rules Grid (2 cols on md, 3 cols on lg/xl - compact paddings) */}
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {rules.map((rule, idx) => (
           <div
             key={idx}
-            className={`p-6 rounded-3xl bg-[#0c231a] border-2 ${rule.border} ${rule.glow} flex flex-col justify-between transition-all hover:scale-[1.01]`}
+            className={`p-3.5 sm:p-4 rounded-2xl bg-[#0c231a] border-2 ${rule.border} ${rule.glow} flex flex-col justify-between transition-all hover:scale-[1.01]`}
           >
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-2xl bg-gray-800/80 border border-gray-700">
-                  {rule.icon}
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="p-2 rounded-xl bg-gray-800/80 border border-gray-700 shrink-0">
+                  {React.cloneElement(rule.icon as React.ReactElement<{ className?: string }>, { className: 'w-5 h-5 text-current' })}
                 </div>
-                <span className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gray-800/90 text-gray-300 border border-gray-700">
                   {rule.badge}
                 </span>
               </div>
 
-              <h3 className="text-xl font-black text-white mb-2">
+              <h3 className="text-sm sm:text-base font-black text-white mb-1 leading-snug">
                 {rule.title}
               </h3>
-              <p className="text-sm text-gray-300 leading-relaxed font-normal">
+              <p className="text-xs text-gray-300 leading-relaxed font-normal">
                 {rule.desc}
               </p>
             </div>
@@ -98,7 +98,7 @@ export const RulesView: React.FC = () => {
       </div>
 
       {/* Footer Alert Note */}
-      <div className="p-4 rounded-2xl bg-gray-900/80 border border-gray-800 text-center text-xs sm:text-sm text-gray-300 max-w-3xl shadow-lg">
+      <div className="p-2.5 sm:p-3 rounded-xl bg-gray-900/90 border border-gray-800 text-center text-xs text-gray-300 max-w-3xl shadow-lg mt-0.5">
         🎯 <strong className="text-amber-300">Resumo Estratégico:</strong> Responda no microfone para faturar pontos cheios. Se a equipe travar, pode usar a Bíblia (+30s), o 50/50 ou Pular (que dá 30s para as rivais responderem no papel e permite escolher outro envelope). Cartas guardadas rendem +10 pts cada no Pódio!
       </div>
     </div>
