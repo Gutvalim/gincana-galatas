@@ -97,7 +97,7 @@ export const TelaoPage: React.FC = () => {
           )}
 
           <div className="px-3.5 py-1 rounded-full bg-[#0c231a] border border-[#1d5740] text-xs font-bold text-amber-300 uppercase">
-            {state.currentRound <= 6 ? `Rodada ${state.currentRound} de 6` : 'Morte Súbita'}
+            {state.currentRound <= 6 ? `Rodada ${state.currentRound} de 6` : 'Desempate'}
           </div>
         </div>
 
@@ -427,7 +427,7 @@ export const TelaoPage: React.FC = () => {
               <ShieldAlert className="w-8 h-8 text-red-400 animate-pulse" />
               <div>
                 <h3 className="text-xl sm:text-2xl font-black uppercase text-red-200">
-                  Morte Súbita • Desempate
+                  Rodada de Desempate
                 </h3>
                 <p className="text-xs sm:text-sm text-red-300/80">
                   Pergunta final estrutural para definir a grande campeã!

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ActionCardType, TeamId } from '../types/game';
-import { TEAMS } from '../types/game';
+import { TEAMS, CARD_BONUS_POINTS } from '../types/game';
 import { FastForward, BookOpen, Sparkles, Award } from 'lucide-react';
 
 interface ActionCardsHUDProps {
@@ -34,7 +34,7 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
 }) => {
   const teamInfo = TEAMS[team];
   const totalUnused = (inventory.skip || 0) + (inventory.bible || 0) + (inventory.fiftyFifty || 0);
-  const potentialBonus = totalUnused * 15;
+  const potentialBonus = totalUnused * CARD_BONUS_POINTS;
 
   const cardsConfig: Array<{
     type: ActionCardType;

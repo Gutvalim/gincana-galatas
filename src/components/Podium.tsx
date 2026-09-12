@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import type { TeamId, ActionCardsInventory } from '../types/game';
-import { TEAMS, ALL_TEAM_IDS } from '../types/game';
+import { TEAMS, ALL_TEAM_IDS, CARD_BONUS_POINTS } from '../types/game';
 import confetti from 'canvas-confetti';
 import { Trophy, Crown, Sparkles, Medal } from 'lucide-react';
 
@@ -13,7 +13,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
   const getCardBonus = (teamId: TeamId) => {
     if (!actionCards || !actionCards[teamId]) return 0;
     const inv = actionCards[teamId];
-    return ((inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0)) * 15;
+    return ((inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0)) * CARD_BONUS_POINTS;
   };
 
   const getFinalScore = (teamId: TeamId) => {
@@ -104,7 +104,7 @@ export const Podium: React.FC<PodiumProps> = ({ scores, actionCards }) => {
             </span>
             {getCardBonus(winner) > 0 && (
               <span className="text-xs text-amber-300/90 font-medium text-center">
-                ({scores[winner] || 0} pts gincana + {getCardBonus(winner)} pts de {getCardBonus(winner) / 15} cartas guardadas)
+                ({scores[winner] || 0} pts gincana + {getCardBonus(winner)} pts de {getCardBonus(winner) / CARD_BONUS_POINTS} cartas guardadas)
               </span>
             )}
           </div>

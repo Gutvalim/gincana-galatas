@@ -138,7 +138,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 drawnTeam: targetTeam,
                 isSpinning: false,
                 spinningTargetTeam: null,
-                ...(effectiveStage === 'question' || action.payload === 'card_selection' || action.payload === 'roulette'
+                ...(effectiveStage !== 'reveal'
                   ? {
                       isRevealed: false,
                       answerStatus: 'idle' as const,
@@ -287,7 +287,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   isRunning = false;
                   nextStage = 'card_selection';
                 } else {
-                  announcement = `🏃‍♂️ ${team} Pulou a Pergunta! Resposta no Papel Liberada!`;
+                  announcement = `🏃‍♂️ ${team} Pulou! As outras equipes têm 30s para responder no papel!`;
+                  newTimerSeconds = 30;
+                  newTimerMaxSeconds = 30;
+                  newTimerEndTimestamp = Date.now() + 30 * 1000;
+                  isRunning = true;
+                  nextStage = 'timer';
                 }
               }
 
@@ -313,9 +318,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   cardType === 'skip' && team === 'UCP' && newQuestionId
                     ? newQuestionId
                     : prev.currentQuestionId,
-                isRevealed: cardType === 'skip' && team === 'UCP' ? false : prev.isRevealed,
-                answerStatus: cardType === 'skip' && team === 'UCP' ? 'idle' : prev.answerStatus,
-                selectedOptionIndex: cardType === 'skip' && team === 'UCP' ? null : prev.selectedOptionIndex,
+                isRevealed: cardType === 'skip' ? false : prev.isRevealed,
+                answerStatus: cardType === 'skip' ? 'idle' : prev.answerStatus,
+                selectedOptionIndex: cardType === 'skip' ? null : prev.selectedOptionIndex,
                 usedQuestionIdsInRound:
                   cardType === 'skip' && team === 'UCP' && newQuestionId && !prev.usedQuestionIdsInRound.includes(newQuestionId)
                     ? [...prev.usedQuestionIdsInRound, newQuestionId]
@@ -637,14 +642,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...prev,
             stage: effectiveStage,
             drawnTeam: effectiveDrawnTeam,
-            ...(effectiveStage === 'question' || stage === 'card_selection' || stage === 'roulette'
+            ...(effectiveStage !== 'reveal'
               ? {
                   isRevealed: false,
                   answerStatus: 'idle' as const,
                   selectedOptionIndex: null,
-                  timerSeconds: 60,
-                  timerMaxSeconds: 60,
-                  isTimerRunning: false,
+                  ...(effectiveStage === 'question' || stage === 'card_selection' || stage === 'roulette'
+                    ? {
+                        timerSeconds: 60,
+                        timerMaxSeconds: 60,
+                        isTimerRunning: false,
+                      }
+                    : {}),
                 }
               : {}),
           };
@@ -1091,7 +1100,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isRunning = false;
           nextStage = 'card_selection';
         } else {
-          announcement = `🏃‍♂️ ${activeTeam} Pulou a Pergunta! Resposta no Papel Liberada!`;
+          announcement = `🏃‍♂️ ${activeTeam} Pulou! As outras equipes têm 30s para responder no papel!`;
+          newTimerSeconds = 30;
+          newTimerMaxSeconds = 30;
+          newTimerEndTimestamp = Date.now() + 30 * 1000;
+          isRunning = true;
+          nextStage = 'timer';
         }
       }
 
@@ -1122,9 +1136,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             cardType === 'skip' && activeTeam === 'UCP' && newQuestionId
               ? newQuestionId
               : prev.currentQuestionId,
-          isRevealed: cardType === 'skip' && activeTeam === 'UCP' ? false : prev.isRevealed,
-          answerStatus: cardType === 'skip' && activeTeam === 'UCP' ? 'idle' : prev.answerStatus,
-          selectedOptionIndex: cardType === 'skip' && activeTeam === 'UCP' ? null : prev.selectedOptionIndex,
+          isRevealed: cardType === 'skip' ? false : prev.isRevealed,
+          answerStatus: cardType === 'skip' ? 'idle' : prev.answerStatus,
+          selectedOptionIndex: cardType === 'skip' ? null : prev.selectedOptionIndex,
           usedQuestionIdsInRound:
             cardType === 'skip' && activeTeam === 'UCP' && newQuestionId && !prev.usedQuestionIdsInRound.includes(newQuestionId)
               ? [...prev.usedQuestionIdsInRound, newQuestionId]
@@ -1462,6 +1476,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           canAdvance: true,
         };
       case 'timer':
+        if (state.isQuestionSkipped) {
+          return {
+            label: 'Encerrar 30s / Lançar Notas do Papel',
+            actionDescription: 'Encerrar contagem do papel e lançar pontuação das equipes',
+            canAdvance: true,
+          };
+        }
         return {
           label: 'Encerrar Tempo / Revelar Gabarito',
           actionDescription: 'Pausar cronômetro e exibir gabarito oficial',

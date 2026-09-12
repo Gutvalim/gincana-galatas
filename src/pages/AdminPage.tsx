@@ -33,6 +33,7 @@ import {
   Undo2,
   Check,
   XCircle,
+  FastForward,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -70,18 +71,30 @@ export const AdminPage: React.FC = () => {
   const [scoreModalInitialCorrect, setScoreModalInitialCorrect] = useState<boolean>(true);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
 
-  // Automatically open score modal when a question is skipped
+  // Automatically open score modal when 30s timer finishes for a skipped question
   useEffect(() => {
-    if (state.isQuestionSkipped && state.drawnTeam !== 'UCP' && (state.stage === 'question' || state.stage === 'timer' || state.stage === 'reveal')) {
+    if (
+      state.isQuestionSkipped &&
+      state.drawnTeam !== 'UCP' &&
+      !state.isTimerRunning &&
+      state.timerSeconds === 0 &&
+      (state.stage === 'timer' || state.stage === 'reveal')
+    ) {
       setIsScoreModalOpen(true);
     }
-  }, [state.isQuestionSkipped, state.stage, state.drawnTeam]);
+  }, [state.isQuestionSkipped, state.drawnTeam, state.isTimerRunning, state.timerSeconds, state.stage]);
 
   const handleUseActionCard = (cardType: ActionCardType) => {
     useActionCard(cardType);
-    if (cardType === 'skip' && state.drawnTeam !== 'UCP') {
+  };
+
+  const handleAdvanceStep = () => {
+    if (state.stage === 'timer' && state.isQuestionSkipped && state.drawnTeam !== 'UCP') {
+      pauseTimer();
       setIsScoreModalOpen(true);
+      return;
     }
+    advanceGameStep();
   };
 
   const stepInfo = getNextStepInfo();
@@ -102,7 +115,7 @@ export const AdminPage: React.FC = () => {
     { key: 'timer', label: 'Cronômetro', icon: <Clock className="w-4 h-4" /> },
     { key: 'reveal', label: 'Revelação', icon: <Eye className="w-4 h-4" /> },
     { key: 'podium', label: 'Pódio Final', icon: <Award className="w-4 h-4" /> },
-    { key: 'sudden_death', label: 'Morte Súbita', icon: <AlertTriangle className="w-4 h-4" /> },
+    { key: 'sudden_death', label: 'Desempate', icon: <AlertTriangle className="w-4 h-4" /> },
   ];
 
   const roundInfo = ROUNDS_INFO[state.currentRound] || ROUNDS_INFO[1];
@@ -213,7 +226,7 @@ export const AdminPage: React.FC = () => {
 
             {/* Próximo Passo Button */}
             <button
-              onClick={advanceGameStep}
+              onClick={handleAdvanceStep}
               disabled={!stepInfo.canAdvance}
               className="flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider flex items-center justify-center gap-2.5 border-2 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-black border-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.6)] transform hover:scale-[1.02] active:scale-[0.98]"
             >
@@ -358,6 +371,34 @@ export const AdminPage: React.FC = () => {
                     isQuestionSkipped={state.isQuestionSkipped}
                     skipsUsedInRound={state.skipsUsedInRound || 0}
                   />
+                </div>
+              )}
+
+              {/* Question Skipped Notice on Admin */}
+              {state.isQuestionSkipped && state.drawnTeam !== 'UCP' && (
+                <div className="p-3.5 rounded-2xl bg-orange-950/80 border-2 border-orange-500 text-orange-200 flex items-center justify-between gap-3 shadow-lg animate-fadeIn">
+                  <div className="flex items-center gap-2.5">
+                    <FastForward className="w-5 h-5 text-orange-400 shrink-0" />
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-wider block text-orange-100">
+                        Pergunta Pulada por {state.drawnTeam ? (TEAMS[state.drawnTeam]?.name || state.drawnTeam) : 'Equipe'}!
+                      </span>
+                      <span className="text-xs text-orange-300">
+                        {state.isTimerRunning
+                          ? `Cronômetro de 30s ativo no Telão (${state.timerSeconds}s restantes). As outras equipes estão escrevendo no papel!`
+                          : 'Tempo do papel encerrado! Lance as notas das equipes rivais no modal de notas.'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      pauseTimer();
+                      setIsScoreModalOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-black text-xs uppercase tracking-wider shadow transition-all shrink-0 cursor-pointer"
+                  >
+                    Lançar Notas do Papel
+                  </button>
                 </div>
               )}
 

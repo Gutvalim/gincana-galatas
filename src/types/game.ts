@@ -133,7 +133,7 @@ export const INITIAL_ACTION_CARDS: Record<TeamId, ActionCardsInventory> = {
   Adultos: { skip: 2, bible: 1, fiftyFifty: 1 },
 };
 
-export const CARD_BONUS_POINTS = 15;
+export const CARD_BONUS_POINTS = 10;
 
 export interface GameState {
   currentRound: number;
@@ -183,7 +183,7 @@ export const ROUNDS_INFO: Record<number, RoundInfo> = {
   4: { number: 4, name: 'Rodada 4: Quase Difícil', category: 'Quase Difícil', pointsFull: 30, pointsHalf: 12, color: '#fb923c' },
   5: { number: 5, name: 'Rodada 5: Difícil', category: 'Difícil', pointsFull: 40, pointsHalf: 15, color: '#f87171' },
   6: { number: 6, name: 'Rodada 6: Especialista', category: 'Especialista', pointsFull: 50, pointsHalf: 20, color: '#c084fc' },
-  7: { number: 7, name: 'Morte Súbita: Desempate', category: 'Morte Súbita', pointsFull: 0, pointsHalf: 0, color: '#ef4444' },
+  7: { number: 7, name: 'Rodada de Desempate', category: 'Desempate', pointsFull: 0, pointsHalf: 0, color: '#ef4444' },
 };
 
 export const getRoundPlayableQuestions = (allQuestions: Question[], round: number): Question[] => {
