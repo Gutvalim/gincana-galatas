@@ -65,7 +65,7 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
           <div className="absolute w-80 h-80 rounded-full bg-amber-400/25 blur-3xl animate-pulse pointer-events-none" />
 
           {/* Card Frame */}
-          <div className="relative z-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#0c2e1f] via-[#071d13] to-black border-4 border-amber-400 shadow-[0_0_80px_rgba(251,191,36,0.8)] flex flex-col items-center gap-5 transform scale-105 animate-cardFlyZoomIn">
+          <div className="relative z-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#0c2e1f] via-[#071d13] to-black border-4 border-amber-400 shadow-[0_0_80px_rgba(251,191,36,0.8)] flex flex-col items-center gap-5 transform scale-105 animate-actionCardPopIn">
             {/* Top Team Pill */}
             <div
               className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border-2 text-xs sm:text-sm font-black uppercase tracking-widest shadow-lg"
@@ -126,7 +126,7 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
           <div className="absolute w-80 h-80 rounded-full bg-purple-600/30 blur-3xl animate-pulse pointer-events-none" />
 
           {/* Card Frame */}
-          <div className="relative z-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#240d3a] via-[#150724] to-black border-4 border-purple-400 shadow-[0_0_80px_rgba(168,85,247,0.8)] flex flex-col items-center gap-5 transform scale-105 animate-cardFlyZoomIn">
+          <div className="relative z-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#240d3a] via-[#150724] to-black border-4 border-purple-400 shadow-[0_0_80px_rgba(168,85,247,0.8)] flex flex-col items-center gap-5 transform scale-105 animate-actionCardPopIn">
             {/* Top Team Pill */}
             <div
               className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border-2 text-xs sm:text-sm font-black uppercase tracking-widest shadow-lg"
@@ -190,7 +190,7 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
           <div className="absolute w-80 h-80 rounded-full bg-orange-600/30 blur-3xl animate-pulse pointer-events-none" />
 
           {/* Card Frame */}
-          <div className="relative z-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#3a1508] via-[#210903] to-black border-4 border-orange-400 shadow-[0_0_80px_rgba(249,115,22,0.8)] flex flex-col items-center gap-5 transform scale-105 animate-cardFlyZoomIn">
+          <div className="relative z-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#3a1508] via-[#210903] to-black border-4 border-orange-400 shadow-[0_0_80px_rgba(249,115,22,0.8)] flex flex-col items-center gap-5 transform scale-105 animate-actionCardPopIn">
             {/* Top Team Pill */}
             <div
               className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border-2 text-xs sm:text-sm font-black uppercase tracking-widest shadow-lg"

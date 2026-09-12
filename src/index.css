@@ -75,27 +75,81 @@
   animation: turboSpin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+/* Zoom in effect: Card flies from table towards screen */
 @keyframes cardFlyZoomIn {
   0% {
-    transform: perspective(1200px) scale(0.6) rotateY(0deg);
-    opacity: 0.2;
+    transform: perspective(1200px) scale(0.35) translateY(100px);
+    opacity: 0;
   }
-  40% {
-    transform: perspective(1200px) scale(1.05) rotateY(90deg);
-    opacity: 0.9;
-  }
-  75% {
-    transform: perspective(1200px) scale(1.35) rotateY(180deg);
+  60% {
+    transform: perspective(1200px) scale(1.04) translateY(-10px);
     opacity: 1;
   }
   100% {
-    transform: perspective(1200px) scale(1.3) rotateY(180deg);
+    transform: perspective(1200px) scale(1) translateY(0);
     opacity: 1;
   }
 }
 
 .animate-cardFlyZoomIn {
-  animation: cardFlyZoomIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: cardFlyZoomIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Phase 1: Envelope flips out edge-on (0deg -> 90deg) */
+@keyframes envelopeFlipOut {
+  0% {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(90deg);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.animate-envelopeFlipOut {
+  animation: envelopeFlipOut 0.4s ease-in 0.7s forwards;
+}
+
+/* Phase 2: Question flips in from -90deg to 0deg (facing audience, perfectly straight, never mirrored) */
+@keyframes questionFlipIn {
+  0% {
+    transform: perspective(1200px) rotateY(-90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-questionFlipIn {
+  animation: questionFlipIn 0.45s ease-out 1.05s both;
+}
+
+/* Action card pop in: Pop in with 3D perspective and bounce, always facing forward (never mirrored) */
+@keyframes actionCardPopIn {
+  0% {
+    transform: perspective(1000px) scale(0.5) translateY(40px);
+    opacity: 0;
+  }
+  60% {
+    transform: perspective(1000px) scale(1.04) translateY(-6px);
+    opacity: 1;
+  }
+  80% {
+    transform: perspective(1000px) scale(0.98) translateY(2px);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(1000px) scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-actionCardPopIn {
+  animation: actionCardPopIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes bulbPulse {

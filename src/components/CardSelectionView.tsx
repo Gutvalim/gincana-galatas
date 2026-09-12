@@ -88,96 +88,96 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
                 }
               }}
             >
-              {/* Card Container with 3D Flip */}
+              {/* Card Container */}
               <div
-                className={`w-full h-full rounded-3xl transition-all duration-700 relative [transform-style:preserve-3d] shadow-2xl ${
+                className={`w-full h-full rounded-3xl transition-all duration-500 relative shadow-2xl ${
                   isFlipping
-                    ? '[transform:rotateY(180deg)] shadow-[0_0_40px_rgba(251,191,36,0.9)] scale-105'
+                    ? 'shadow-[0_0_40px_rgba(251,191,36,0.9)] scale-105 ring-4 ring-amber-400'
                     : isUsed
                     ? 'opacity-40 grayscale cursor-not-allowed scale-95'
                     : 'hover:scale-105 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(0,135,90,0.6)]'
                 }`}
               >
-                {/* FRONT OF CARD (Mystery / Unrevealed) */}
-                <div
-                  className={`absolute inset-0 rounded-3xl p-4 flex flex-col justify-between items-center text-center [backface-visibility:hidden] border-2 transition-all ${
-                    isUsed
-                      ? 'bg-[#0b1d14] border-gray-700/60 text-gray-500'
-                      : 'bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-[#1d5740] hover:border-amber-400/80 shadow-lg'
-                  }`}
-                >
-                  {/* Top Badge */}
-                  <div className="w-full flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#006341]/60 text-emerald-300 border border-emerald-500/40">
-                      R{round}
-                    </span>
-                    {isUsed ? (
-                      <Lock className="w-4 h-4 text-red-400" />
-                    ) : (
-                      <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                    )}
-                  </div>
-
-                  {/* Center Emblem & Mystery Card Label */}
-                  <div className="flex flex-col items-center gap-1.5 my-auto">
-                    <div
-                      className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl shadow-md border-2 ${
-                        isUsed
-                          ? 'bg-gray-800/60 border-gray-700 text-gray-500'
-                          : 'bg-gradient-to-br from-[#006341] to-[#043322] border-amber-400/60 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
-                      }`}
-                    >
-                      {isUsed ? '🔒' : '📖'}
+                {isFlipping ? (
+                  /* REVEALED CARD (Facing forward at 0deg, crystal clear, never mirrored) */
+                  <div className="absolute inset-0 rounded-3xl p-4 sm:p-5 flex flex-col justify-between items-center text-center bg-gradient-to-br from-[#006341] via-[#0b2b1d] to-[#05170f] border-4 border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.8)] text-white animate-fadeIn">
+                    <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black uppercase">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      Card Escolhido!
                     </div>
-                    <span
-                      className={`text-xl sm:text-2xl font-black uppercase tracking-widest mt-1 ${
-                        isUsed ? 'text-gray-500 line-through' : 'text-amber-300'
-                      }`}
-                    >
-                      Card {idx + 1}
-                    </span>
-                  </div>
 
-                  {/* Bottom Points / Status Banner */}
-                  <div className="w-full">
-                    {isUsed ? (
-                      <span className="block text-[11px] font-black uppercase tracking-wider text-red-400 bg-red-950/60 py-1 rounded-xl border border-red-800/60">
-                        Esgotado
+                    <div className="my-auto flex flex-col items-center gap-1">
+                      <span className="text-3xl font-black text-amber-300 font-mono">
+                        #{revealQ.id}
                       </span>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1 text-xs font-black text-amber-400 bg-amber-500/10 py-1 rounded-xl border border-amber-500/30">
-                        <Award className="w-3.5 h-3.5 text-amber-400" />
-                        {ROUNDS_INFO[round]?.pointsFull ?? q.pontosCheios} pts
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-500/50">
+                        {revealQ.categoria}
+                      </span>
+                      <p className="text-xs text-gray-200 mt-2 line-clamp-3 font-medium">
+                        "{revealQ.pergunta}"
+                      </p>
+                    </div>
+
+                    <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 animate-pulse">
+                      Abrindo Pergunta...
+                    </span>
+                  </div>
+                ) : (
+                  /* FRONT OF CARD (Mystery / Unrevealed) */
+                  <div
+                    className={`absolute inset-0 rounded-3xl p-4 flex flex-col justify-between items-center text-center border-2 transition-all ${
+                      isUsed
+                        ? 'bg-[#0b1d14] border-gray-700/60 text-gray-500'
+                        : 'bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-[#1d5740] hover:border-amber-400/80 shadow-lg'
+                    }`}
+                  >
+                    {/* Top Badge */}
+                    <div className="w-full flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#006341]/60 text-emerald-300 border border-emerald-500/40">
+                        R{round}
+                      </span>
+                      {isUsed ? (
+                        <Lock className="w-4 h-4 text-red-400" />
+                      ) : (
+                        <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                      )}
+                    </div>
+
+                    {/* Center Emblem & Mystery Card Label */}
+                    <div className="flex flex-col items-center gap-1.5 my-auto">
+                      <div
+                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl shadow-md border-2 ${
+                          isUsed
+                            ? 'bg-gray-800/60 border-gray-700 text-gray-500'
+                            : 'bg-gradient-to-br from-[#006341] to-[#043322] border-amber-400/60 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
+                        }`}
+                      >
+                        {isUsed ? '🔒' : '📖'}
                       </div>
-                    )}
-                  </div>
-                </div>
+                      <span
+                        className={`text-xl sm:text-2xl font-black uppercase tracking-widest mt-1 ${
+                          isUsed ? 'text-gray-500 line-through' : 'text-amber-300'
+                        }`}
+                      >
+                        Card {idx + 1}
+                      </span>
+                    </div>
 
-                {/* BACK OF CARD (Revealed after click) */}
-                <div
-                  className="absolute inset-0 rounded-3xl p-5 flex flex-col justify-between items-center text-center [transform:rotateY(180deg)] [backface-visibility:hidden] bg-gradient-to-br from-[#006341] via-[#0b2b1d] to-[#05170f] border-4 border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.8)] text-white"
-                >
-                  <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black uppercase">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    Card Escolhido!
+                    {/* Bottom Points / Status Banner */}
+                    <div className="w-full">
+                      {isUsed ? (
+                        <span className="block text-[11px] font-black uppercase tracking-wider text-red-400 bg-red-950/60 py-1 rounded-xl border border-red-800/60">
+                          Esgotado
+                        </span>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1 text-xs font-black text-amber-400 bg-amber-500/10 py-1 rounded-xl border border-amber-500/30">
+                          <Award className="w-3.5 h-3.5 text-amber-400" />
+                          {ROUNDS_INFO[round]?.pointsFull ?? q.pontosCheios} pts
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  <div className="my-auto flex flex-col items-center gap-1">
-                    <span className="text-3xl font-black text-amber-300 font-mono">
-                      #{revealQ.id}
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-500/50">
-                      {revealQ.categoria}
-                    </span>
-                    <p className="text-xs text-gray-200 mt-2 line-clamp-3 font-medium">
-                      "{revealQ.pergunta}"
-                    </p>
-                  </div>
-
-                  <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 animate-pulse">
-                    Abrindo Pergunta...
-                  </span>
-                </div>
+                )}
               </div>
             </div>
           );
@@ -199,9 +199,9 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
           <div className="absolute w-[500px] h-[500px] rounded-full bg-amber-500/25 blur-3xl animate-pulse pointer-events-none" />
 
           {/* Large Card Flying and Flipping into Center */}
-          <div className="relative w-full max-w-lg sm:max-w-xl h-[460px] sm:h-[500px] rounded-3xl [transform-style:preserve-3d] animate-cardFlyZoomIn shadow-[0_0_80px_rgba(251,191,36,0.9)] border-4 border-amber-400">
-            {/* FRONT FACE (Visible in initial fly-up) */}
-            <div className="absolute inset-0 rounded-3xl p-8 flex flex-col justify-between items-center text-center [backface-visibility:hidden] bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-2 border-amber-400">
+          <div className="relative w-full max-w-lg sm:max-w-xl h-[460px] sm:h-[500px] rounded-3xl animate-cardFlyZoomIn shadow-[0_0_80px_rgba(251,191,36,0.9)] border-4 border-amber-400 overflow-hidden">
+            {/* FRONT FACE (Envelope zooms in, then flips out edge-on at 0.7s) */}
+            <div className="absolute inset-0 rounded-3xl p-8 flex flex-col justify-between items-center text-center bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-2 border-amber-400/50 animate-envelopeFlipOut">
               <div className="w-full flex items-center justify-between">
                 <span className="text-xs sm:text-sm font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-[#006341]/80 text-emerald-300 border border-emerald-500 shadow">
                   Rodada {round}
@@ -226,8 +226,8 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
               </span>
             </div>
 
-            {/* BACK FACE (Rotated 180deg, revealed in center screen for audience to read!) */}
-            <div className="absolute inset-0 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center [transform:rotateY(180deg)] [backface-visibility:hidden] bg-gradient-to-br from-[#006341] via-[#0c2e1f] to-[#06140e] text-white border-2 border-amber-400 shadow-2xl">
+            {/* BACK FACE (Question flips in from -90deg to 0deg, facing audience, completely straight and readable!) */}
+            <div className="absolute inset-0 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center bg-gradient-to-br from-[#006341] via-[#0c2e1f] to-[#06140e] text-white border-2 border-amber-400 shadow-2xl animate-questionFlipIn">
               {/* Header */}
               <div className="w-full flex items-center justify-between border-b border-amber-400/40 pb-3">
                 <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300 flex items-center gap-2">
