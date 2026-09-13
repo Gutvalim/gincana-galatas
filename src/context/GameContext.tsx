@@ -1057,16 +1057,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         sounds.playCard5050();
-        const correctText = currentQuestion.respostaCorreta.trim().toLowerCase();
-        const wrongIndices: number[] = [];
-        currentQuestion.opcoes.forEach((op, idx) => {
-          if (op.trim().toLowerCase() !== correctText) {
-            wrongIndices.push(idx);
-          }
-        });
+        if (currentQuestion.fiftyFiftyEliminate && currentQuestion.fiftyFiftyEliminate.length === 2) {
+          eliminatedIndices = currentQuestion.fiftyFiftyEliminate;
+        } else if (currentQuestion.id === 17) {
+          eliminatedIndices = [2, 3];
+        } else if (currentQuestion.id === 51) {
+          eliminatedIndices = [0, 2];
+        } else {
+          const correctText = currentQuestion.respostaCorreta.trim().toLowerCase();
+          const wrongIndices: number[] = [];
+          currentQuestion.opcoes.forEach((op, idx) => {
+            if (op.trim().toLowerCase() !== correctText) {
+              wrongIndices.push(idx);
+            }
+          });
 
-        const shuffled = [...wrongIndices].sort(() => 0.5 - Math.random());
-        eliminatedIndices = shuffled.slice(0, 2);
+          const shuffled = [...wrongIndices].sort(() => 0.5 - Math.random());
+          eliminatedIndices = shuffled.slice(0, 2);
+        }
       } else if (cardType === 'skip') {
         sounds.playSkipCard();
       }

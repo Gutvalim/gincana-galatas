@@ -92,6 +92,7 @@ export interface Question {
   textoBiblico: string;
   isKids?: boolean;
   isKidsBackup?: boolean;
+  fiftyFiftyEliminate?: number[];
 }
 
 export type GameStage =

@@ -315,12 +315,13 @@
     "pergunta": "De acordo com Gálatas 2:3, quem acompanhava Paulo e, sendo ele grego, NÃO foi constrangido a circuncidar-se?",
     "tipo": "multipla_escolha",
     "opcoes": [
-      "Pedro",
+      "Barnabé",
       "Tito",
       "Tiago",
       "Timóteo"
     ],
     "respostaCorreta": "Tito",
+    "fiftyFiftyEliminate": [2, 3],
     "versiculo": "Gálatas 2:3 ARA",
     "textoBiblico": "Mas nem mesmo Tito, que estava comigo, sendo grego, foi constrangido a circuncidar-se."
   },
@@ -950,9 +951,10 @@
       "Ficou indignado diante da idolatria da cidade.",
       "Pregou o evangelho por causa de uma enfermidade física.",
       "Percebeu que voltavam aos rudimentos fracos.",
-      "Queria fundar uma nova sede missionária na Galácia."
+      "Ficou profundamente perplexo e indignado diante da insensatez dos Gálatas."
     ],
     "respostaCorreta": "Pregou o evangelho por causa de uma enfermidade física.",
+    "fiftyFiftyEliminate": [0, 2],
     "versiculo": "Gálatas 4:13 ARA",
     "textoBiblico": "E vós sabeis que vos preguei o evangelho a primeira vez por causa de uma enfermidade física."
   },
