@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import type { TeamId, ActionCardsInventory } from '../types/game';
-import { TEAMS, ALL_TEAM_IDS, CARD_BONUS_POINTS } from '../types/game';
+import type { TeamId, TeamInfo, ActionCardsInventory } from '../types/game';
+import { getTeam, CARD_BONUS_POINTS } from '../types/game';
+import { TeamIcon } from './TeamIcon';
 import { Trophy, Award, Medal, Sparkles, Check } from 'lucide-react';
 
 interface LeaderboardProps {
   scores: Record<TeamId, number>;
+  teams?: TeamInfo[];
   actionCards?: Record<TeamId, ActionCardsInventory>;
   compact?: boolean;
   highlightTeam?: TeamId | null;
@@ -14,6 +16,7 @@ interface LeaderboardProps {
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({
   scores,
+  teams,
   actionCards,
   compact = false,
   highlightTeam = null,
@@ -23,16 +26,18 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   const [inputScores, setInputScores] = useState<Partial<Record<TeamId, string>>>({});
   const [savedTeam, setSavedTeam] = useState<TeamId | null>(null);
 
+  const teamList = teams && teams.length > 0 ? teams.map((t) => t.id) : Object.keys(scores);
+
   // Sync inputScores with scores whenever scores change
   useEffect(() => {
     setInputScores((prev) => {
       const next = { ...prev };
-      ALL_TEAM_IDS.forEach((id) => {
+      teamList.forEach((id) => {
         next[id] = String(scores[id] ?? 0);
       });
       return next;
     });
-  }, [scores]);
+  }, [scores, teamList.join(',')]);
 
   const handleSave = (teamId: TeamId) => {
     const raw = inputScores[teamId] !== undefined ? inputScores[teamId]! : String(scores[teamId] ?? 0);
@@ -53,8 +58,8 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   };
 
   // Sort teams by points descending
-  const sortedTeams = [...ALL_TEAM_IDS].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
-  const maxScore = Math.max(...Object.values(scores), 60);
+  const sortedTeams = [...teamList].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+  const maxScore = Math.max(...Object.values(scores), 40);
 
   const getRankBadge = (rank: number) => {
     switch (rank) {
@@ -89,7 +94,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
     return (
       <div className="space-y-2">
         {sortedTeams.map((teamId, rank) => {
-          const team = TEAMS[teamId];
+          const team = getTeam(teamId, teams);
           const score = scores[teamId] || 0;
           const isHighlighted = highlightTeam === teamId;
 
@@ -104,16 +109,16 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             >
               <div className="flex items-center gap-2 min-w-0 pr-2">
                 <span className="text-xs font-black text-gray-400 w-4 shrink-0">{rank + 1}º</span>
-                {team.logo ? (
-                  <div className="w-6 h-6 rounded-lg bg-white/95 border border-white/50 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
-                    <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
-                  </div>
-                ) : (
-                  <span
-                    className="w-3 h-3 rounded-full shadow shrink-0"
-                    style={{ backgroundColor: team.color }}
-                  />
-                )}
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm border"
+                  style={{
+                    backgroundColor: `${team.color}25`,
+                    borderColor: team.color,
+                    color: team.color,
+                  }}
+                >
+                  <TeamIcon icon={team.icon} className="w-4 h-4" />
+                </div>
                 <span className="font-bold text-sm text-gray-200 truncate">{team.name}</span>
               </div>
 
@@ -175,9 +180,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                       {getCardBonus(teamId) > 0 && (
                         <span
                           className="text-[10px] text-amber-300 font-bold whitespace-nowrap"
-                          title={`${getCardBonus(teamId)} pts bônus de ${Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} cartas guardadas (+${CARD_BONUS_POINTS} pts cada)`}
+                          title={`${getCardBonus(teamId)} pts bônus`}
                         >
-                          +{getCardBonus(teamId)} pts ({Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} {Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS) === 1 ? 'carta' : 'cartas'})
+                          +{getCardBonus(teamId)} pts
                         </span>
                       )}
                     </div>
@@ -215,7 +220,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4">
       {sortedTeams.map((teamId, rank) => {
-        const team = TEAMS[teamId];
+        const team = getTeam(teamId, teams);
         const score = scores[teamId] || 0;
         const percentage =
           maxScore > 0 && score > 0
@@ -242,21 +247,19 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             />
 
             <div className="relative z-10 px-6 py-4 flex items-center justify-between gap-4">
-              {/* Rank & Team Name - Fixed width column for perfect alignment */}
+              {/* Rank & Team Name */}
               <div className="w-72 sm:w-88 md:w-96 shrink-0 flex items-center gap-3.5">
                 {getRankBadge(rank)}
-                {team.logo ? (
-                  <div className="w-12 h-12 rounded-xl bg-white/95 border border-white/50 p-1 flex items-center justify-center shrink-0 shadow-md">
-                    <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
-                  </div>
-                ) : (
-                  <div
-                    className="w-12 h-12 rounded-xl border flex items-center justify-center font-black text-base shrink-0 shadow-md"
-                    style={{ backgroundColor: `${team.color}20`, borderColor: `${team.color}60`, color: team.color }}
-                  >
-                    {team.name.slice(0, 3)}
-                  </div>
-                )}
+                <div
+                  className="w-12 h-12 rounded-xl border-2 flex items-center justify-center shrink-0 shadow-md"
+                  style={{
+                    backgroundColor: `${team.color}25`,
+                    borderColor: team.color,
+                    color: team.color,
+                  }}
+                >
+                  <TeamIcon icon={team.icon} className="w-7 h-7" />
+                </div>
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
                     className="text-2xl sm:text-3xl font-black uppercase tracking-wider whitespace-nowrap"
@@ -272,11 +275,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                 </div>
               </div>
 
-              {/* Progress Bar Line - Uniformly aligned across all teams */}
+              {/* Progress Bar Line */}
               <div className="flex-1 mx-4 hidden md:block">
                 <div className="w-full bg-gray-900/90 rounded-full h-4 overflow-hidden p-0.5 border border-gray-700/80 shadow-inner">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                    className="h-full rounded-full transition-all duration-1000 ease-out"
                     style={{
                       width: `${percentage}%`,
                       backgroundColor: team.color,
@@ -286,7 +289,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                 </div>
               </div>
 
-              {/* Score Number - Fixed right column */}
+              {/* Score Number */}
               <div className="w-32 sm:w-44 shrink-0 flex flex-col items-end justify-center">
                 <div className="flex items-baseline justify-end gap-1.5">
                   <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">

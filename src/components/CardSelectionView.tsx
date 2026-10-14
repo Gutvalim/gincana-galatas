@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Question, TeamId } from '../types/game';
-import { TEAMS, ROUNDS_INFO } from '../types/game';
+import { getTeam, ROUNDS_INFO } from '../types/game';
 import { Lock, Sparkles, CheckCircle2, Award } from 'lucide-react';
 
 interface CardSelectionViewProps {
@@ -28,7 +28,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
   onSelectCard,
   interactive = true,
 }) => {
-  const team = drawnTeam ? TEAMS[drawnTeam] : null;
+  const team = drawnTeam ? getTeam(drawnTeam) : null;
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col items-center gap-8 py-4 px-4 animate-fadeIn">

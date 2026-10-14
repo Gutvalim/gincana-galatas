@@ -1,8 +1,12 @@
-import type { GameState, TeamId, GameStage, ActionCardType } from '../types/game';
-import { ALL_TEAM_IDS, INITIAL_ACTION_CARDS } from '../types/game';
+import type { GameState, TeamId, TeamInfo, GameStage, ActionCardType } from '../types/game';
+import {
+  DEFAULT_TEAMS,
+  INITIAL_ACTION_CARDS,
+  DEFAULT_TIMER_SECONDS,
+} from '../types/game';
 
-export const CHANNEL_NAME = 'gincana_galatas';
-export const STORAGE_KEY = 'gincana_galatas_state_v1';
+export const CHANNEL_NAME = 'gincana_galatas_ump';
+export const STORAGE_KEY = 'gincana_galatas_ump_v2';
 
 export type SyncAction =
   | { type: 'SYNC_STATE'; payload: GameState }
@@ -54,36 +58,44 @@ export type SyncAction =
   | { type: 'SET_ROUND'; payload: { round: number; questionId: number } }
   | { type: 'SET_QUESTION'; payload: number }
   | { type: 'RESET_GAME'; payload: GameState }
+  | { type: 'UPDATE_TEAMS'; payload: { teams: TeamInfo[]; resetScores: boolean } }
   | { type: 'CLEAR_LAST_CARD_USED' };
+
+const initialScores: Record<TeamId, number> = {};
+const initialCards = { ...INITIAL_ACTION_CARDS };
+
+DEFAULT_TEAMS.forEach((t) => {
+  initialScores[t.id] = 0;
+  if (!initialCards[t.id]) {
+    initialCards[t.id] = { skip: 2, bible: 1, fiftyFifty: 1 };
+  }
+});
 
 export const INITIAL_STATE: GameState = {
   currentRound: 1,
   currentQuestionId: 1,
   stage: 'welcome',
-  scores: {
-    UCP: 0,
-    UPA: 0,
-    UMP: 0,
-    Casais: 0,
-    Adultos: 0,
-  },
-  actionCards: INITIAL_ACTION_CARDS,
+  teams: DEFAULT_TEAMS,
+  teamOrder: DEFAULT_TEAMS.map((t) => t.id),
+  currentTurnTeamIndex: 0,
+  scores: initialScores,
+  actionCards: initialCards,
   eliminatedOptionIndices: [],
   isQuestionSkipped: false,
   skipsUsedInRound: 0,
-  ucpSkipsInRound: 0,
   activeCardAnnouncement: null,
-  teamsAvailableInRound: [...ALL_TEAM_IDS],
+  teamsAvailableInRound: DEFAULT_TEAMS.map((t) => t.id),
   usedQuestionIdsInRound: [],
+  usedQuestionIdsTotal: [],
   usedCardIndicesInRound: [],
   selectedCardIndex: null,
   isCardFlipping: false,
-  drawnTeam: null,
+  drawnTeam: DEFAULT_TEAMS[0].id,
   isSpinning: false,
   spinningTargetTeam: null,
   spinSeed: 0,
-  timerSeconds: 60,
-  timerMaxSeconds: 60,
+  timerSeconds: DEFAULT_TIMER_SECONDS,
+  timerMaxSeconds: DEFAULT_TIMER_SECONDS,
   isTimerRunning: false,
   timerEndTimestamp: null,
   isRevealed: false,
@@ -101,18 +113,23 @@ export function loadSavedState(): GameState {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
       const parsed = JSON.parse(data) as GameState;
-      // Sanity checks on parsed state
-      if (parsed && typeof parsed.scores === 'object' && parsed.currentRound) {
+      if (parsed && typeof parsed.scores === 'object') {
+        const teams = parsed.teams && parsed.teams.length > 0 ? parsed.teams : DEFAULT_TEAMS;
+        const teamOrder = parsed.teamOrder && parsed.teamOrder.length > 0 ? parsed.teamOrder : teams.map((t) => t.id);
+
         return {
           ...INITIAL_STATE,
           ...parsed,
-          timerMaxSeconds: parsed.timerMaxSeconds || 60,
+          teams,
+          teamOrder,
+          timerSeconds: parsed.timerSeconds || DEFAULT_TIMER_SECONDS,
+          timerMaxSeconds: parsed.timerMaxSeconds || DEFAULT_TIMER_SECONDS,
           actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,
           skipsUsedInRound: parsed.skipsUsedInRound || 0,
           activeCardAnnouncement: null,
-          usedCardIndicesInRound: parsed.usedCardIndicesInRound || [],
+          usedQuestionIdsTotal: parsed.usedQuestionIdsTotal || [],
           usedQuestionIdsInRound: parsed.usedQuestionIdsInRound || [],
         };
       }

@@ -1,75 +1,75 @@
 import React from 'react';
-import { Compass, Sparkles, FileText, Award, CheckCircle2, FastForward, Flame } from 'lucide-react';
+import { Sparkles, Award, CheckCircle2, FastForward, BookOpen, Clock, Users } from 'lucide-react';
 
 export const RulesView: React.FC = () => {
   const rules = [
     {
-      icon: <Compass className="w-8 h-8 text-amber-400" />,
-      title: '1. Mesa de Envelopes e Sorteio (8 Cards)',
-      desc: 'Cada rodada conta com 8 cards de perguntas na mesa de escolha. Ao ser sorteada na roleta, a equipe escolhe livremente um envelope, que é revelado e fica esgotado para as demais equipes daquela rodada.',
-      badge: 'Dinâmica da Rodada',
+      icon: <Users className="w-8 h-8 text-amber-400" />,
+      title: '1. Ordem Fixa por Sorteio & Perguntas Diretas',
+      desc: 'A ordem das equipes é definida por sorteio e mantida pela gincana inteira. Não há mesa de envelopes: as perguntas são sorteadas diretamente do questionário oficial de Gálatas sem repetições nem desperdício!',
+      badge: 'Dinâmica das Equipes',
       border: 'border-[#1d5740]',
       glow: 'shadow-[0_0_20px_rgba(0,99,65,0.3)]',
     },
     {
-      icon: <Sparkles className="w-8 h-8 text-purple-400" />,
-      title: '2. Cartas de Ação (Arsenal da Equipe)',
-      desc: 'Cada sociedade recebe 4 cartas para toda a gincana: Pular Pergunta (2 unidades), Consulta Bíblica de 30s (1 unidade) e Carta 50/50 (1 unidade, elimina 2 alternativas erradas).',
-      badge: 'Arsenal Estratégico',
-      border: 'border-purple-500/40',
-      glow: 'shadow-[0_0_20px_rgba(168,85,247,0.2)]',
-    },
-    {
-      icon: <FastForward className="w-8 h-8 text-orange-400" />,
-      title: '3. Carta Pular: Adultos vs. Crianças (UCP)',
-      desc: 'Adultos: ao pular, a equipe libera aquela pergunta para as rivais pontuarem no papel, mas volta à mesa e escolhe outro envelope para responder no microfone e disputar os pontos cheios! UCP (Crianças): ao pular, as crianças têm nova escolha de card, sem abrir pontuação de papel para os adultos.',
-      badge: 'Mecânica do Pulo',
-      border: 'border-orange-500/40',
-      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.2)]',
-    },
-    {
-      icon: <FileText className="w-8 h-8 text-cyan-400" />,
-      title: '4. Resposta no Papel',
-      desc: 'Quando uma equipe pular, as outras equipes terão 30s para escrever a resposta no papel e entregar a mesa avaliadora para disputar por uma parte dos pontos da rodada.',
-      badge: 'Pontuação no Papel',
+      icon: <Clock className="w-8 h-8 text-cyan-400" />,
+      title: '2. Tempo de 30s & Resposta do Líder',
+      desc: 'A equipe da vez tem 30 segundos no cronômetro. O líder deve se levantar dentro dos 30s, aguardar o apresentador autorizar a fala e dizer a resposta imediatamente, sem tempo adicional!',
+      badge: 'Tempo e Resposta',
       border: 'border-cyan-500/40',
       glow: 'shadow-[0_0_20px_rgba(6,182,212,0.2)]',
     },
     {
-      icon: <Flame className="w-8 h-8 text-rose-400" />,
-      title: '5. Pontuação Progressiva das 6 Rodadas',
-      desc: 'R1: 15 / 5 pts • R2: 20 / 8 pts • R3: 25 / 10 pts • R4: 30 / 12 pts • R5: 40 / 15 pts • R6: 50 / 20 pts. Resposta no microfone vale pontos cheios; no papel vale metade dos pontos. (Em caso de empate no 1º lugar ao final da R6, haverá Rodada de Desempate).',
-      badge: 'Valores Oficiais',
-      border: 'border-rose-500/40',
-      glow: 'shadow-[0_0_20px_rgba(244,63,94,0.2)]',
-    },
-    {
       icon: <Award className="w-8 h-8 text-emerald-400" />,
-      title: '6. Bônus Final no Pódio (+10 pts por Carta)',
-      desc: 'Economizar ajuda compensa: ao término da gincana, cada carta de ação que a equipe conseguiu poupar concede +10 pontos automáticos somados ao Placar Geral no Pódio das Campeãs (potencial de até +40 pontos extras se guardar as 4 cartas)!',
-      badge: 'Bônus Final (+10 pts)',
+      title: '3. Pontuação Fixa (10 pts por Pergunta)',
+      desc: 'Todas as perguntas têm valor igual de 10 pontos cheios. Não há respostas no papel: acertou no microfone dentro do tempo e dos critérios, pontua!',
+      badge: '10 pts por Acerto',
       border: 'border-emerald-500/40',
       glow: 'shadow-[0_0_20px_rgba(16,185,129,0.2)]',
+    },
+    {
+      icon: <FastForward className="w-8 h-8 text-orange-400" />,
+      title: '4. Carta Pular Pergunta (2 unidades)',
+      desc: 'Se a equipe não souber a questão, pode acionar a carta Pular. Uma nova pergunta é sorteada imediatamente no telão e o cronômetro é reiniciado para a equipe.',
+      badge: '2x Pular',
+      border: 'border-orange-500/40',
+      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.2)]',
+    },
+    {
+      icon: <BookOpen className="w-8 h-8 text-sky-400" />,
+      title: '5. Consulta Bíblica (1 unidade • 30s)',
+      desc: 'Concede 30 segundos exclusivos para que a equipe abra as Bíblias impressas e pesquise a passagem e a resposta.',
+      badge: '1x Bíblia (30s)',
+      border: 'border-sky-500/40',
+      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.2)]',
+    },
+    {
+      icon: <Sparkles className="w-8 h-8 text-purple-400" />,
+      title: '6. Carta 50/50 & Bônus no Pódio (+10 pts)',
+      desc: 'Carta 50/50 (1x): elimina 2 alternativas erradas em perguntas de múltipla escolha. Bônus Final: cada carta poupada ao término concede +10 pts somados no Pódio!',
+      badge: '50/50 & Bônus Final',
+      border: 'border-purple-500/40',
+      glow: 'shadow-[0_0_20px_rgba(168,85,247,0.2)]',
     },
   ];
 
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col items-center justify-between gap-3 sm:gap-4 py-1 sm:py-2 px-3 animate-fadeIn">
-      {/* Rules Header (Compact for 4:3) */}
+      {/* Rules Header */}
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#006341]/40 border border-emerald-500/50 text-emerald-300 font-bold uppercase tracking-widest text-[10px] sm:text-xs mb-1.5 shadow-sm">
           <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-          Regulamento Oficial da Gincana
+          Regulamento Oficial • Federação de UMPs
         </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-white tracking-tight drop-shadow-md leading-tight">
-          Regras e Cartas de Ação
+          Regras da Gincana & Cartas de Ação
         </h2>
         <p className="text-xs sm:text-sm text-gray-300 max-w-xl mx-auto mt-1">
-          Gincana Bíblica IPBNB sobre Gálatas • Mecânicas estratégicas e pontuação oficial.
+          Gincana Bíblica sobre o Livro de Gálatas • União de Mocidade Presbiteriana.
         </p>
       </div>
 
-      {/* Rules Grid (2 cols on md, 3 cols on lg/xl - compact paddings) */}
+      {/* Rules Grid */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {rules.map((rule, idx) => (
           <div
@@ -95,11 +95,6 @@ export const RulesView: React.FC = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Footer Alert Note */}
-      <div className="p-2.5 sm:p-3 rounded-xl bg-gray-900/90 border border-gray-800 text-center text-xs text-gray-300 max-w-3xl shadow-lg mt-0.5">
-        🎯 <strong className="text-amber-300">Resumo Estratégico:</strong> Responda no microfone para faturar pontos cheios. Se a equipe travar, pode usar a Bíblia (+30s), o 50/50 ou Pular (que dá 30s para as rivais responderem no papel e permite escolher outro envelope). Cartas guardadas rendem +10 pts cada no Pódio!
       </div>
     </div>
   );

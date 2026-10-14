@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { TeamId } from '../types/game';
-import { TEAMS } from '../types/game';
+import type { TeamId, TeamInfo } from '../types/game';
+import { getTeam } from '../types/game';
 import { sounds } from '../services/sound';
 
 interface RouletteProps {
   teams: TeamId[];
+  teamsList?: TeamInfo[];
   isSpinning: boolean;
   targetTeam: TeamId | null;
   drawnTeam: TeamId | null;
@@ -15,6 +16,7 @@ interface RouletteProps {
 
 export const Roulette: React.FC<RouletteProps> = ({
   teams,
+  teamsList = [],
   isSpinning,
   targetTeam,
   drawnTeam,
@@ -190,7 +192,7 @@ export const Roulette: React.FC<RouletteProps> = ({
               const textY = 200 + 125 * Math.sin(midA);
               const textRot = (idx + 0.5) * sliceAngle;
 
-              const team = TEAMS[teamId];
+              const team = getTeam(teamId, teamsList);
 
               return (
                 <g key={teamId}>
@@ -252,51 +254,57 @@ export const Roulette: React.FC<RouletteProps> = ({
       </div>
 
       {/* Selected Team Highlight Banner with Glow and Animation */}
-      {drawnTeam && !isSpinning && (
-        <div className="mt-5 animate-bounce">
-          <div
-            className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-2xl border-2 shadow-[0_0_40px_rgba(251,191,36,0.7)] flex items-center gap-4"
-            style={{
-              borderColor: TEAMS[drawnTeam].color,
-              backgroundColor: `${TEAMS[drawnTeam].color}25`,
-            }}
-          >
-            {TEAMS[drawnTeam].logo && (
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
-                <img src={TEAMS[drawnTeam].logo} alt={TEAMS[drawnTeam].name} className="w-full h-full object-contain" />
+      {drawnTeam && !isSpinning && (() => {
+        const dTeam = getTeam(drawnTeam, teamsList);
+        return (
+          <div className="mt-5 animate-bounce">
+            <div
+              className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-2xl border-2 shadow-[0_0_40px_rgba(251,191,36,0.7)] flex items-center gap-4"
+              style={{
+                borderColor: dTeam.color,
+                backgroundColor: `${dTeam.color}25`,
+              }}
+            >
+              {dTeam.logo && (
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
+                  <img src={dTeam.logo} alt={dTeam.name} className="w-full h-full object-contain" />
+                </div>
+              )}
+              <div>
+                <span className="text-[11px] sm:text-xs text-gray-300 font-semibold uppercase tracking-wider block">
+                  🎉 Equipe Sorteada:
+                </span>
+                <span
+                  className="text-2xl sm:text-3xl font-black uppercase tracking-widest drop-shadow-md"
+                  style={{ color: dTeam.color }}
+                >
+                  {dTeam.name}
+                </span>
               </div>
-            )}
-            <div>
-              <span className="text-[11px] sm:text-xs text-gray-300 font-semibold uppercase tracking-wider block">
-                🎉 Equipe Sorteada:
-              </span>
-              <span
-                className="text-2xl sm:text-3xl font-black uppercase tracking-widest drop-shadow-md"
-                style={{ color: TEAMS[drawnTeam].color }}
-              >
-                {TEAMS[drawnTeam].name}
-              </span>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Remaining Teams Counter (Compact for 4:3) */}
       <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 font-medium">
         <span>Restam jogar:</span>
         <div className="flex gap-1.5 flex-wrap justify-center">
-          {activeTeams.map((t) => (
-            <span
-              key={t}
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow"
-              style={{ backgroundColor: TEAMS[t].color }}
-            >
-              {TEAMS[t].logo && (
-                <img src={TEAMS[t].logo} alt={t} className="w-3.5 h-3.5 object-contain" />
-              )}
-              {t}
-            </span>
-          ))}
+          {activeTeams.map((t) => {
+            const tInfo = getTeam(t, teamsList);
+            return (
+              <span
+                key={t}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow"
+                style={{ backgroundColor: tInfo.color }}
+              >
+                {tInfo.logo && (
+                  <img src={tInfo.logo} alt={tInfo.name} className="w-3.5 h-3.5 object-contain" />
+                )}
+                {tInfo.name}
+              </span>
+            );
+          })}
         </div>
       </div>
     </div>

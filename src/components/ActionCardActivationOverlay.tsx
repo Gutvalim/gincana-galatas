@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { ActionCardType, TeamId } from '../types/game';
-import { TEAMS } from '../types/game';
+import { getTeam } from '../types/game';
 import { BookOpen, Sparkles, FastForward, Zap, Flame } from 'lucide-react';
 
 interface ActionCardActivationOverlayProps {
@@ -40,7 +40,7 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
 
   if (!visible || !cardType || !team) return null;
 
-  const teamInfo = TEAMS[team];
+  const teamInfo = getTeam(team);
 
   return (
     <div
@@ -231,16 +231,12 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
                 Pergunta Pulada!
               </h2>
               <p className="text-xl sm:text-2xl font-black text-orange-300 font-mono mt-1 drop-shadow">
-                {team === 'UCP'
-                  ? 'NOVA CARTA KIDS DISPONÍVEL'
-                  : '30s PARA RESPOSTA NO PAPEL'}
+                NOVA PERGUNTA SORTEADA!
               </p>
             </div>
 
             <p className="text-sm sm:text-base text-gray-200 max-w-md font-medium text-center leading-snug">
-              {team === 'UCP'
-                ? 'As crianças recebem uma nova escolha de envelope na mesa para responder à Pergunta Kids Reserva!'
-                : 'As equipes rivais têm 30 segundos no cronômetro para escrever a resposta no papel e disputar metade dos pontos!'}
+              A equipe utilizou a carta Pular. Uma nova pergunta foi sorteada e a equipe tem 30 segundos para responder!
             </p>
           </div>
         </div>

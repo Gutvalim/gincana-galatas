@@ -1,6 +1,7 @@
 import React from 'react';
-import type { Question, TeamId } from '../types/game';
-import { TEAMS, ROUNDS_INFO } from '../types/game';
+import type { Question, TeamId, TeamInfo } from '../types/game';
+import { getTeam, ROUNDS_INFO, FIXED_QUESTION_POINTS } from '../types/game';
+import { TeamIcon } from './TeamIcon';
 import { BookOpen, CheckCircle2, XCircle, Award, Sparkles, FastForward } from 'lucide-react';
 
 interface QuestionViewProps {
@@ -9,6 +10,7 @@ interface QuestionViewProps {
   isRevealed: boolean;
   showPoints?: boolean;
   drawnTeam?: TeamId | null;
+  teams?: TeamInfo[];
   selectedOptionIndex?: number | null;
   answerStatus?: 'idle' | 'selected' | 'correct' | 'wrong';
   eliminatedOptionIndices?: number[];
@@ -22,6 +24,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   isRevealed,
   showPoints = true,
   drawnTeam = null,
+  teams,
   selectedOptionIndex = null,
   answerStatus = 'idle',
   eliminatedOptionIndices = [],
@@ -29,12 +32,11 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   isQuestionSkipped = false,
 }) => {
   const letters = ['A', 'B', 'C', 'D'];
-  const team = drawnTeam ? TEAMS[drawnTeam] : null;
+  const team = drawnTeam ? getTeam(drawnTeam, teams) : null;
 
   const currentRoundNum = round ?? question.rodada;
   const roundInfo = ROUNDS_INFO[currentRoundNum];
-  const fullPts = roundInfo?.pointsFull ?? question.pontosCheios;
-  const halfPts = roundInfo?.pointsHalf ?? question.pontosMeios;
+  const fullPts = roundInfo?.pointsFull ?? question.pontosCheios ?? FIXED_QUESTION_POINTS;
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-5">
@@ -49,11 +51,16 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           }}
         >
           <div className="flex items-center gap-3">
-            {team.logo && (
-              <div className="w-10 h-10 rounded-xl bg-white/95 border border-white/50 p-1 flex items-center justify-center shrink-0 shadow-md">
-                <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
-              </div>
-            )}
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md border"
+              style={{
+                backgroundColor: `${team.color}30`,
+                borderColor: team.color,
+                color: team.color,
+              }}
+            >
+              <TeamIcon icon={team.icon} className="w-6 h-6" />
+            </div>
             <div>
               <span className="text-[11px] text-gray-300 uppercase tracking-wider block font-bold">
                 Equipe no Microfone:
@@ -87,7 +94,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
         <div className="w-full p-3.5 rounded-xl bg-orange-950/70 border-2 border-orange-500/80 text-orange-200 flex items-center justify-center gap-2 shadow-lg">
           <FastForward className="w-5 h-5 text-orange-400 shrink-0" />
           <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-center">
-            Pergunta Pulada pela Equipe! Apenas respostas avaliadas no papel pontuarão nesta questão.
+            Pergunta Pulada! Uma nova questão foi apresentada à equipe.
           </span>
         </div>
       )}
@@ -107,13 +114,8 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           <div className="flex items-center gap-2">
             <span className="px-4 py-1.5 rounded-xl text-sm sm:text-base font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
               <Award className="w-4 h-4 text-amber-400" />
-              Microfone: {fullPts} pts
+              Valor: {fullPts} pts
             </span>
-            {halfPts > 0 && (
-              <span className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Papel: {halfPts} pts
-              </span>
-            )}
           </div>
         )}
       </div>
@@ -262,7 +264,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           ) : (
             <div className="p-6 rounded-2xl border-2 border-dashed border-gray-700 bg-gray-900/40 text-center text-gray-400">
               <span className="text-lg font-bold">
-                Pergunta Dissertativa • Responda no microfone!
+                Pergunta Dissertativa • O líder da equipe deve se manifestar e responder ao microfone!
               </span>
             </div>
           )}
