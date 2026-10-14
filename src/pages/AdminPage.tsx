@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import type { GameStage, ActionCardType } from '../types/game';
-import { getTeam, ROUNDS_INFO, FIXED_QUESTION_POINTS } from '../types/game';
+import { getTeam, FIXED_QUESTION_POINTS } from '../types/game';
 import { ScoreModal } from '../components/ScoreModal';
 import { Leaderboard } from '../components/Leaderboard';
 import { ActionCardsHUD } from '../components/ActionCardsHUD';
@@ -30,6 +30,7 @@ import {
   ArrowRight,
   Undo2,
   XCircle,
+  X,
   Users,
   Shuffle,
 } from 'lucide-react';
@@ -46,6 +47,11 @@ export const AdminPage: React.FC = () => {
     advanceGameStep,
     undoLastAction,
     getNextStepInfo,
+    totalRounds,
+    checkpoint1,
+    checkpoint2,
+    teamFailedAndStartSteal,
+    confirmStealWinner,
     setRuleIndex,
     nextRule,
     prevRule,
@@ -61,7 +67,6 @@ export const AdminPage: React.FC = () => {
     evaluateDissertativeAnswer,
     submitQuestionScore,
     setTeamScore,
-    selectRound,
     selectQuestion,
     drawNextRandomQuestion,
     updateTeams,
@@ -71,9 +76,23 @@ export const AdminPage: React.FC = () => {
   } = useGame();
 
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
+  const [isStealModalOpen, setIsStealModalOpen] = useState<boolean>(false);
+  const [graceSecondsLeft, setGraceSecondsLeft] = useState<number>(12);
   const [scoreModalInitialCorrect, setScoreModalInitialCorrect] = useState<boolean>(true);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [isTeamSetupOpen, setIsTeamSetupOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (state.stage === 'question' && state.autoStartEndTimestamp && !state.isTimerRunning) {
+      const updateGrace = () => {
+        const left = Math.max(0, Math.ceil((state.autoStartEndTimestamp! - Date.now()) / 1000));
+        setGraceSecondsLeft(left);
+      };
+      updateGrace();
+      const interval = setInterval(updateGrace, 500);
+      return () => clearInterval(interval);
+    }
+  }, [state.stage, state.autoStartEndTimestamp, state.isTimerRunning]);
 
   const handleUseActionCard = (cardType: ActionCardType) => {
     useActionCard(cardType);
@@ -101,7 +120,6 @@ export const AdminPage: React.FC = () => {
     { key: 'podium', label: 'Pódio Final', icon: <Award className="w-4 h-4" /> },
   ];
 
-  const roundInfo = ROUNDS_INFO[state.currentRound] || ROUNDS_INFO[1];
   const activeTeam = getTeam(state.drawnTeam, state.teams);
   const drawnOrder = state.teamOrder || [];
   const totalTeams = state.teams.length;
@@ -420,36 +438,81 @@ export const AdminPage: React.FC = () => {
             </div>
           )}
 
-          {/* ROUND SELECTOR & METADATA BAR */}
+          {/* ROUND PROGRESS & METADATA BAR */}
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-xs font-black uppercase text-blue-900 tracking-wider">
-                Fase / Capítulo:
+                Andamento da Gincana:
               </span>
-              <div className="flex gap-1.5 flex-wrap">
-                {[1, 2, 3, 4, 5, 6].map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => selectRound(r)}
-                    className={`px-3 py-1 rounded-lg font-black text-xs transition-all cursor-pointer ${
-                      state.currentRound === r
-                        ? 'bg-blue-900 text-white shadow-sm scale-105'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                    }`}
-                  >
-                    R{r}
-                  </button>
-                ))}
+              <span className="px-3.5 py-1.5 rounded-xl bg-blue-900 text-white font-black text-sm shadow-sm">
+                Rodada {state.currentRound} de {totalRounds}
+              </span>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                <span>(Placares parciais:</span>
+                <span className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded-md font-black">R{checkpoint1} (1/3)</span>
+                <span>e</span>
+                <span className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded-md font-black">R{checkpoint2} (2/3)</span>
+                <span>)</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-slate-600">
-                {roundInfo.name} • Valor:{' '}
+                Perguntas de Gálatas • Valor por Acerto:{' '}
                 <strong className="text-blue-900 font-black">{FIXED_QUESTION_POINTS} pts</strong>
               </span>
             </div>
           </div>
+
+          {/* AUTO-START 12S READING GRACE PERIOD BANNER */}
+          {state.stage === 'question' && state.autoStartEndTimestamp && !state.isTimerRunning && !state.isStealActive && (
+            <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 shadow-sm flex items-center justify-between gap-3 animate-fadeIn">
+              <div className="flex items-center gap-2.5">
+                <Clock className="w-5 h-5 text-amber-700 animate-spin" />
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-950 block">
+                    Leitura da Pergunta pelo Apresentador (12s)
+                  </span>
+                  <span className="text-xs text-amber-800 font-medium">
+                    O cronômetro oficial de 60s iniciará automaticamente em <strong>{graceSecondsLeft}s</strong>.
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={startTimer}
+                className="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-black text-xs uppercase tracking-wider shadow cursor-pointer transition-all"
+              >
+                Iniciar Agora (60s)
+              </button>
+            </div>
+          )}
+
+          {/* STEAL / REPASSE MODE BANNER */}
+          {state.isStealActive && (
+            <div className="p-4 rounded-2xl bg-red-50 border-2 border-red-500 shadow-md flex items-center justify-between gap-3 animate-pulse">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
+                <div>
+                  <span className="text-sm font-black uppercase tracking-wider text-red-900 block">
+                    Modo Repasse Ativo (30s) — A 1ª Equipe Errou!
+                  </span>
+                  <span className="text-xs text-red-700 font-medium">
+                    O gabarito está oculto no telão. Qualquer equipe adversária pode responder agora no microfone.
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  toggleReveal(true);
+                  setIsStealModalOpen(true);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+              >
+                <Eye className="w-4 h-4" />
+                Revelar Gabarito e Pontuar
+              </button>
+            </div>
+          )}
 
           {/* MAIN CONTROL DECK: QUESTION PREVIEW & GABARITO */}
           {currentQuestion && (
@@ -612,7 +675,7 @@ export const AdminPage: React.FC = () => {
                   </div>
 
                   {/* Confirmation Action Bar when an option is selected */}
-                  {state.selectedOptionIndex !== null && (
+                  {state.selectedOptionIndex !== null && !state.isRevealed && (
                     <div className="p-3.5 rounded-2xl bg-blue-50 border-2 border-blue-300 shadow-sm flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-5 h-5 text-blue-900 shrink-0" />
@@ -630,27 +693,41 @@ export const AdminPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => confirmOptionAnswer(state.selectedOptionIndex!)}
-                          className="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow transition-all cursor-pointer"
+                          className={`px-5 py-2.5 rounded-xl text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all cursor-pointer ${
+                            currentQuestion.opcoes[state.selectedOptionIndex].trim().toLowerCase() ===
+                            currentQuestion.respostaCorreta.trim().toLowerCase()
+                              ? 'bg-emerald-600 hover:bg-emerald-500'
+                              : 'bg-red-600 hover:bg-red-500'
+                          }`}
                         >
-                          <Eye className="w-4 h-4" />
-                          Confirmar no Telão
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const isCorrect =
-                              currentQuestion.opcoes[state.selectedOptionIndex!].trim().toLowerCase() ===
-                              currentQuestion.respostaCorreta.trim().toLowerCase();
-                            submitQuestionScore(isCorrect);
-                          }}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow transition-all cursor-pointer"
-                        >
-                          <Award className="w-4 h-4" />
-                          Salvar Pontos
+                          {currentQuestion.opcoes[state.selectedOptionIndex].trim().toLowerCase() ===
+                          currentQuestion.respostaCorreta.trim().toLowerCase() ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4" />
+                              Confirmar Acerto (+10 pts)
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-4 h-4" />
+                              Confirmar Erro (Iniciar Repasse 30s)
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
+                  )}
+
+                  {/* Dedicated Button: Team Erred on Microfone */}
+                  {!state.isStealActive && !state.isRevealed && (
+                    <button
+                      type="button"
+                      onClick={teamFailedAndStartSteal}
+                      className="py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 border border-red-300 hover:border-red-500 text-red-700 hover:text-red-900 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                      title="Clique se a equipe errou ou o tempo expirou sem resposta"
+                    >
+                      <XCircle className="w-4 h-4 text-red-600" />
+                      Equipe Errou no Microfone (Iniciar Repasse de 30s)
+                    </button>
                   )}
                 </div>
               )}
@@ -677,10 +754,10 @@ export const AdminPage: React.FC = () => {
                           ? 'bg-red-600 border-red-500 text-white shadow-md'
                           : 'bg-red-50 border-red-300 text-red-800 hover:bg-red-100'
                       }`}
-                      title="Marcar que a equipe errou no microfone"
+                      title="Marcar que a equipe errou no microfone (inicia repasse 30s)"
                     >
                       <XCircle className="w-4 h-4" />
-                      Resposta Incorreta (0 pts)
+                      Incorreta (Iniciar Repasse 30s)
                     </button>
 
                     <button
@@ -694,7 +771,7 @@ export const AdminPage: React.FC = () => {
                       title="Marcar que a equipe acertou no microfone (+10 pts)"
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      Resposta Correta (+10 pts)
+                      Correta (+10 pts)
                     </button>
                   </div>
                 </div>
@@ -723,12 +800,12 @@ export const AdminPage: React.FC = () => {
 
               {/* TIMER & REVEAL ACTION ROW */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
-                {/* 30s Timer Controls Block */}
+                {/* Timer Controls Block */}
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                       <Clock className="w-4 h-4 text-blue-900" />
-                      Tempo de Resposta (30s):
+                      {state.isStealActive ? 'Tempo de Repasse (30s):' : 'Tempo de Resposta (60s):'}
                     </span>
                     <span
                       className={`text-2xl font-black font-mono ${
@@ -747,7 +824,7 @@ export const AdminPage: React.FC = () => {
                       className="py-2.5 px-2 rounded-xl bg-blue-900 hover:bg-blue-800 font-black text-xs uppercase flex items-center justify-center gap-1 text-white shadow transition-all cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
-                      30s
+                      {state.isStealActive ? '30s' : '60s'}
                     </button>
                     <button
                       onClick={pauseTimer}
@@ -776,17 +853,30 @@ export const AdminPage: React.FC = () => {
                 {/* Primary Action Buttons */}
                 <div className="flex flex-col gap-2.5 justify-center">
                   <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => toggleReveal()}
-                      className={`py-3 px-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 border transition-all cursor-pointer ${
-                        state.isRevealed
-                          ? 'bg-blue-900 border-blue-800 text-white shadow-sm'
-                          : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      {state.isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      {state.isRevealed ? 'Ocultar Gabarito' : 'Revelar Gabarito'}
-                    </button>
+                    {state.isStealActive ? (
+                      <button
+                        onClick={() => {
+                          toggleReveal(true);
+                          setIsStealModalOpen(true);
+                        }}
+                        className="py-3 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Revelar Gabarito (Repasse)
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => toggleReveal()}
+                        className={`py-3 px-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                          state.isRevealed
+                            ? 'bg-blue-900 border-blue-800 text-white shadow-sm'
+                            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        {state.isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {state.isRevealed ? 'Ocultar Gabarito' : 'Revelar Gabarito'}
+                      </button>
+                    )}
 
                     <button
                       onClick={() => setStage('roulette')}
@@ -797,16 +887,37 @@ export const AdminPage: React.FC = () => {
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setScoreModalInitialCorrect(true);
-                      setIsScoreModalOpen(true);
-                    }}
-                    className="py-3.5 px-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-sm sm:text-base uppercase tracking-widest flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
-                  >
-                    <Award className="w-5 h-5" />
-                    Lançar Pontos / Confirmar Turno
-                  </button>
+                  {state.isStealActive ? (
+                    <button
+                      onClick={() => {
+                        toggleReveal(true);
+                        setIsStealModalOpen(true);
+                      }}
+                      className="py-3.5 px-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-sm sm:text-base uppercase tracking-widest flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer animate-pulse"
+                    >
+                      <Award className="w-5 h-5" />
+                      Definir Pontuação do Repasse
+                    </button>
+                  ) : state.isRevealed && state.answerStatus === 'correct' ? (
+                    <button
+                      onClick={() => submitQuestionScore(true)}
+                      className="py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base uppercase tracking-widest flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                    >
+                      <Award className="w-5 h-5" />
+                      Avançar para Próxima Pergunta (+10 pts)
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setScoreModalInitialCorrect(true);
+                        setIsScoreModalOpen(true);
+                      }}
+                      className="py-3.5 px-4 rounded-2xl bg-blue-900 hover:bg-blue-800 text-white font-black text-sm sm:text-base uppercase tracking-widest flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                    >
+                      <Award className="w-5 h-5" />
+                      Lançar Pontos / Confirmar Turno
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -968,6 +1079,87 @@ export const AdminPage: React.FC = () => {
             setIsScoreModalOpen(false);
           }}
         />
+      )}
+
+      {/* STEAL WINNER SELECTION MODAL */}
+      {isStealModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Award className="w-6 h-6 text-blue-900" />
+                  Quem Acertou o Repasse?
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Selecione a equipe que respondeu corretamente ao repasse de 30s:
+                </p>
+              </div>
+              <button
+                onClick={() => setIsStealModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Remaining teams (excluding the drawn team that failed) */}
+            <div className="grid grid-cols-1 gap-2.5">
+              {state.teams
+                .filter((t) => t.id !== state.drawnTeam)
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      confirmStealWinner(t.id);
+                      submitQuestionScore(false, [], t.id);
+                      setIsStealModalOpen(false);
+                    }}
+                    className="p-3.5 rounded-2xl border-2 flex items-center justify-between transition-all cursor-pointer hover:scale-[1.02] shadow-sm"
+                    style={{
+                      borderColor: t.color,
+                      backgroundColor: `${t.color}15`,
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow"
+                        style={{ backgroundColor: t.color }}
+                      >
+                        <TeamIcon icon={t.icon} className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <span className="text-sm font-black uppercase tracking-wide block" style={{ color: t.color }}>
+                          {t.name}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Atual: {state.scores[t.id] || 0} pts
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className="px-3 py-1 rounded-xl text-xs font-black text-white uppercase shadow"
+                      style={{ backgroundColor: t.color }}
+                    >
+                      +10 Pontos
+                    </span>
+                  </button>
+                ))}
+
+              <button
+                onClick={() => {
+                  confirmStealWinner(null);
+                  submitQuestionScore(false, [], null);
+                  setIsStealModalOpen(false);
+                }}
+                className="p-3.5 rounded-2xl border-2 border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-black text-sm uppercase flex items-center justify-center gap-2 cursor-pointer transition-all mt-1"
+              >
+                <XCircle className="w-5 h-5 text-slate-400" />
+                Nenhuma Equipe Acertou (0 pts)
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* TEAM SETUP MODAL */}

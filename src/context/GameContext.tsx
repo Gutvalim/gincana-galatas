@@ -3,6 +3,8 @@ import type { GameState, GameStage, TeamId, TeamInfo, Question, ActionCardType }
 import {
   DEFAULT_TEAMS,
   DEFAULT_TIMER_SECONDS,
+  STEAL_TIMER_SECONDS,
+  AUTO_START_GRACE_SECONDS,
   FIXED_QUESTION_POINTS,
   ROUNDS_INFO,
   getTeam,
@@ -46,7 +48,13 @@ interface GameContextType {
   preselectOption: (index: number | null) => void;
   confirmOptionAnswer: (index: number) => { isCorrect: boolean };
   evaluateDissertativeAnswer: (isCorrect: boolean) => void;
-  submitQuestionScore: (drawnCorrect: boolean, paperCorrectTeams?: TeamId[]) => void;
+  totalRounds: number;
+  checkpoint1: number;
+  checkpoint2: number;
+  teamFailedAndStartSteal: () => void;
+  confirmStealWinner: (winnerTeam: TeamId | null) => void;
+  cancelAutoStart: () => void;
+  submitQuestionScore: (drawnCorrect: boolean, paperCorrectTeams?: TeamId[], customWinnerTeam?: TeamId | null) => void;
   emergencyScoreAdjust: (team: TeamId, delta: number) => void;
   setTeamScore: (team: TeamId, newScore: number) => void;
   selectRound: (round: number) => void;
@@ -589,6 +597,61 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             break;
 
+          case 'TEAM_FAILED_START_STEAL':
+            sounds.playWrongAnswer();
+            setState((prev) => {
+              const endTimestamp = Date.now() + STEAL_TIMER_SECONDS * 1000;
+              const updated: GameState = {
+                ...prev,
+                isStealActive: true,
+                firstTeamFailed: true,
+                isRevealed: false,
+                selectedOptionIndex: null,
+                answerStatus: 'wrong',
+                timerSeconds: STEAL_TIMER_SECONDS,
+                timerMaxSeconds: STEAL_TIMER_SECONDS,
+                isTimerRunning: true,
+                timerEndTimestamp: endTimestamp,
+                autoStartEndTimestamp: null,
+                stage: 'timer',
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'CONFIRM_STEAL_WINNER': {
+            const { winnerTeam, pointsAwarded, newScores } = action.payload;
+            if (winnerTeam && pointsAwarded > 0) {
+              sounds.playCorrectReveal();
+            }
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                scores: newScores,
+                isRevealed: true,
+                answerStatus: winnerTeam ? 'correct' : 'wrong',
+                isTimerRunning: false,
+                timerEndTimestamp: null,
+                isStealActive: false,
+                stage: 'reveal',
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+          }
+
+          case 'CANCEL_AUTO_START':
+            setState((prev) => ({
+              ...prev,
+              autoStartEndTimestamp: null,
+              lastUpdated: Date.now(),
+            }));
+            break;
+
           case 'RESET_GAME':
             setState(action.payload);
             saveStateToStorage(action.payload);
@@ -668,6 +731,56 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [state.isTimerRunning, state.timerEndTimestamp, updateStateAndSync]);
 
+  // Dynamic rounds calculation based on questions divided by teams
+  const totalRounds = Math.max(1, Math.floor(questions.length / (state.teams.length || 4)));
+  const checkpoint1 = Math.round(totalRounds * (1 / 3));
+  const checkpoint2 = Math.round(totalRounds * (2 / 3));
+
+  // Auto-start timer after 12s grace period when entering stage === 'question'
+  useEffect(() => {
+    if (
+      state.stage === 'question' &&
+      state.autoStartEndTimestamp &&
+      !state.isTimerRunning &&
+      !state.isRevealed &&
+      !state.isStealActive
+    ) {
+      const interval = setInterval(() => {
+        const now = Date.now();
+        if (now >= state.autoStartEndTimestamp!) {
+          // 12s expired: automatically start 60s timer!
+          const currentSecs = DEFAULT_TIMER_SECONDS;
+          const endTimestamp = Date.now() + currentSecs * 1000;
+          sounds.playTimerTick();
+          updateStateAndSync(
+            (prev) => ({
+              ...prev,
+              timerSeconds: currentSecs,
+              timerMaxSeconds: currentSecs,
+              timerEndTimestamp: endTimestamp,
+              autoStartEndTimestamp: null,
+              isTimerRunning: true,
+              stage: 'timer',
+            }),
+            {
+              type: 'TIMER_START',
+              payload: { seconds: currentSecs, endTimestamp, maxSeconds: currentSecs },
+            }
+          );
+        }
+      }, 500);
+
+      return () => clearInterval(interval);
+    }
+  }, [
+    state.stage,
+    state.autoStartEndTimestamp,
+    state.isTimerRunning,
+    state.isRevealed,
+    state.isStealActive,
+    updateStateAndSync,
+  ]);
+
   // STAGE MANAGEMENT
   const setStage = useCallback(
     (stage: GameStage) => {
@@ -688,8 +801,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       timerSeconds: DEFAULT_TIMER_SECONDS,
                       timerMaxSeconds: DEFAULT_TIMER_SECONDS,
                       isTimerRunning: false,
+                      timerEndTimestamp: null,
+                      autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+                      isStealActive: false,
+                      firstTeamFailed: false,
                     }
-                  : {}),
+                  : {
+                      autoStartEndTimestamp: null,
+                    }),
               }
             : {}),
         }),
@@ -863,9 +982,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // TIMER CONTROLS
   const startTimer = useCallback(() => {
-    const currentSecs = state.timerSeconds > 0 ? state.timerSeconds : DEFAULT_TIMER_SECONDS;
-    const endTimestamp = Date.now() + currentSecs * 1000;
     const maxSecs = state.timerMaxSeconds && state.timerMaxSeconds > 0 ? state.timerMaxSeconds : DEFAULT_TIMER_SECONDS;
+    const currentSecs = state.timerSeconds > 0 ? state.timerSeconds : maxSecs;
+    const endTimestamp = Date.now() + currentSecs * 1000;
 
     updateStateAndSync(
       (prev) => ({
@@ -873,6 +992,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         timerSeconds: currentSecs,
         timerMaxSeconds: maxSecs,
         timerEndTimestamp: endTimestamp,
+        autoStartEndTimestamp: null,
         isTimerRunning: true,
         stage: 'timer',
       }),
@@ -913,10 +1033,81 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         timerMaxSeconds: DEFAULT_TIMER_SECONDS,
         isTimerRunning: false,
         timerEndTimestamp: null,
+        autoStartEndTimestamp: null,
       }),
       { type: 'TIMER_RESET', payload: { seconds: DEFAULT_TIMER_SECONDS } }
     );
   }, [updateStateAndSync]);
+
+  const cancelAutoStart = useCallback(() => {
+    updateStateAndSync(
+      (prev) => ({
+        ...prev,
+        autoStartEndTimestamp: null,
+      }),
+      { type: 'CANCEL_AUTO_START' }
+    );
+  }, [updateStateAndSync]);
+
+  // TEAM FAILED: DO NOT REVEAL ANSWER, START 30s STEAL IMMEDIATELY
+  const teamFailedAndStartSteal = useCallback(() => {
+    sounds.playWrongAnswer();
+    const endTimestamp = Date.now() + STEAL_TIMER_SECONDS * 1000;
+
+    updateStateAndSync(
+      (prev) => ({
+        ...prev,
+        isStealActive: true,
+        firstTeamFailed: true,
+        isRevealed: false,
+        selectedOptionIndex: null,
+        answerStatus: 'wrong',
+        timerSeconds: STEAL_TIMER_SECONDS,
+        timerMaxSeconds: STEAL_TIMER_SECONDS,
+        isTimerRunning: true,
+        timerEndTimestamp: endTimestamp,
+        autoStartEndTimestamp: null,
+        stage: 'timer',
+      }),
+      { type: 'TEAM_FAILED_START_STEAL' }
+    );
+  }, [updateStateAndSync]);
+
+  // CONFIRM STEAL WINNER
+  const confirmStealWinner = useCallback(
+    (winnerTeam: TeamId | null) => {
+      const newScores = { ...state.scores };
+      let pointsAwarded = 0;
+      if (winnerTeam) {
+        pointsAwarded = FIXED_QUESTION_POINTS;
+        newScores[winnerTeam] = (newScores[winnerTeam] || 0) + pointsAwarded;
+        sounds.playCorrectReveal();
+      }
+
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          scores: newScores,
+          isRevealed: true,
+          answerStatus: winnerTeam ? 'correct' : 'wrong',
+          isTimerRunning: false,
+          timerEndTimestamp: null,
+          autoStartEndTimestamp: null,
+          isStealActive: false,
+          stage: 'reveal',
+        }),
+        {
+          type: 'CONFIRM_STEAL_WINNER',
+          payload: {
+            winnerTeam,
+            pointsAwarded,
+            newScores,
+          },
+        }
+      );
+    },
+    [state.scores, updateStateAndSync]
+  );
 
   // REVEAL GABARITO TOGGLE
   const toggleReveal = useCallback(
@@ -932,7 +1123,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           answerStatus: targetState ? 'correct' : 'idle',
           selectedOptionIndex: targetState ? prev.selectedOptionIndex : null,
           stage: targetState ? 'reveal' : prev.stage === 'reveal' ? 'question' : prev.stage,
-          ...(targetState ? { isTimerRunning: false, timerEndTimestamp: null } : {}),
+          ...(targetState ? { isTimerRunning: false, timerEndTimestamp: null, autoStartEndTimestamp: null } : {}),
         }),
         { type: 'REVEAL_ANSWER', payload: targetState }
       );
@@ -966,113 +1157,154 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         !!q &&
         q.opcoes[index]?.trim().toLowerCase() === q.respostaCorreta?.trim().toLowerCase();
 
-      const newScores = { ...state.scores };
       if (isCorrect) {
         sounds.playCorrectReveal();
+        const newScores = { ...state.scores };
         if (state.drawnTeam) {
           newScores[state.drawnTeam] = (newScores[state.drawnTeam] || 0) + FIXED_QUESTION_POINTS;
         }
-      } else {
-        sounds.playWrongAnswer();
-      }
 
-      updateStateAndSync(
-        (prev) => ({
-          ...prev,
-          isRevealed: true,
-          selectedOptionIndex: index,
-          answerStatus: isCorrect ? 'correct' : 'wrong',
-          scores: newScores,
-          stage: 'reveal',
-          isTimerRunning: false,
-          timerEndTimestamp: null,
-        }),
-        {
-          type: 'CONFIRM_ANSWER',
-          payload: {
-            optionIndex: index,
-            isCorrect,
-            drawnTeam: state.drawnTeam,
-            newScores,
-          },
-        }
-      );
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            isRevealed: true,
+            selectedOptionIndex: index,
+            answerStatus: 'correct',
+            scores: newScores,
+            stage: 'reveal',
+            isTimerRunning: false,
+            timerEndTimestamp: null,
+            autoStartEndTimestamp: null,
+            isStealActive: false,
+          }),
+          {
+            type: 'CONFIRM_ANSWER',
+            payload: {
+              optionIndex: index,
+              isCorrect: true,
+              drawnTeam: state.drawnTeam,
+              newScores,
+            },
+          }
+        );
+      } else {
+        // Equipe errou: não revela gabarito, inicia repasse de 30s imediatamente!
+        teamFailedAndStartSteal();
+      }
 
       return { isCorrect };
     },
-    [currentQuestion, state.scores, state.drawnTeam, updateStateAndSync]
+    [currentQuestion, state.scores, state.drawnTeam, teamFailedAndStartSteal, updateStateAndSync]
   );
 
   // EVALUATE DISSERTATIVE ANSWER (Admin evaluates Correto / Incorreto)
   const evaluateDissertativeAnswer = useCallback(
     (isCorrect: boolean) => {
-      const newScores = { ...state.scores };
-
       if (isCorrect) {
         sounds.playCorrectReveal();
+        const newScores = { ...state.scores };
         if (state.drawnTeam) {
           newScores[state.drawnTeam] = (newScores[state.drawnTeam] || 0) + FIXED_QUESTION_POINTS;
         }
-      } else {
-        sounds.playWrongAnswer();
-      }
 
-      updateStateAndSync(
-        (prev) => ({
-          ...prev,
-          isRevealed: true,
-          selectedOptionIndex: null,
-          answerStatus: isCorrect ? 'correct' : 'wrong',
-          scores: newScores,
-          stage: 'reveal',
-          isTimerRunning: false,
-          timerEndTimestamp: null,
-        }),
-        {
-          type: 'CONFIRM_ANSWER',
-          payload: {
-            optionIndex: -1,
-            isCorrect,
-            drawnTeam: state.drawnTeam,
-            newScores,
-          },
-        }
-      );
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            isRevealed: true,
+            selectedOptionIndex: null,
+            answerStatus: 'correct',
+            scores: newScores,
+            stage: 'reveal',
+            isTimerRunning: false,
+            timerEndTimestamp: null,
+            autoStartEndTimestamp: null,
+            isStealActive: false,
+          }),
+          {
+            type: 'CONFIRM_ANSWER',
+            payload: {
+              optionIndex: -1,
+              isCorrect: true,
+              drawnTeam: state.drawnTeam,
+              newScores,
+            },
+          }
+        );
+      } else {
+        // Equipe errou: inicia repasse 30s sem revelar gabarito
+        teamFailedAndStartSteal();
+      }
     },
-    [state.scores, state.drawnTeam, updateStateAndSync]
+    [state.scores, state.drawnTeam, teamFailedAndStartSteal, updateStateAndSync]
   );
 
   // SUBMIT SCORE & COMPLETE TURN
   const submitQuestionScore = useCallback(
-    (drawnCorrect: boolean, _paperCorrectTeams?: TeamId[]) => {
+    (drawnCorrect: boolean, _paperCorrectTeams?: TeamId[], customWinnerTeam?: TeamId | null) => {
       const activeTeam = state.drawnTeam;
       const isSkipped = state.isQuestionSkipped;
 
       const newScores = { ...state.scores };
-      if (!isSkipped && activeTeam && drawnCorrect) {
-        newScores[activeTeam] = (newScores[activeTeam] || 0) + FIXED_QUESTION_POINTS;
+      let winningTeam: TeamId | null = null;
+
+      if (customWinnerTeam !== undefined) {
+        winningTeam = customWinnerTeam;
+      } else if (!isSkipped && activeTeam && drawnCorrect) {
+        winningTeam = activeTeam;
       }
 
-      // Next random question
+      // Next random unused question (ALWAYS random!)
       const updatedUsedIds = [...state.usedQuestionIdsTotal, state.currentQuestionId];
       const nextQId = pickRandomUnusedQuestionId(updatedUsedIds);
 
-      // Advance team turn index
+      // Order of teams remains strictly the one drawn on the roulette
       const order = state.teamOrder.length > 0 ? state.teamOrder : DEFAULT_TEAMS.map((t) => t.id);
-      const nextTurnIndex = (state.currentTurnTeamIndex + 1) % order.length;
-      const nextTeam = order[nextTurnIndex];
+      const nextTurnIndex = state.currentTurnTeamIndex + 1;
 
       const pointsAwarded: Record<TeamId, number> = {};
       order.forEach((t) => {
-        pointsAwarded[t] = t === activeTeam && drawnCorrect && !isSkipped ? FIXED_QUESTION_POINTS : 0;
+        pointsAwarded[t] = t === winningTeam && !isSkipped ? FIXED_QUESTION_POINTS : 0;
       });
+
+      // Dynamic total rounds: questions.length / teams.length
+      const totalRoundsCalc = Math.max(1, Math.floor(questions.length / order.length));
+      const cp1 = Math.round(totalRoundsCalc * (1 / 3));
+      const cp2 = Math.round(totalRoundsCalc * (2 / 3));
+
+      let nextStage: GameStage = 'question';
+      let nextRound = state.currentRound;
+      let finalTurnIndex = nextTurnIndex;
+      let nextTeam = order[nextTurnIndex];
+
+      if (nextTurnIndex >= order.length) {
+        // Round concluded! All teams played this round
+        const finishedRound = state.currentRound;
+        if (finishedRound >= totalRoundsCalc) {
+          nextStage = 'podium';
+          nextRound = finishedRound;
+          finalTurnIndex = 0;
+          nextTeam = order[0];
+        } else if (finishedRound === cp1 || finishedRound === cp2) {
+          nextStage = 'leaderboard';
+          nextRound = finishedRound + 1;
+          finalTurnIndex = 0;
+          nextTeam = order[0];
+        } else {
+          // Seamless advance to next round without stopping at leaderboard
+          nextStage = 'question';
+          nextRound = finishedRound + 1;
+          finalTurnIndex = 0;
+          nextTeam = order[0];
+        }
+      }
 
       updateStateAndSync(
         (prev) => ({
           ...prev,
           scores: newScores,
           drawnTeam: nextTeam,
-          currentTurnTeamIndex: nextTurnIndex,
+          currentTurnTeamIndex: finalTurnIndex,
+          currentRound: nextRound,
           isRevealed: false,
           selectedOptionIndex: null,
           answerStatus: 'idle',
@@ -1080,8 +1312,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           timerMaxSeconds: DEFAULT_TIMER_SECONDS,
           isTimerRunning: false,
           timerEndTimestamp: null,
+          autoStartEndTimestamp: nextStage === 'question' ? Date.now() + AUTO_START_GRACE_SECONDS * 1000 : null,
+          isStealActive: false,
+          firstTeamFailed: false,
           currentQuestionId: nextQId,
-          stage: 'leaderboard',
+          stage: nextStage,
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
           activeCardAnnouncement: null,
@@ -1091,8 +1326,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             {
               round: prev.currentRound,
               questionId: prev.currentQuestionId,
-              drawnTeam: activeTeam,
-              drawnCorrect: !isSkipped && drawnCorrect,
+              drawnTeam: winningTeam || activeTeam,
+              drawnCorrect: !isSkipped && (drawnCorrect || winningTeam !== null),
               paperCorrectTeams: [],
               pointsAwarded,
               timestamp: Date.now(),
@@ -1102,8 +1337,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         {
           type: 'SUBMIT_POINTS',
           payload: {
-            drawnTeam: activeTeam,
-            drawnCorrect: !isSkipped && drawnCorrect,
+            drawnTeam: winningTeam || activeTeam,
+            drawnCorrect: !isSkipped && (drawnCorrect || winningTeam !== null),
             paperCorrectTeams: [],
             pointsAwarded,
             newScores,
@@ -1113,7 +1348,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       );
     },
-    [state.drawnTeam, state.isQuestionSkipped, state.scores, state.usedQuestionIdsTotal, state.currentQuestionId, state.teamOrder, state.currentTurnTeamIndex, pickRandomUnusedQuestionId, updateStateAndSync]
+    [state.drawnTeam, state.isQuestionSkipped, state.scores, state.usedQuestionIdsTotal, state.currentQuestionId, state.teamOrder, state.currentTurnTeamIndex, state.currentRound, pickRandomUnusedQuestionId, updateStateAndSync]
   );
 
   // DRAW NEXT RANDOM QUESTION
@@ -1448,20 +1683,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       case 'question':
         return {
-          label: 'Iniciar Cronômetro (30s)',
-          actionDescription: 'Começar os 30s para o líder se manifestar e responder',
+          label: 'Iniciar Cronômetro (60s)',
+          actionDescription: 'Começar os 60s para a equipe responder (ou aguardar 12s de leitura)',
           canAdvance: true,
         };
       case 'timer':
         return {
-          label: 'Encerrar Tempo / Revelar Gabarito',
-          actionDescription: 'Pausar o relógio e conferir a resposta oficial',
+          label: state.isStealActive ? 'Revelar Gabarito (Repasse)' : 'Encerrar Tempo / Revelar Gabarito',
+          actionDescription: state.isStealActive
+            ? 'Exibir gabarito e definir qual equipe pontuou no repasse'
+            : 'Pausar o relógio e conferir a resposta oficial',
           canAdvance: true,
         };
       case 'reveal':
         return {
-          label: 'Confirmar Pontos e Ver Placar',
-          actionDescription: 'Salvar pontuação e atualizar classificação',
+          label: 'Avançar para Próxima Pergunta',
+          actionDescription: 'Salvar pontuação e avançar para o próximo turno',
           canAdvance: true,
         };
       case 'leaderboard': {
@@ -1471,8 +1708,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const nextTeamInfo = getTeam(nextTeamId, state.teams);
 
         return {
-          label: `Próxima Pergunta: ${nextTeamInfo.name}`,
-          actionDescription: `Vez de ${nextTeamInfo.name} responder`,
+          label: `Continuar Gincana: ${nextTeamInfo.name}`,
+          actionDescription: `Retomar a disputa oficial com a vez de ${nextTeamInfo.name}`,
           canAdvance: true,
         };
       }
@@ -1529,10 +1766,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               currentQuestionId: qId,
               drawnTeam: firstTeam,
               currentTurnTeamIndex: 0,
-              stage: 'splash',
+              stage: 'question',
               timerSeconds: DEFAULT_TIMER_SECONDS,
               timerMaxSeconds: DEFAULT_TIMER_SECONDS,
               isTimerRunning: false,
+              timerEndTimestamp: null,
+              autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
               isRevealed: false,
               answerStatus: 'idle',
               selectedOptionIndex: null,
@@ -1581,6 +1820,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timerSeconds: DEFAULT_TIMER_SECONDS,
             timerMaxSeconds: DEFAULT_TIMER_SECONDS,
             isTimerRunning: false,
+            timerEndTimestamp: null,
+            autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
             isRevealed: false,
             answerStatus: 'idle',
             selectedOptionIndex: null,
@@ -1661,6 +1902,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isConnected,
         canUndo: historyStack.length > 0,
         historyCount: historyStack.length,
+        totalRounds,
+        checkpoint1,
+        checkpoint2,
         setStage,
         advanceGameStep,
         undoLastAction,
@@ -1676,6 +1920,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         pauseTimer,
         add15Seconds,
         resetTimer,
+        cancelAutoStart,
+        teamFailedAndStartSteal,
+        confirmStealWinner,
         toggleReveal,
         preselectOption,
         confirmOptionAnswer,

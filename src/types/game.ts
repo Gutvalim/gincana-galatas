@@ -194,7 +194,9 @@ export const INITIAL_ACTION_CARDS: Record<string, ActionCardsInventory> = {
 
 export const CARD_BONUS_POINTS = 10;
 export const FIXED_QUESTION_POINTS = 10;
-export const DEFAULT_TIMER_SECONDS = 30;
+export const DEFAULT_TIMER_SECONDS = 60;
+export const STEAL_TIMER_SECONDS = 30;
+export const AUTO_START_GRACE_SECONDS = 12;
 
 export interface GameState {
   currentRound: number;
@@ -225,6 +227,9 @@ export interface GameState {
   timerMaxSeconds: number;
   isTimerRunning: boolean;
   timerEndTimestamp: number | null;
+  autoStartEndTimestamp: number | null;
+  isStealActive: boolean;
+  firstTeamFailed: boolean;
   isRevealed: boolean;
   selectedOptionIndex: number | null;
   answerStatus: 'idle' | 'selected' | 'correct' | 'wrong';

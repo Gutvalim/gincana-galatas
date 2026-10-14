@@ -138,32 +138,32 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
               cardStyle =
                 'border-dashed border-slate-300 bg-slate-100 text-slate-400 line-through opacity-35 pointer-events-none filter grayscale';
               letterStyle = 'bg-slate-300 text-slate-500 border-slate-300';
-            } else if (answerStatus === 'selected' && isSelected) {
-              cardStyle =
-                'border-amber-500 bg-amber-50 text-amber-950 shadow-lg scale-[1.01] ring-2 ring-amber-400 animate-pulse';
-              letterStyle = 'bg-amber-500 text-white border-amber-500 font-black';
+            } else if (isRevealed || answerStatus === 'correct') {
+              if (isCorrect) {
+                cardStyle =
+                  'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-lg scale-[1.01] ring-2 ring-emerald-500 font-bold';
+                letterStyle = 'bg-emerald-600 text-white border-emerald-600 font-black';
+              } else if (isSelected && !isCorrect) {
+                cardStyle =
+                  'border-red-500 bg-red-50 text-red-950 shadow-lg scale-[1.01] ring-2 ring-red-500';
+                letterStyle = 'bg-red-600 text-white border-red-600 font-black';
+              } else {
+                cardStyle = 'border-slate-200 bg-slate-50 text-slate-400 opacity-40';
+                letterStyle = 'bg-slate-200 text-slate-400 border-slate-200';
+              }
             } else if (answerStatus === 'wrong') {
               if (isSelected) {
                 cardStyle =
                   'border-red-500 bg-red-50 text-red-950 shadow-lg scale-[1.01] ring-2 ring-red-500';
                 letterStyle = 'bg-red-600 text-white border-red-600 font-black';
-              } else if (isCorrect) {
-                cardStyle =
-                  'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-500 font-bold';
-                letterStyle = 'bg-emerald-600 text-white border-emerald-600 font-bold';
               } else {
-                cardStyle = 'border-slate-200 bg-slate-50 text-slate-400 opacity-40';
-                letterStyle = 'bg-slate-200 text-slate-400 border-slate-200';
+                cardStyle = 'border-slate-200 bg-white text-slate-800 shadow-sm';
+                letterStyle = 'bg-blue-900 text-white border-blue-900';
               }
-            } else if (answerStatus === 'correct' || isRevealed) {
-              if (isCorrect) {
-                cardStyle =
-                  'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-lg scale-[1.01] ring-2 ring-emerald-500 font-bold';
-                letterStyle = 'bg-emerald-600 text-white border-emerald-600 font-black';
-              } else {
-                cardStyle = 'border-slate-200 bg-slate-50 text-slate-400 opacity-40';
-                letterStyle = 'bg-slate-200 text-slate-400 border-slate-200';
-              }
+            } else if (answerStatus === 'selected' && isSelected) {
+              cardStyle =
+                'border-amber-500 bg-amber-50 text-amber-950 shadow-lg scale-[1.01] ring-2 ring-amber-400 animate-pulse';
+              letterStyle = 'bg-amber-500 text-white border-amber-500 font-black';
             }
 
             return (
@@ -186,12 +186,12 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                     50/50 Eliminada
                   </span>
                 )}
-                {!isEliminated && answerStatus === 'selected' && isSelected && (
+                {!isEliminated && !isRevealed && answerStatus === 'selected' && isSelected && (
                   <span className="text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-200 px-2.5 py-1 rounded-full border border-amber-300 animate-pulse">
                     Opção Marcada
                   </span>
                 )}
-                {!isEliminated && (answerStatus === 'correct' || isRevealed) && isCorrect && (
+                {!isEliminated && (isRevealed || answerStatus === 'correct') && isCorrect && (
                   <CheckCircle2 className="w-7 h-7 text-emerald-600 animate-bounce shrink-0" />
                 )}
                 {!isEliminated && answerStatus === 'wrong' && isSelected && (

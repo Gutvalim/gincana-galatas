@@ -62,7 +62,10 @@ export type SyncAction =
   | { type: 'SET_RULE_INDEX'; payload: number }
   | { type: 'RESET_TEAM_ORDER' }
   | { type: 'SET_TEAM_ORDER'; payload: TeamId[] }
-  | { type: 'CLEAR_LAST_CARD_USED' };
+  | { type: 'CLEAR_LAST_CARD_USED' }
+  | { type: 'TEAM_FAILED_START_STEAL' }
+  | { type: 'CONFIRM_STEAL_WINNER'; payload: { winnerTeam: TeamId | null; pointsAwarded: number; newScores: Record<TeamId, number> } }
+  | { type: 'CANCEL_AUTO_START' };
 
 const initialScores: Record<TeamId, number> = {};
 const initialCards = { ...INITIAL_ACTION_CARDS };
@@ -102,6 +105,9 @@ export const INITIAL_STATE: GameState = {
   timerMaxSeconds: DEFAULT_TIMER_SECONDS,
   isTimerRunning: false,
   timerEndTimestamp: null,
+  autoStartEndTimestamp: null,
+  isStealActive: false,
+  firstTeamFailed: false,
   isRevealed: false,
   selectedOptionIndex: null,
   answerStatus: 'idle',
@@ -129,6 +135,9 @@ export function loadSavedState(): GameState {
           currentRuleIndex: typeof parsed.currentRuleIndex === 'number' ? parsed.currentRuleIndex : 0,
           timerSeconds: parsed.timerSeconds || DEFAULT_TIMER_SECONDS,
           timerMaxSeconds: parsed.timerMaxSeconds || DEFAULT_TIMER_SECONDS,
+          isStealActive: parsed.isStealActive || false,
+          firstTeamFailed: parsed.firstTeamFailed || false,
+          autoStartEndTimestamp: null,
           actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,

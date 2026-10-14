@@ -54,15 +54,15 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
     },
     {
       num: '02',
-      badge: 'Pontuação das Questões',
-      title: 'Perguntas de Gálatas & 10 Pontos Fixos',
-      subtitle: 'Pontuação justa e igual para todas as perguntas',
+      badge: 'Rodadas & Pontuação',
+      title: 'Rodadas Dinâmicas & 10 Pontos Fixos',
+      subtitle: 'Perguntas divididas igualmente entre as equipes e pontuação justa',
       icon: <BookOpen className="w-12 h-12 text-red-600" />,
       color: 'red',
       content: (
         <div className="flex flex-col gap-5 text-left">
           <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
-            Todas as perguntas são extraídas do livro de <strong className="text-blue-900 font-black">Gálatas na versão ARA (Almeida Revista e Atualizada)</strong> e sorteadas diretamente do banco oficial de 49 questões sem repetições.
+            O número de rodadas é calculado automaticamente dividindo o <strong className="text-blue-900 font-black">total de perguntas pelo número de equipes</strong>. Cada questão aberta é <strong className="text-blue-900 font-black">100% aleatória</strong> sem repetições.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
             <div className="p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex items-center justify-between">
@@ -73,8 +73,8 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
               <Award className="w-10 h-10 text-emerald-600" />
             </div>
             <div className="p-5 rounded-2xl bg-blue-50 border-2 border-blue-200 flex flex-col justify-center">
-              <span className="text-xs font-black uppercase text-blue-900 tracking-wider block">Formatos Oficiais</span>
-              <p className="text-sm text-slate-700 font-semibold mt-1">Múltipla Escolha (4 opções / V ou F) e Dissertativas avaliadas pela comissão.</p>
+              <span className="text-xs font-black uppercase text-blue-900 tracking-wider block">Sorteio Aleatório</span>
+              <p className="text-sm text-slate-700 font-semibold mt-1">Todas as perguntas vêm do livro de Gálatas (ARA) em ordem imprevisível e dinâmica.</p>
             </div>
           </div>
         </div>
@@ -83,22 +83,29 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
     {
       num: '03',
       badge: 'Dinâmica do Tempo',
-      title: 'Cronômetro de 30 Segundos',
-      subtitle: 'Tempo exato para debate ágil e trabalho em equipe',
+      title: 'Cronômetro de 60s & Leitura de 12s',
+      subtitle: 'Tempo de leitura inicial e debate completo da equipe',
       icon: <Clock className="w-12 h-12 text-blue-700" />,
       color: 'blue',
       content: (
         <div className="flex flex-col gap-5 text-left">
           <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
-            Assim que a pergunta surge no telão, o cronômetro oficial de <strong className="text-blue-900 font-black">30 segundos</strong> é iniciado. A equipe da vez deve debater com agilidade para definir a resposta.
+            Ao abrir a pergunta, há <strong className="text-blue-900 font-black">12 segundos para a leitura em voz alta</strong>. Se o apresentador não disparar antes, o cronômetro oficial de <strong className="text-blue-900 font-black">60 segundos</strong> começa automaticamente!
           </p>
-          <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex items-start gap-3 mt-2">
-            <AlertTriangle className="w-7 h-7 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-black text-amber-950 text-base sm:text-lg">Atenção ao Relógio</h4>
-              <p className="text-sm sm:text-base text-amber-900 font-medium mt-1">
-                Não há tempo adicional após o cronômetro zerar. O líder da equipe deve se posicionar antes do alarme tocar!
-              </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <div className="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 flex items-start gap-3">
+              <Clock className="w-6 h-6 text-blue-700 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-black text-blue-900 text-base">Início Inteligente</h4>
+                <p className="text-sm text-slate-600 mt-1">12 segundos prévios de tolerância para leitura tranquila da questão pelo apresentador.</p>
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-black text-amber-950 text-base">Tempo de Debate (60s)</h4>
+                <p className="text-sm text-slate-600 mt-1">O líder deve se levantar antes do cronômetro zerar para ter sua resposta validada.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -106,25 +113,30 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
     },
     {
       num: '04',
-      badge: 'Voz da Equipe',
-      title: 'Resposta no Microfone pelo Líder',
-      subtitle: 'Decisão final, clara e irrevogável',
+      badge: 'Resposta & Repasse',
+      title: 'Microfone & Repasse de 30s',
+      subtitle: 'Errou? O gabarito não é revelado e as outras equipes disputam o repasse!',
       icon: <Award className="w-12 h-12 text-red-600" />,
       color: 'red',
       content: (
         <div className="flex flex-col gap-5 text-left">
           <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
-            O <strong className="text-blue-900 font-black">líder da equipe</strong> deve se levantar dentro dos 30 segundos, aguardar o apresentador liberar a fala e dizer a resposta no microfone.
+            O líder responde no microfone. Se a equipe acertar, ganha os 10 pontos. <strong className="text-red-700 font-black">Se errar, o gabarito NÃO é revelado</strong> e começa um cronômetro de <strong className="text-blue-900 font-black">30 segundos de Repasse</strong>!
           </p>
-          <div className="p-5 rounded-2xl bg-red-100 border-2 border-red-400 flex items-start gap-4 mt-2">
-            <div className="p-2.5 rounded-xl bg-red-600 text-white shrink-0">
-              <AlertTriangle className="w-6 h-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <div className="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-black text-emerald-950 text-base">Acerto Imediato</h4>
+                <p className="text-sm text-emerald-900 mt-1">Gabarito revelado na hora e os 10 pontos são creditados instantaneamente para a equipe.</p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-black text-red-950 text-lg uppercase tracking-wide">Regra de Ouro da Gincana</h4>
-              <p className="text-sm sm:text-base text-red-900 font-bold mt-1 leading-relaxed">
-                A primeira resposta dita pelo líder é final e irrevogável! Não cabe autocorreção, mudança de alternativa ou complemento após a fala inicial.
-              </p>
+            <div className="p-4 rounded-2xl bg-red-50 border-2 border-red-300 flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-black text-red-950 text-base">Repasse Aberto (30s)</h4>
+                <p className="text-sm text-red-900 mt-1">Se a 1ª equipe errar, as outras equipes podem se manifestar e roubar os 10 pontos da questão!</p>
+              </div>
             </div>
           </div>
         </div>
@@ -150,7 +162,7 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
                   <span>Pular (2x)</span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
-                  Descarta a questão atual e sorteia imediatamente uma nova pergunta para a equipe.
+                  Descarta a questão atual e sorteia imediatamente uma nova pergunta aleatória para a equipe.
                 </p>
               </div>
               <span className="text-[11px] font-black uppercase text-orange-800 mt-2 block">2 Unidades</span>
@@ -163,7 +175,7 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
                   <span>Bíblia (1x)</span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
-                  Adiciona +30 segundos extras exclusivos no relógio para pesquisar o texto bíblico na Bíblia impressa.
+                  Adiciona +30 segundos extras no relógio para pesquisar o texto bíblico na Bíblia impressa.
                 </p>
               </div>
               <span className="text-[11px] font-black uppercase text-sky-800 mt-2 block">1 Unidade • 30 Segundos</span>
@@ -176,7 +188,7 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
                   <span>50/50 (1x)</span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
-                  Elimina duas opções erradas na hora em perguntas de múltipla escolha, deixando apenas 2 opções.
+                  Elimina duas opções erradas na hora em perguntas de múltipla escolha, restando apenas 2 alternativas.
                 </p>
               </div>
               <span className="text-[11px] font-black uppercase text-purple-800 mt-2 block">1 Unidade</span>
@@ -187,15 +199,15 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
     },
     {
       num: '06',
-      badge: 'Grande Final & Estratégia',
-      title: 'Pódio & Bônus de Cartas Guardadas',
-      subtitle: 'Economizar recursos rende pontos decisivos na coroação da campeã',
+      badge: 'Placares Parciais & Pódio',
+      title: 'Placares em 1/3 e 2/3 & Pódio Final',
+      subtitle: 'Acompanhamento da classificação e bônus de cartas guardadas',
       icon: <Trophy className="w-12 h-12 text-amber-500" />,
       color: 'amber',
       content: (
         <div className="flex flex-col gap-5 text-left">
           <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
-            Pense com muito cuidado antes de usar suas cartas! Cada carta <strong className="text-blue-900 font-black">NÃO UTILIZADA</strong> até o fim da gincana rende <strong className="text-emerald-700 font-black">+10 PONTOS DE BÔNUS</strong> somados à pontuação geral da equipe!
+            O placar parcial surge na tela ao completar <strong className="text-blue-900 font-black">1/3 das rodadas</strong> e novamente ao completar <strong className="text-blue-900 font-black">2/3 das rodadas</strong>. No pódio final, cada carta guardada rende <strong className="text-emerald-700 font-black">+10 PONTOS DE BÔNUS</strong>!
           </p>
           <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-50 to-emerald-100 border-2 border-amber-400 flex items-center justify-between shadow-md">
             <div>

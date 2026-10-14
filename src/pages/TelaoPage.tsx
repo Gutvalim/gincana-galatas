@@ -11,17 +11,34 @@ import { RulesView } from '../components/RulesView';
 import { Podium } from '../components/Podium';
 import { ActionCardsHUD } from '../components/ActionCardsHUD';
 import { ActionCardActivationOverlay } from '../components/ActionCardActivationOverlay';
-import { Play, Maximize, Volume2, VolumeX, ShieldCheck } from 'lucide-react';
+import { Play, Maximize, Volume2, VolumeX, ShieldCheck, Clock, AlertTriangle } from 'lucide-react';
 
 export const TelaoPage: React.FC = () => {
   const {
     state,
     currentQuestion,
+    totalRounds,
+    checkpoint1,
+    checkpoint2,
     finishSpin,
     setStage,
     toggleSound,
     clearLastCardUsed,
   } = useGame();
+
+  const [graceSecondsLeft, setGraceSecondsLeft] = React.useState<number>(12);
+
+  React.useEffect(() => {
+    if (state.stage === 'question' && state.autoStartEndTimestamp && !state.isTimerRunning) {
+      const updateGrace = () => {
+        const left = Math.max(0, Math.ceil((state.autoStartEndTimestamp! - Date.now()) / 1000));
+        setGraceSecondsLeft(left);
+      };
+      updateGrace();
+      const interval = setInterval(updateGrace, 500);
+      return () => clearInterval(interval);
+    }
+  }, [state.stage, state.autoStartEndTimestamp, state.isTimerRunning]);
 
   // Fullscreen helper
   const toggleFullScreen = () => {
@@ -101,7 +118,7 @@ export const TelaoPage: React.FC = () => {
           )}
 
           <div className="px-3.5 py-1.5 rounded-full bg-blue-100 border border-blue-200 text-xs font-black text-blue-900 uppercase">
-            {state.currentRound <= 6 ? `Rodada ${state.currentRound} de 6` : 'Desempate'}
+            Rodada {state.currentRound} de {totalRounds}
           </div>
         </div>
 
@@ -164,10 +181,14 @@ export const TelaoPage: React.FC = () => {
           <div className="w-full flex flex-col items-center animate-fadeIn">
             <div className="text-center mb-6">
               <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-blue-900 bg-blue-100 border border-blue-200 px-4 py-1.5 rounded-full shadow-sm">
-                Classificação Oficial
+                {state.currentRound - 1 === checkpoint1
+                  ? 'Placar Parcial • 1/3 da Gincana Concluído'
+                  : state.currentRound - 1 === checkpoint2
+                  ? 'Placar Parcial • 2/3 da Gincana Concluído'
+                  : 'Classificação Parcial'}
               </span>
               <h2 className="text-4xl sm:text-5xl font-black uppercase tracking-tight text-slate-900 mt-2 font-display">
-                Placar Geral da Gincana
+                Placar das Equipes
               </h2>
             </div>
             <Leaderboard
@@ -216,6 +237,15 @@ export const TelaoPage: React.FC = () => {
                 />
               </div>
             )}
+
+            {/* Auto-start reading grace pill */}
+            {state.autoStartEndTimestamp && !state.isTimerRunning && (
+              <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-100 border-2 border-blue-300 text-blue-900 text-xs sm:text-sm font-bold shadow-sm animate-pulse">
+                <Clock className="w-4 h-4 text-blue-900 animate-spin" />
+                <span>Leitura da Pergunta • Cronômetro de 60s inicia em <strong>{graceSecondsLeft}s</strong></span>
+              </div>
+            )}
+
             <QuestionView
               question={currentQuestion}
               round={state.currentRound}
@@ -250,11 +280,21 @@ export const TelaoPage: React.FC = () => {
               </div>
             )}
 
+            {/* Steal / Repasse Banner */}
+            {state.isStealActive && (
+              <div className="w-full max-w-5xl p-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-xl flex items-center justify-center gap-3 text-center animate-bounce">
+                <AlertTriangle className="w-6 h-6 text-yellow-300 shrink-0" />
+                <span className="text-base sm:text-xl font-black uppercase tracking-wider drop-shadow">
+                  🚨 Resposta Incorreta! Repasse Liberado (30s) — Qualquer equipe pode responder!
+                </span>
+              </div>
+            )}
+
             {/* Circular Timer Display */}
             <div className="my-2">
               <CircularTimer
                 seconds={state.timerSeconds}
-                maxSeconds={state.timerMaxSeconds || 30}
+                maxSeconds={state.timerMaxSeconds || (state.isStealActive ? 30 : 60)}
                 isRunning={state.isTimerRunning}
                 size={180}
               />
