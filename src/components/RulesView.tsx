@@ -1,100 +1,306 @@
 import React from 'react';
-import { Sparkles, Award, CheckCircle2, FastForward, BookOpen, Clock, Users } from 'lucide-react';
+import { useGame } from '../context/GameContext';
+import {
+  Shuffle,
+  BookOpen,
+  Clock,
+  Award,
+  Sparkles,
+  Trophy,
+  CheckCircle2,
+  AlertTriangle,
+  FastForward,
+} from 'lucide-react';
 
-export const RulesView: React.FC = () => {
-  const rules = [
-    {
-      icon: <Users className="w-8 h-8 text-amber-400" />,
-      title: '1. Ordem Fixa por Sorteio & Perguntas Diretas',
-      desc: 'A ordem das equipes é definida por sorteio e mantida pela gincana inteira. Não há mesa de envelopes: as perguntas são sorteadas diretamente do questionário oficial de Gálatas sem repetições nem desperdício!',
-      badge: 'Dinâmica das Equipes',
-      border: 'border-[#1d5740]',
-      glow: 'shadow-[0_0_20px_rgba(0,99,65,0.3)]',
-    },
-    {
-      icon: <Clock className="w-8 h-8 text-cyan-400" />,
-      title: '2. Tempo de 30s & Resposta do Líder',
-      desc: 'A equipe da vez tem 30 segundos no cronômetro. O líder deve se levantar dentro dos 30s, aguardar o apresentador autorizar a fala e dizer a resposta imediatamente, sem tempo adicional!',
-      badge: 'Tempo e Resposta',
-      border: 'border-cyan-500/40',
-      glow: 'shadow-[0_0_20px_rgba(6,182,212,0.2)]',
-    },
-    {
-      icon: <Award className="w-8 h-8 text-emerald-400" />,
-      title: '3. Pontuação Fixa (10 pts por Pergunta)',
-      desc: 'Todas as perguntas têm valor igual de 10 pontos cheios. Não há respostas no papel: acertou no microfone dentro do tempo e dos critérios, pontua!',
-      badge: '10 pts por Acerto',
-      border: 'border-emerald-500/40',
-      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.2)]',
-    },
-    {
-      icon: <FastForward className="w-8 h-8 text-orange-400" />,
-      title: '4. Carta Pular Pergunta (2 unidades)',
-      desc: 'Se a equipe não souber a questão, pode acionar a carta Pular. Uma nova pergunta é sorteada imediatamente no telão e o cronômetro é reiniciado para a equipe.',
-      badge: '2x Pular',
-      border: 'border-orange-500/40',
-      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.2)]',
-    },
-    {
-      icon: <BookOpen className="w-8 h-8 text-sky-400" />,
-      title: '5. Consulta Bíblica (1 unidade • 30s)',
-      desc: 'Concede 30 segundos exclusivos para que a equipe abra as Bíblias impressas e pesquise a passagem e a resposta.',
-      badge: '1x Bíblia (30s)',
-      border: 'border-sky-500/40',
-      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.2)]',
-    },
-    {
-      icon: <Sparkles className="w-8 h-8 text-purple-400" />,
-      title: '6. Carta 50/50 & Bônus no Pódio (+10 pts)',
-      desc: 'Carta 50/50 (1x): elimina 2 alternativas erradas em perguntas de múltipla escolha. Bônus Final: cada carta poupada ao término concede +10 pts somados no Pódio!',
-      badge: '50/50 & Bônus Final',
-      border: 'border-purple-500/40',
-      glow: 'shadow-[0_0_20px_rgba(168,85,247,0.2)]',
-    },
-  ];
+interface RulesViewProps {
+  currentIndex?: number;
+}
 
-  return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col items-center justify-between gap-3 sm:gap-4 py-1 sm:py-2 px-3 animate-fadeIn">
-      {/* Rules Header */}
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#006341]/40 border border-emerald-500/50 text-emerald-300 font-bold uppercase tracking-widest text-[10px] sm:text-xs mb-1.5 shadow-sm">
-          <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-          Regulamento Oficial • Federação de UMPs
-        </div>
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase text-white tracking-tight drop-shadow-md leading-tight">
-          Regras da Gincana & Cartas de Ação
-        </h2>
-        <p className="text-xs sm:text-sm text-gray-300 max-w-xl mx-auto mt-1">
-          Gincana Bíblica sobre o Livro de Gálatas • União de Mocidade Presbiteriana.
-        </p>
-      </div>
+export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
+  const { state, nextRule, prevRule, setRuleIndex } = useGame();
+  const activeIndex = currentIndex ?? (state.currentRuleIndex || 0);
 
-      {/* Rules Grid */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {rules.map((rule, idx) => (
-          <div
-            key={idx}
-            className={`p-3.5 sm:p-4 rounded-2xl bg-[#0c231a] border-2 ${rule.border} ${rule.glow} flex flex-col justify-between transition-all hover:scale-[1.01]`}
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="p-2 rounded-xl bg-gray-800/80 border border-gray-700 shrink-0">
-                  {React.cloneElement(rule.icon as React.ReactElement<{ className?: string }>, { className: 'w-5 h-5 text-current' })}
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gray-800/90 text-gray-300 border border-gray-700">
-                  {rule.badge}
-                </span>
+  const ruleSlides = [
+    {
+      num: '01',
+      badge: 'Ordem das Equipes',
+      title: 'Sorteio da Ordem na Roleta',
+      subtitle: 'Transparência total e ordem permanente pela gincana toda',
+      icon: <Shuffle className="w-12 h-12 text-blue-700" />,
+      color: 'blue',
+      content: (
+        <div className="flex flex-col gap-5 text-left">
+          <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
+            Antes de começar a disputa, todas as equipes participam do <strong className="text-blue-900 font-black">sorteio oficial ao vivo na Roleta</strong> para definir a ordem exata de participação.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <div className="p-4 rounded-2xl bg-blue-50/80 border-2 border-blue-200 flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-blue-700 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-black text-blue-900 text-base">Ordem Fixa e Imparcial</h4>
+                <p className="text-sm text-slate-600 mt-1">A sequência sorteada permanece rigorosamente a mesma em todas as rodadas até o fim.</p>
               </div>
-
-              <h3 className="text-sm sm:text-base font-black text-white mb-1 leading-snug">
-                {rule.title}
-              </h3>
-              <p className="text-xs text-gray-300 leading-relaxed font-normal">
-                {rule.desc}
+            </div>
+            <div className="p-4 rounded-2xl bg-red-50/80 border-2 border-red-200 flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-black text-red-900 text-base">Mesmas Oportunidades</h4>
+                <p className="text-sm text-slate-600 mt-1">Todas as UMPs respondem o mesmo número de perguntas de forma equilibrada.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      num: '02',
+      badge: 'Pontuação das Questões',
+      title: 'Perguntas de Gálatas & 10 Pontos Fixos',
+      subtitle: 'Pontuação justa e igual para todas as perguntas',
+      icon: <BookOpen className="w-12 h-12 text-red-600" />,
+      color: 'red',
+      content: (
+        <div className="flex flex-col gap-5 text-left">
+          <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
+            Todas as perguntas são extraídas do livro de <strong className="text-blue-900 font-black">Gálatas na versão ARA (Almeida Revista e Atualizada)</strong> e sorteadas diretamente do banco oficial de 49 questões sem repetições.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <div className="p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-black uppercase text-emerald-800 tracking-wider block">Valor do Acerto</span>
+                <span className="text-3xl sm:text-4xl font-black text-emerald-700 font-mono">+10 PONTOS</span>
+              </div>
+              <Award className="w-10 h-10 text-emerald-600" />
+            </div>
+            <div className="p-5 rounded-2xl bg-blue-50 border-2 border-blue-200 flex flex-col justify-center">
+              <span className="text-xs font-black uppercase text-blue-900 tracking-wider block">Formatos Oficiais</span>
+              <p className="text-sm text-slate-700 font-semibold mt-1">Múltipla Escolha (4 opções / V ou F) e Dissertativas avaliadas pela comissão.</p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      num: '03',
+      badge: 'Dinâmica do Tempo',
+      title: 'Cronômetro de 30 Segundos',
+      subtitle: 'Tempo exato para debate ágil e trabalho em equipe',
+      icon: <Clock className="w-12 h-12 text-blue-700" />,
+      color: 'blue',
+      content: (
+        <div className="flex flex-col gap-5 text-left">
+          <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
+            Assim que a pergunta surge no telão, o cronômetro oficial de <strong className="text-blue-900 font-black">30 segundos</strong> é iniciado. A equipe da vez deve debater com agilidade para definir a resposta.
+          </p>
+          <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex items-start gap-3 mt-2">
+            <AlertTriangle className="w-7 h-7 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-black text-amber-950 text-base sm:text-lg">Atenção ao Relógio</h4>
+              <p className="text-sm sm:text-base text-amber-900 font-medium mt-1">
+                Não há tempo adicional após o cronômetro zerar. O líder da equipe deve se posicionar antes do alarme tocar!
               </p>
             </div>
           </div>
-        ))}
+        </div>
+      ),
+    },
+    {
+      num: '04',
+      badge: 'Voz da Equipe',
+      title: 'Resposta no Microfone pelo Líder',
+      subtitle: 'Decisão final, clara e irrevogável',
+      icon: <Award className="w-12 h-12 text-red-600" />,
+      color: 'red',
+      content: (
+        <div className="flex flex-col gap-5 text-left">
+          <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
+            O <strong className="text-blue-900 font-black">líder da equipe</strong> deve se levantar dentro dos 30 segundos, aguardar o apresentador liberar a fala e dizer a resposta no microfone.
+          </p>
+          <div className="p-5 rounded-2xl bg-red-100 border-2 border-red-400 flex items-start gap-4 mt-2">
+            <div className="p-2.5 rounded-xl bg-red-600 text-white shrink-0">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-black text-red-950 text-lg uppercase tracking-wide">Regra de Ouro da Gincana</h4>
+              <p className="text-sm sm:text-base text-red-900 font-bold mt-1 leading-relaxed">
+                A primeira resposta dita pelo líder é final e irrevogável! Não cabe autocorreção, mudança de alternativa ou complemento após a fala inicial.
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      num: '05',
+      badge: 'Recursos Especiais',
+      title: 'Baralho de Cartas de Ação',
+      subtitle: 'Estratégia exclusiva para a equipe da vez',
+      icon: <Sparkles className="w-12 h-12 text-blue-700" />,
+      color: 'blue',
+      content: (
+        <div className="flex flex-col gap-4 text-left">
+          <p className="text-lg sm:text-xl text-slate-700 font-medium">
+            Cada equipe possui um baralho tático com cartas especiais para serem ativadas na sua vez:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
+            <div className="p-4 rounded-2xl bg-orange-50 border-2 border-orange-300 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-orange-700 font-black mb-1">
+                  <FastForward className="w-5 h-5" />
+                  <span>Pular (2x)</span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
+                  Descarta a questão atual e sorteia imediatamente uma nova pergunta para a equipe.
+                </p>
+              </div>
+              <span className="text-[11px] font-black uppercase text-orange-800 mt-2 block">2 Unidades</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-sky-50 border-2 border-sky-300 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sky-700 font-black mb-1">
+                  <BookOpen className="w-5 h-5" />
+                  <span>Bíblia (1x)</span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
+                  Adiciona +30 segundos extras exclusivos no relógio para pesquisar o texto bíblico na Bíblia impressa.
+                </p>
+              </div>
+              <span className="text-[11px] font-black uppercase text-sky-800 mt-2 block">1 Unidade • 30 Segundos</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-purple-50 border-2 border-purple-300 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-purple-700 font-black mb-1">
+                  <Sparkles className="w-5 h-5" />
+                  <span>50/50 (1x)</span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
+                  Elimina duas opções erradas na hora em perguntas de múltipla escolha, deixando apenas 2 opções.
+                </p>
+              </div>
+              <span className="text-[11px] font-black uppercase text-purple-800 mt-2 block">1 Unidade</span>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      num: '06',
+      badge: 'Grande Final & Estratégia',
+      title: 'Pódio & Bônus de Cartas Guardadas',
+      subtitle: 'Economizar recursos rende pontos decisivos na coroação da campeã',
+      icon: <Trophy className="w-12 h-12 text-amber-500" />,
+      color: 'amber',
+      content: (
+        <div className="flex flex-col gap-5 text-left">
+          <p className="text-xl sm:text-2xl text-slate-700 leading-relaxed font-medium">
+            Pense com muito cuidado antes de usar suas cartas! Cada carta <strong className="text-blue-900 font-black">NÃO UTILIZADA</strong> até o fim da gincana rende <strong className="text-emerald-700 font-black">+10 PONTOS DE BÔNUS</strong> somados à pontuação geral da equipe!
+          </p>
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-50 to-emerald-100 border-2 border-amber-400 flex items-center justify-between shadow-md">
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
+                Bônus no Pódio
+              </span>
+              <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
+                +10 PTS por cada carta guardada
+              </p>
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5 font-medium">
+                Se guardar as 4 cartas = <strong className="text-emerald-700 font-bold">+40 pontos extras</strong> na apuração final!
+              </p>
+            </div>
+            <Trophy className="w-12 h-12 text-amber-600 shrink-0" />
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  const currentSlide = ruleSlides[activeIndex] || ruleSlides[0];
+
+  return (
+    <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center p-3 sm:p-6 animate-fadeIn select-none">
+      {/* Presentation Slide Card */}
+      <div className="w-full bg-white rounded-3xl border-2 border-slate-200 shadow-2xl p-6 sm:p-10 md:p-12 flex flex-col justify-between relative overflow-hidden transition-all duration-300">
+        {/* Top Accent Stripe: UMP Blue & Red */}
+        <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-900 via-red-600 to-blue-800" />
+
+        {/* Card Header */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 font-black text-xs sm:text-sm uppercase tracking-widest shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+              Regra Oficial {currentSlide.num} de 06 • {currentSlide.badge}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest hidden sm:inline">
+                Federação de UMPs
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-slate-100 p-1 flex items-center justify-center">
+                <img src="/logo_ump.webp" alt="UMP" className="w-full h-full object-contain" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 sm:gap-6 mt-3">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 border-2 border-slate-200 p-3 sm:p-4 flex items-center justify-center shadow-inner shrink-0">
+              {currentSlide.icon}
+            </div>
+
+            <div>
+              <span className="text-xs sm:text-sm font-extrabold text-red-600 uppercase tracking-wider block">
+                {currentSlide.subtitle}
+              </span>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 font-display tracking-tight mt-0.5 leading-tight">
+                {currentSlide.title}
+              </h2>
+            </div>
+          </div>
+        </div>
+
+        {/* Card Body Content */}
+        <div className="my-8">
+          {currentSlide.content}
+        </div>
+
+        {/* Slide Footer Navigation Indicator */}
+        <div className="pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            {ruleSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setRuleIndex(i)}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  i === activeIndex
+                    ? 'w-8 h-3 bg-red-600 shadow-md'
+                    : 'w-3 h-3 bg-slate-300 hover:bg-blue-600'
+                }`}
+                title={`Ir para Regra ${i + 1}`}
+              />
+            ))}
+            <span className="ml-2 text-xs font-black text-slate-500 uppercase tracking-wider">
+              Slide {activeIndex + 1} / {ruleSlides.length}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              disabled={activeIndex <= 0}
+              onClick={prevRule}
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border border-slate-300 text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
+              ◀ Anterior
+            </button>
+            <button
+              disabled={activeIndex >= ruleSlides.length - 1}
+              onClick={nextRule}
+              className="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-blue-900 hover:bg-blue-800 text-white shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
+              Próxima ▶
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

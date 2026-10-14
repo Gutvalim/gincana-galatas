@@ -49,7 +49,6 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
     canUse: boolean;
     disabledReason?: string;
     badgeColor: string;
-    bgGradient: string;
     borderColor: string;
   }> = [
     {
@@ -57,7 +56,7 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
       name: 'Pular Pergunta',
       shortName: 'Pular',
       desc: 'Pula • Sorteia outra questão',
-      icon: <FastForward className="w-4 h-4 text-orange-400" />,
+      icon: <FastForward className="w-4 h-4 text-orange-600" />,
       count: inventory.skip,
       max: 2,
       canUse: inventory.skip > 0 && !isQuestionSkipped && !disabled,
@@ -67,16 +66,15 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
           : isQuestionSkipped
           ? 'Já pulada'
           : undefined,
-      badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
-      bgGradient: 'from-orange-950/40 to-black/60',
-      borderColor: 'border-orange-500/40 hover:border-orange-400',
+      badgeColor: 'bg-orange-100 text-orange-800 border-orange-300',
+      borderColor: 'border-orange-300 hover:border-orange-500',
     },
     {
       type: 'bible',
       name: 'Consulta Bíblica',
       shortName: 'Bíblia (30s)',
       desc: 'Tempo de consulta na Bíblia',
-      icon: <BookOpen className="w-4 h-4 text-cyan-400" />,
+      icon: <BookOpen className="w-4 h-4 text-sky-700" />,
       count: inventory.bible,
       max: 1,
       canUse: inventory.bible > 0 && !isQuestionSkipped && !disabled,
@@ -86,16 +84,15 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
           : isQuestionSkipped
           ? 'Pergunta pulada'
           : undefined,
-      badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50',
-      bgGradient: 'from-cyan-950/40 to-black/60',
-      borderColor: 'border-cyan-500/40 hover:border-cyan-400',
+      badgeColor: 'bg-sky-100 text-sky-800 border-sky-300',
+      borderColor: 'border-sky-300 hover:border-sky-500',
     },
     {
       type: 'fiftyFifty',
       name: 'Carta 50/50',
       shortName: '50/50',
       desc: 'Elimina 2 alternativas',
-      icon: <Sparkles className="w-4 h-4 text-purple-400" />,
+      icon: <Sparkles className="w-4 h-4 text-purple-700" />,
       count: inventory.fiftyFifty,
       max: 1,
       canUse:
@@ -114,28 +111,23 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
           : isQuestionSkipped
           ? 'Pergunta pulada'
           : undefined,
-      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
-      bgGradient: 'from-purple-950/40 to-black/60',
-      borderColor: 'border-purple-500/40 hover:border-purple-400',
+      badgeColor: 'bg-purple-100 text-purple-800 border-purple-300',
+      borderColor: 'border-purple-300 hover:border-purple-500',
     },
   ];
 
   if (compact) {
     return (
-      <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl bg-black/60 border border-[#1d5740] backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm">
         <div className="flex items-center gap-2">
           <div
-            className="w-6 h-6 rounded-md flex items-center justify-center border text-xs"
-            style={{
-              backgroundColor: `${teamInfo.color}30`,
-              borderColor: teamInfo.color,
-              color: teamInfo.color,
-            }}
+            className="w-6 h-6 rounded-md flex items-center justify-center text-xs text-white"
+            style={{ backgroundColor: teamInfo.color }}
           >
             <TeamIcon icon={teamInfo.icon} className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-bold text-gray-300">
-            Cartas de <span className="text-white font-black">{teamInfo.name}</span>:
+          <span className="text-xs font-bold text-slate-600">
+            Cartas de <span className="text-slate-900 font-black">{teamInfo.name}</span>:
           </span>
         </div>
 
@@ -152,23 +144,23 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-bold transition-all ${
                   card.count > 0
                     ? isClickable
-                      ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-200 hover:scale-105 active:scale-95 cursor-pointer shadow-sm'
-                      : 'border-gray-700 bg-gray-900/60 text-gray-300'
-                    : 'border-gray-800 bg-gray-950/40 text-gray-600 opacity-40 line-through'
+                      ? 'border-blue-600 bg-blue-50 text-blue-900 hover:scale-105 active:scale-95 cursor-pointer shadow-sm'
+                      : 'border-slate-200 bg-slate-50 text-slate-700'
+                    : 'border-slate-200 bg-slate-100 text-slate-400 opacity-40 line-through'
                 }`}
               >
                 {card.icon}
-                <span className="font-mono">{card.count}</span>
+                <span className="font-mono font-black">{card.count}</span>
               </button>
             );
           })}
 
           {potentialBonus > 0 && (
             <span
-              className="text-[10px] text-amber-300 font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center gap-1"
-              title={`+${CARD_BONUS_POINTS} pts por carta poupada no pódio final`}
+              className="text-[10px] text-amber-800 font-bold px-2 py-0.5 rounded-full bg-amber-50 border border-amber-300 flex items-center gap-1 shadow-sm"
+              title={`+${CARD_BONUS_POINTS} pts por carta guardada no pódio final`}
             >
-              <Award className="w-3 h-3 text-amber-400" />+{potentialBonus}p
+              <Award className="w-3 h-3 text-amber-600" />+{potentialBonus}p
             </span>
           )}
         </div>
@@ -177,24 +169,20 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
   }
 
   return (
-    <div className="w-full flex flex-col gap-2 p-4 rounded-2xl bg-gradient-to-r from-gray-950/80 via-[#0c231a] to-gray-950/80 border border-[#1d5740] shadow-lg">
+    <div className="w-full flex flex-col gap-2 p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-md">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm"
-            style={{
-              backgroundColor: `${teamInfo.color}30`,
-              borderColor: teamInfo.color,
-              color: teamInfo.color,
-            }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm"
+            style={{ backgroundColor: teamInfo.color }}
           >
-            <TeamIcon icon={teamInfo.icon} className="w-5 h-5" />
+            <TeamIcon icon={teamInfo.icon} className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-xs font-black uppercase tracking-wider block text-gray-400">
+            <span className="text-[10px] font-black uppercase tracking-wider block text-slate-500">
               Arsenal Estratégico
             </span>
-            <span className="text-base font-black uppercase" style={{ color: teamInfo.color }}>
+            <span className="text-base font-black uppercase text-slate-900">
               {teamInfo.name}
             </span>
           </div>
@@ -202,10 +190,10 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
 
         {potentialBonus > 0 && (
           <div
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-bold"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold"
             title="Economizar cartas rende pontos automáticos somados ao final!"
           >
-            <Award className="w-3.5 h-3.5 text-amber-400" />
+            <Award className="w-3.5 h-3.5 text-amber-600" />
             <span>Bônus Final: +{potentialBonus} pts</span>
           </div>
         )}
@@ -223,15 +211,15 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
               className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
                 card.count > 0
                   ? isClickable
-                    ? 'border-emerald-500/60 bg-gradient-to-br from-emerald-950/50 to-gray-950 hover:scale-[1.02] active:scale-95 cursor-pointer shadow-md'
-                    : 'border-gray-700 bg-gray-900/50 text-gray-300'
-                  : 'border-gray-800 bg-gray-950/40 text-gray-600 opacity-40 line-through'
+                    ? 'border-blue-600 bg-blue-50/70 hover:bg-blue-100 hover:scale-[1.02] active:scale-95 cursor-pointer shadow-sm'
+                    : 'border-slate-200 bg-slate-50 text-slate-700'
+                  : 'border-slate-200 bg-slate-100 text-slate-400 opacity-40 line-through'
               }`}
             >
               <div className="flex items-center justify-between w-full mb-1">
                 <div className="flex items-center gap-2">
                   {card.icon}
-                  <span className="text-xs font-black text-white">{card.shortName}</span>
+                  <span className="text-xs font-black text-slate-900">{card.shortName}</span>
                 </div>
                 <span
                   className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${card.badgeColor}`}
@@ -239,9 +227,9 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
                   {card.count}/{card.max}
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400 line-clamp-1">{card.desc}</p>
+              <p className="text-[11px] text-slate-500 line-clamp-1 font-medium">{card.desc}</p>
               {card.disabledReason && (
-                <span className="text-[9px] text-amber-400/80 mt-1 font-semibold block">
+                <span className="text-[9px] text-amber-700 mt-1 font-bold block">
                   {card.disabledReason}
                 </span>
               )}

@@ -20,7 +20,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   actionCards,
   compact = false,
   highlightTeam = null,
-  onEmergencyAdjust,
   onSetScore,
 }) => {
   const [inputScores, setInputScores] = useState<Partial<Record<TeamId, string>>>({});
@@ -28,7 +27,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
   const teamList = teams && teams.length > 0 ? teams.map((t) => t.id) : Object.keys(scores);
 
-  // Sync inputScores with scores whenever scores change
   useEffect(() => {
     setInputScores((prev) => {
       const next = { ...prev };
@@ -57,7 +55,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
     return ((inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0)) * CARD_BONUS_POINTS;
   };
 
-  // Sort teams by points descending
   const sortedTeams = [...teamList].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
   const maxScore = Math.max(...Object.values(scores), 40);
 
@@ -65,25 +62,25 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
     switch (rank) {
       case 0:
         return (
-          <div className="w-8 h-8 rounded-full bg-amber-400 text-black font-black flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.8)]">
+          <div className="w-8 h-8 rounded-full bg-amber-400 text-amber-950 font-black flex items-center justify-center shadow-md">
             <Trophy className="w-4 h-4" />
           </div>
         );
       case 1:
         return (
-          <div className="w-8 h-8 rounded-full bg-slate-300 text-black font-black flex items-center justify-center shadow-[0_0_10px_rgba(203,213,225,0.7)]">
+          <div className="w-8 h-8 rounded-full bg-slate-300 text-slate-800 font-black flex items-center justify-center shadow-sm">
             <Medal className="w-4 h-4" />
           </div>
         );
       case 2:
         return (
-          <div className="w-8 h-8 rounded-full bg-amber-700 text-white font-black flex items-center justify-center shadow-[0_0_10px_rgba(180,83,9,0.6)]">
+          <div className="w-8 h-8 rounded-full bg-amber-600 text-white font-black flex items-center justify-center shadow-sm">
             <Award className="w-4 h-4" />
           </div>
         );
       default:
         return (
-          <div className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 font-bold flex items-center justify-center border border-gray-700">
+          <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold flex items-center justify-center border border-slate-300">
             {rank + 1}º
           </div>
         );
@@ -92,7 +89,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
   if (compact) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-2 select-none">
         {sortedTeams.map((teamId, rank) => {
           const team = getTeam(teamId, teams);
           const score = scores[teamId] || 0;
@@ -103,30 +100,26 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               key={teamId}
               className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 isHighlighted
-                  ? 'border-amber-400 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
-                  : 'border-[#1d5740] bg-[#0c231a] hover:border-emerald-500/50'
+                  ? 'border-blue-600 bg-blue-50/80 shadow-md'
+                  : 'border-slate-200 bg-white hover:border-blue-400'
               }`}
             >
               <div className="flex items-center gap-2 min-w-0 pr-2">
-                <span className="text-xs font-black text-gray-400 w-4 shrink-0">{rank + 1}º</span>
+                <span className="text-xs font-black text-slate-400 w-4 shrink-0">{rank + 1}º</span>
                 <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm border"
-                  style={{
-                    backgroundColor: `${team.color}25`,
-                    borderColor: team.color,
-                    color: team.color,
-                  }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm text-white"
+                  style={{ backgroundColor: team.color }}
                 >
                   <TeamIcon icon={team.icon} className="w-4 h-4" />
                 </div>
-                <span className="font-bold text-sm text-gray-200 truncate">{team.name}</span>
+                <span className="font-bold text-sm text-slate-800 truncate">{team.name}</span>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 {getCardBonus(teamId) > 0 && (
                   <span
-                    className="text-[10px] text-amber-300 font-bold hidden sm:inline whitespace-nowrap"
-                    title={`${getCardBonus(teamId)} pts bônus de ${Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} cartas guardadas (+${CARD_BONUS_POINTS} pts cada)`}
+                    className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 font-bold hidden sm:inline whitespace-nowrap"
+                    title={`+${getCardBonus(teamId)} pts de cartas guardadas`}
                   >
                     +{getCardBonus(teamId)} pts
                   </span>
@@ -148,18 +141,16 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                           handleSave(teamId);
                         }
                       }}
-                      className="w-16 px-1.5 py-1 text-center bg-gray-950/90 border border-gray-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 rounded-lg text-sm font-black text-yellow-300 font-mono outline-none transition-all"
-                      title="Digite a nova pontuação e clique em Salvar (ou aperte Enter)"
+                      className="w-16 px-1.5 py-1 text-center bg-slate-50 border border-slate-300 focus:border-blue-700 rounded-lg text-sm font-black text-slate-900 font-mono outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleSave(teamId)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow transition-all ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow transition-all cursor-pointer ${
                         savedTeam === teamId
-                          ? 'bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.7)]'
-                          : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-blue-900 hover:bg-blue-800 text-white'
                       }`}
-                      title="Salvar pontuação digitada"
                     >
                       {savedTeam === teamId ? (
                         <>
@@ -172,42 +163,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <>
-                    <div className="flex flex-col items-end">
-                      <span className="font-black text-base text-yellow-400 font-mono leading-tight">
-                        {score} <span className="text-xs text-gray-400 font-normal">pts</span>
-                      </span>
-                      {getCardBonus(teamId) > 0 && (
-                        <span
-                          className="text-[10px] text-amber-300 font-bold whitespace-nowrap"
-                          title={`${getCardBonus(teamId)} pts bônus`}
-                        >
-                          +{getCardBonus(teamId)} pts
-                        </span>
-                      )}
-                    </div>
-
-                    {onEmergencyAdjust && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => onEmergencyAdjust(teamId, -5)}
-                          title="Subtrair 5 pontos"
-                          className="px-1.5 py-0.5 rounded bg-red-900/40 text-red-300 border border-red-700/50 hover:bg-red-700 text-xs font-bold transition-colors"
-                        >
-                          -5
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onEmergencyAdjust(teamId, +5)}
-                          title="Adicionar 5 pontos"
-                          className="px-1.5 py-0.5 rounded bg-emerald-900/40 text-emerald-300 border border-emerald-700/50 hover:bg-emerald-700 text-xs font-bold transition-colors"
-                        >
-                          +5
-                        </button>
-                      </div>
-                    )}
-                  </>
+                  <div className="flex flex-col items-end">
+                    <span className="font-black text-base text-slate-900 font-mono leading-tight">
+                      {score} <span className="text-xs text-slate-400 font-normal">pts</span>
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -218,7 +178,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-4">
+    <div className="w-full max-w-5xl mx-auto space-y-3.5 select-none">
       {sortedTeams.map((teamId, rank) => {
         const team = getTeam(teamId, teams);
         const score = scores[teamId] || 0;
@@ -231,15 +191,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
         return (
           <div
             key={teamId}
-            className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-500 shadow-xl ${
+            className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 shadow-md ${
               isHighlighted
-                ? 'border-amber-400 bg-[#0e2a1f] shadow-[0_0_35px_rgba(245,158,11,0.4)] scale-[1.02]'
-                : 'border-[#1d5740] bg-[#0c231a]'
+                ? 'border-blue-600 bg-blue-50/80 shadow-xl scale-[1.01]'
+                : 'border-slate-200 bg-white hover:border-slate-300'
             }`}
           >
             {/* Background progress fill */}
             <div
-              className="absolute top-0 bottom-0 left-0 opacity-15 transition-all duration-700 ease-out"
+              className="absolute top-0 bottom-0 left-0 opacity-10 transition-all duration-700 ease-out"
               style={{
                 width: `${percentage}%`,
                 backgroundColor: team.color,
@@ -251,14 +211,10 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               <div className="w-72 sm:w-88 md:w-96 shrink-0 flex items-center gap-3.5">
                 {getRankBadge(rank)}
                 <div
-                  className="w-12 h-12 rounded-xl border-2 flex items-center justify-center shrink-0 shadow-md"
-                  style={{
-                    backgroundColor: `${team.color}25`,
-                    borderColor: team.color,
-                    color: team.color,
-                  }}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow text-white"
+                  style={{ backgroundColor: team.color }}
                 >
-                  <TeamIcon icon={team.icon} className="w-7 h-7" />
+                  <TeamIcon icon={team.icon} className="w-6 h-6" />
                 </div>
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
@@ -268,7 +224,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     {team.name}
                   </span>
                   {rank === 0 && score > 0 && (
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase shrink-0 shadow-sm">
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase shrink-0 shadow-sm">
                       Líder
                     </span>
                   )}
@@ -277,13 +233,12 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
               {/* Progress Bar Line */}
               <div className="flex-1 mx-4 hidden md:block">
-                <div className="w-full bg-gray-900/90 rounded-full h-4 overflow-hidden p-0.5 border border-gray-700/80 shadow-inner">
+                <div className="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200 shadow-inner">
                   <div
                     className="h-full rounded-full transition-all duration-1000 ease-out"
                     style={{
                       width: `${percentage}%`,
                       backgroundColor: team.color,
-                      boxShadow: percentage > 0 ? `0 0 12px ${team.color}80` : 'none',
                     }}
                   />
                 </div>
@@ -292,21 +247,21 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               {/* Score Number */}
               <div className="w-32 sm:w-44 shrink-0 flex flex-col items-end justify-center">
                 <div className="flex items-baseline justify-end gap-1.5">
-                  <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                  <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono tracking-tight">
                     {score}
                   </span>
-                  <span className="text-sm font-semibold text-gray-400 uppercase">
+                  <span className="text-sm font-semibold text-slate-400 uppercase">
                     pts
                   </span>
                 </div>
                 {getCardBonus(teamId) > 0 && (
                   <div className="flex items-center gap-1 mt-0.5">
                     <span
-                      className="text-[11px] font-bold text-amber-300 bg-amber-500/15 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 shadow-sm whitespace-nowrap"
-                      title={`Bônus de ${CARD_BONUS_POINTS} pontos para cada carta de ação preservada ao final`}
+                      className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1 shadow-sm whitespace-nowrap"
+                      title={`+${getCardBonus(teamId)} pts de cartas guardadas para o pódio`}
                     >
-                      <Sparkles className="w-3 h-3 text-amber-400" />
-                      +{getCardBonus(teamId)} pts ({Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS)} {Math.round(getCardBonus(teamId) / CARD_BONUS_POINTS) === 1 ? 'carta' : 'cartas'})
+                      <Sparkles className="w-3 h-3 text-amber-600" />
+                      +{getCardBonus(teamId)} pts guardados
                     </span>
                   </div>
                 )}

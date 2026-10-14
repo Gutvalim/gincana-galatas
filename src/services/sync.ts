@@ -59,6 +59,9 @@ export type SyncAction =
   | { type: 'SET_QUESTION'; payload: number }
   | { type: 'RESET_GAME'; payload: GameState }
   | { type: 'UPDATE_TEAMS'; payload: { teams: TeamInfo[]; resetScores: boolean } }
+  | { type: 'SET_RULE_INDEX'; payload: number }
+  | { type: 'RESET_TEAM_ORDER' }
+  | { type: 'SET_TEAM_ORDER'; payload: TeamId[] }
   | { type: 'CLEAR_LAST_CARD_USED' };
 
 const initialScores: Record<TeamId, number> = {};
@@ -75,8 +78,9 @@ export const INITIAL_STATE: GameState = {
   currentRound: 1,
   currentQuestionId: 1,
   stage: 'welcome',
+  currentRuleIndex: 0,
   teams: DEFAULT_TEAMS,
-  teamOrder: DEFAULT_TEAMS.map((t) => t.id),
+  teamOrder: [],
   currentTurnTeamIndex: 0,
   scores: initialScores,
   actionCards: initialCards,
@@ -115,13 +119,14 @@ export function loadSavedState(): GameState {
       const parsed = JSON.parse(data) as GameState;
       if (parsed && typeof parsed.scores === 'object') {
         const teams = parsed.teams && parsed.teams.length > 0 ? parsed.teams : DEFAULT_TEAMS;
-        const teamOrder = parsed.teamOrder && parsed.teamOrder.length > 0 ? parsed.teamOrder : teams.map((t) => t.id);
+        const teamOrder = Array.isArray(parsed.teamOrder) ? parsed.teamOrder : [];
 
         return {
           ...INITIAL_STATE,
           ...parsed,
           teams,
           teamOrder,
+          currentRuleIndex: typeof parsed.currentRuleIndex === 'number' ? parsed.currentRuleIndex : 0,
           timerSeconds: parsed.timerSeconds || DEFAULT_TIMER_SECONDS,
           timerMaxSeconds: parsed.timerMaxSeconds || DEFAULT_TIMER_SECONDS,
           actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,

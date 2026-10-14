@@ -31,6 +31,11 @@ interface GameContextType {
   advanceGameStep: () => void;
   undoLastAction: () => void;
   getNextStepInfo: () => { label: string; actionDescription: string; canAdvance: boolean };
+  setRuleIndex: (index: number) => void;
+  nextRule: () => void;
+  prevRule: () => void;
+  resetTeamOrder: () => void;
+  setTeamOrder: (order: TeamId[]) => void;
   startRouletteSpin: () => TeamId | null;
   finishSpin: (team: TeamId) => void;
   startTimer: () => void;
@@ -216,11 +221,79 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           case 'FINISH_SPIN':
             sounds.playRouletteSelected();
             setState((prev) => {
+              const team = action.payload;
+              const currentOrder = prev.teamOrder || [];
+              let newOrder = currentOrder.includes(team) ? currentOrder : [...currentOrder, team];
+
+              // If only 1 team left among prev.teams, automatically append it too
+              const remaining = prev.teams.filter((t) => !newOrder.includes(t.id));
+              if (remaining.length === 1) {
+                newOrder = [...newOrder, remaining[0].id];
+              }
+
+              // Re-sort prev.teams according to newOrder
+              const orderedTeams = [...prev.teams].sort((a, b) => {
+                const idxA = newOrder.indexOf(a.id);
+                const idxB = newOrder.indexOf(b.id);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return 0;
+              });
+
               const updated: GameState = {
                 ...prev,
                 isSpinning: false,
-                drawnTeam: action.payload,
+                drawnTeam: team,
                 spinningTargetTeam: null,
+                teamOrder: newOrder,
+                teams: orderedTeams,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'SET_RULE_INDEX':
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                currentRuleIndex: action.payload,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'RESET_TEAM_ORDER':
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                teamOrder: [],
+                drawnTeam: prev.teams[0]?.id || null,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'SET_TEAM_ORDER':
+            setState((prev) => {
+              const newOrder = action.payload;
+              const orderedTeams = [...prev.teams].sort((a, b) => {
+                const idxA = newOrder.indexOf(a.id);
+                const idxB = newOrder.indexOf(b.id);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                return 0;
+              });
+              const updated: GameState = {
+                ...prev,
+                teamOrder: newOrder,
+                teams: orderedTeams,
+                drawnTeam: newOrder[0] || prev.drawnTeam,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -659,11 +732,73 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [updateStateAndSync]
   );
 
-  // ROULETTE (Optional / Turn Presentation)
+  // RULES SLIDE NAVIGATION
+  const setRuleIndex = useCallback(
+    (index: number) => {
+      const safeIndex = Math.max(0, Math.min(5, index));
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          currentRuleIndex: safeIndex,
+        }),
+        { type: 'SET_RULE_INDEX', payload: safeIndex }
+      );
+    },
+    [updateStateAndSync]
+  );
+
+  const nextRule = useCallback(() => {
+    const nextIdx = Math.min(5, (state.currentRuleIndex ?? 0) + 1);
+    setRuleIndex(nextIdx);
+  }, [setRuleIndex, state.currentRuleIndex]);
+
+  const prevRule = useCallback(() => {
+    const prevIdx = Math.max(0, (state.currentRuleIndex ?? 0) - 1);
+    setRuleIndex(prevIdx);
+  }, [setRuleIndex, state.currentRuleIndex]);
+
+  // TEAM ORDER DRAW (ROULETTE BEFORE COMPETITION)
+  const resetTeamOrder = useCallback(() => {
+    updateStateAndSync(
+      (prev) => ({
+        ...prev,
+        teamOrder: [],
+        drawnTeam: prev.teams[0]?.id || null,
+      }),
+      { type: 'RESET_TEAM_ORDER' }
+    );
+  }, [updateStateAndSync]);
+
+  const setTeamOrder = useCallback(
+    (order: TeamId[]) => {
+      updateStateAndSync(
+        (prev) => {
+          const orderedTeams = [...prev.teams].sort((a, b) => {
+            const idxA = order.indexOf(a.id);
+            const idxB = order.indexOf(b.id);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            return 0;
+          });
+          return {
+            ...prev,
+            teamOrder: order,
+            teams: orderedTeams,
+            drawnTeam: order[0] || prev.drawnTeam,
+          };
+        },
+        { type: 'SET_TEAM_ORDER', payload: order }
+      );
+    },
+    [updateStateAndSync]
+  );
+
   const startRouletteSpin = useCallback((): TeamId | null => {
-    const available = state.teamOrder.length > 0 ? state.teamOrder : DEFAULT_TEAMS.map((t) => t.id);
-    const randomIndex = Math.floor(Math.random() * available.length);
-    const targetTeam = available[randomIndex];
+    const allTeamIds = state.teams.map((t) => t.id);
+    const currentOrder = state.teamOrder || [];
+    const remainingToDraw = allTeamIds.filter((id) => !currentOrder.includes(id));
+    const pool = remainingToDraw.length > 0 ? remainingToDraw : allTeamIds;
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const targetTeam = pool[randomIndex];
     const seed = Math.random();
 
     updateStateAndSync(
@@ -678,33 +813,52 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     return targetTeam;
-  }, [state.teamOrder, updateStateAndSync]);
+  }, [state.teams, state.teamOrder, updateStateAndSync]);
 
   const finishSpin = useCallback(
     (team: TeamId) => {
       sounds.playRouletteSelected();
 
       updateStateAndSync(
-        (prev) => ({
-          ...prev,
-          isSpinning: false,
-          drawnTeam: team,
-          spinningTargetTeam: null,
-          isRevealed: false,
-          answerStatus: 'idle',
-          selectedOptionIndex: null,
-          timerSeconds: DEFAULT_TIMER_SECONDS,
-          timerMaxSeconds: DEFAULT_TIMER_SECONDS,
-          isTimerRunning: false,
-        }),
+        (prev) => {
+          const currentOrder = prev.teamOrder || [];
+          let newOrder = currentOrder.includes(team) ? currentOrder : [...currentOrder, team];
+
+          // If only 1 team left among prev.teams, automatically append it too
+          const remaining = prev.teams.filter((t) => !newOrder.includes(t.id));
+          if (remaining.length === 1) {
+            newOrder = [...newOrder, remaining[0].id];
+          }
+
+          // Re-sort prev.teams according to newOrder
+          const orderedTeams = [...prev.teams].sort((a, b) => {
+            const idxA = newOrder.indexOf(a.id);
+            const idxB = newOrder.indexOf(b.id);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return 0;
+          });
+
+          return {
+            ...prev,
+            isSpinning: false,
+            drawnTeam: team,
+            spinningTargetTeam: null,
+            teamOrder: newOrder,
+            teams: orderedTeams,
+            isRevealed: false,
+            answerStatus: 'idle',
+            selectedOptionIndex: null,
+            timerSeconds: DEFAULT_TIMER_SECONDS,
+            timerMaxSeconds: DEFAULT_TIMER_SECONDS,
+            isTimerRunning: false,
+          };
+        },
         { type: 'FINISH_SPIN', payload: team }
       );
-
-      setTimeout(() => {
-        setStage('question');
-      }, 1800);
     },
-    [setStage, updateStateAndSync]
+    [updateStateAndSync]
   );
 
   // TIMER CONTROLS
@@ -1246,12 +1400,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           actionDescription: 'Apresentar o regulamento da gincana aos participantes',
           canAdvance: true,
         };
-      case 'rules':
+      case 'rules': {
+        const ruleIdx = state.currentRuleIndex ?? 0;
+        if (ruleIdx < 5) {
+          return {
+            label: `Próxima Regra (${ruleIdx + 2}/6)`,
+            actionDescription: 'Apresentar a próxima regra oficial aos participantes',
+            canAdvance: true,
+          };
+        }
         return {
-          label: 'Iniciar 1ª Rodada',
-          actionDescription: 'Começar a disputa entre as equipes da Federação',
+          label: 'Ir para Sorteio da Ordem (Roleta)',
+          actionDescription: 'Concluir apresentação das regras e abrir sorteio das equipes',
           canAdvance: true,
         };
+      }
       case 'splash': {
         const rName = ROUNDS_INFO[state.currentRound]?.name || `Rodada ${state.currentRound}`;
         return {
@@ -1260,12 +1423,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           canAdvance: true,
         };
       }
-      case 'roulette':
+      case 'roulette': {
+        const orderCount = state.teamOrder?.length || 0;
+        const totalTeams = state.teams.length;
+        if (orderCount < totalTeams) {
+          return {
+            label: `Girar Roleta para ${orderCount + 1}º Lugar`,
+            actionDescription: 'Sortear ao vivo a próxima equipe na roleta',
+            canAdvance: !state.isSpinning,
+          };
+        }
+        const firstTeam = getTeam(state.teamOrder[0], state.teams);
         return {
-          label: `Iniciar Vez de ${activeTeamInfo.name}`,
-          actionDescription: `Ir para a pergunta de ${activeTeamInfo.name}`,
+          label: `Iniciar 1ª Rodada (${firstTeam.name})`,
+          actionDescription: `Iniciar a disputa oficial com a 1ª equipe sorteada`,
           canAdvance: true,
         };
+      }
       case 'card_selection':
         return {
           label: `Abrir Pergunta (${activeTeamInfo.name})`,
@@ -1331,33 +1505,48 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         break;
 
       case 'rules': {
-        // Draw first question for first team
-        const qId = pickRandomUnusedQuestionId(state.usedQuestionIdsTotal);
-        const order = state.teamOrder.length > 0 ? state.teamOrder : DEFAULT_TEAMS.map((t) => t.id);
-        updateStateAndSync(
-          (prev) => ({
-            ...prev,
-            currentQuestionId: qId,
-            drawnTeam: order[0] || null,
-            currentTurnTeamIndex: 0,
-            stage: 'question',
-            timerSeconds: DEFAULT_TIMER_SECONDS,
-            timerMaxSeconds: DEFAULT_TIMER_SECONDS,
-            isTimerRunning: false,
-            isRevealed: false,
-            answerStatus: 'idle',
-            selectedOptionIndex: null,
-            eliminatedOptionIndices: [],
-            isQuestionSkipped: false,
-            activeCardAnnouncement: null,
-          }),
-          { type: 'CHANGE_STAGE', payload: 'question' }
-        );
+        const ruleIdx = state.currentRuleIndex ?? 0;
+        if (ruleIdx < 5) {
+          nextRule();
+        } else {
+          setStage('roulette');
+        }
+        break;
+      }
+
+      case 'roulette': {
+        const orderCount = state.teamOrder?.length || 0;
+        const totalTeams = state.teams.length;
+        if (orderCount < totalTeams) {
+          startRouletteSpin();
+        } else {
+          const qId = pickRandomUnusedQuestionId(state.usedQuestionIdsTotal);
+          const firstTeam = state.teamOrder[0] || state.teams[0]?.id;
+          updateStateAndSync(
+            (prev) => ({
+              ...prev,
+              currentRound: 1,
+              currentQuestionId: qId,
+              drawnTeam: firstTeam,
+              currentTurnTeamIndex: 0,
+              stage: 'splash',
+              timerSeconds: DEFAULT_TIMER_SECONDS,
+              timerMaxSeconds: DEFAULT_TIMER_SECONDS,
+              isTimerRunning: false,
+              isRevealed: false,
+              answerStatus: 'idle',
+              selectedOptionIndex: null,
+              eliminatedOptionIndices: [],
+              isQuestionSkipped: false,
+              activeCardAnnouncement: null,
+            }),
+            { type: 'SET_ROUND', payload: { round: 1, questionId: qId } }
+          );
+        }
         break;
       }
 
       case 'splash':
-      case 'roulette':
       case 'card_selection':
         setStage('question');
         break;
@@ -1413,6 +1602,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [
     state,
+    nextRule,
+    startRouletteSpin,
     setStage,
     startTimer,
     pauseTimer,
@@ -1474,6 +1665,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         advanceGameStep,
         undoLastAction,
         getNextStepInfo,
+        setRuleIndex,
+        nextRule,
+        prevRule,
+        resetTeamOrder,
+        setTeamOrder,
         startRouletteSpin,
         finishSpin,
         startTimer,

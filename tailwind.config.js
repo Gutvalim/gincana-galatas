@@ -8,22 +8,31 @@ export default {
   theme: {
     extend: {
       colors: {
+        ump: {
+          blue: '#003366',       // Deep Navy UMP
+          royal: '#004b93',      // Royal Blue UMP
+          red: '#c8102e',        // UMP Red
+          redDark: '#991b1b',
+          accent: '#ef4444',
+          gold: '#f59e0b',
+        },
         game: {
-          bg: '#06140e',          // Deep IPB forest green dark
-          surface: '#0c231a',     // IPB surface green
-          card: '#133829',        // IPB card green
-          cardHover: '#1c4a37',   // IPB card hover
-          border: '#1d5740',      // IPB border
-          ipbGreen: '#006341',    // IPB Official Green
-          ipbLight: '#00875a',    // IPB Bright Green
-          cyan: '#10b981',        // Replaced with IPB vibrant emerald
-          neonCyan: '#34d399',    // Vibrant emerald highlight
-          gold: '#f59e0b',        // Presbyterian Gold
-          neonGold: '#fbbf24',    // Bright gold highlight
-          emerald: '#10b981',     // Green highlight
-          neonEmerald: '#34d399',
-          danger: '#ef4444',      // Red warning
-          neonDanger: '#f87171',
+          bg: '#f8fafc',          // Light slate background
+          surface: '#ffffff',     // Pure white surface
+          card: '#ffffff',        // White card
+          cardHover: '#f1f5f9',   // Light card hover
+          border: '#e2e8f0',      // Crisp light border
+          umpBlue: '#003366',     // UMP Navy
+          umpRoyal: '#004b93',    // UMP Royal
+          umpRed: '#c8102e',      // UMP Red
+          cyan: '#0284c7',        // Blue highlight
+          neonCyan: '#38bdf8',
+          gold: '#f59e0b',        // Gold
+          neonGold: '#fbbf24',
+          emerald: '#16a34a',     // Green
+          neonEmerald: '#22c55e',
+          danger: '#dc2626',      // Red
+          neonDanger: '#ef4444',
         },
         team: {
           ucp: '#0284c7', // Sky Blue

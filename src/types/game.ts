@@ -200,6 +200,7 @@ export interface GameState {
   currentRound: number;
   currentQuestionId: number;
   stage: GameStage;
+  currentRuleIndex: number;
   teams: TeamInfo[];
   teamOrder: TeamId[];
   currentTurnTeamIndex: number;

@@ -39,30 +39,25 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   const fullPts = roundInfo?.pointsFull ?? question.pontosCheios ?? FIXED_QUESTION_POINTS;
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-5">
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 select-none animate-fadeIn">
       {/* Active Team on Microphone Banner */}
       {team && (
         <div
-          className="flex items-center justify-between px-5 py-2.5 rounded-2xl border-2 shadow-lg animate-fadeIn"
+          className="flex items-center justify-between px-5 py-3 rounded-2xl border-2 shadow-sm animate-fadeIn"
           style={{
             borderColor: team.color,
-            backgroundColor: `${team.color}20`,
-            boxShadow: `0 0 20px ${team.color}30`,
+            backgroundColor: `${team.color}12`,
           }}
         >
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md border"
-              style={{
-                backgroundColor: `${team.color}30`,
-                borderColor: team.color,
-                color: team.color,
-              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow text-white"
+              style={{ backgroundColor: team.color }}
             >
-              <TeamIcon icon={team.icon} className="w-6 h-6" />
+              <TeamIcon icon={team.icon} className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] text-gray-300 uppercase tracking-wider block font-bold">
+              <span className="text-[11px] text-slate-500 uppercase tracking-wider block font-bold">
                 Equipe no Microfone:
               </span>
               <span className="text-base sm:text-xl font-black uppercase tracking-wide" style={{ color: team.color }}>
@@ -71,7 +66,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
             </div>
           </div>
           <span
-            className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-white shadow"
+            className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-white shadow"
             style={{ backgroundColor: team.color }}
           >
             Vez de Responder
@@ -81,9 +76,9 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
 
       {/* Active Card Announcement Banner */}
       {activeCardAnnouncement && (
-        <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-500/25 via-emerald-500/25 to-cyan-500/25 border-2 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.4)] flex items-center justify-center gap-3 text-center animate-bounce">
-          <Sparkles className="w-6 h-6 text-amber-300 shrink-0" />
-          <span className="text-base sm:text-xl font-black uppercase tracking-wide text-white drop-shadow">
+        <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-red-500 to-blue-600 text-white shadow-xl flex items-center justify-center gap-3 text-center animate-bounce">
+          <Sparkles className="w-6 h-6 text-yellow-300 shrink-0" />
+          <span className="text-base sm:text-xl font-black uppercase tracking-wide drop-shadow">
             {activeCardAnnouncement}
           </span>
         </div>
@@ -91,8 +86,8 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
 
       {/* Question Skipped Notice */}
       {isQuestionSkipped && (
-        <div className="w-full p-3.5 rounded-xl bg-orange-950/70 border-2 border-orange-500/80 text-orange-200 flex items-center justify-center gap-2 shadow-lg">
-          <FastForward className="w-5 h-5 text-orange-400 shrink-0" />
+        <div className="w-full p-3.5 rounded-xl bg-orange-100 border-2 border-orange-400 text-orange-950 flex items-center justify-center gap-2 shadow-sm">
+          <FastForward className="w-5 h-5 text-orange-600 shrink-0" />
           <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-center">
             Pergunta Pulada! Uma nova questão foi apresentada à equipe.
           </span>
@@ -102,105 +97,105 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
       {/* Category & Points Badges Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="px-4 py-1.5 rounded-xl text-sm sm:text-base font-black uppercase tracking-wider bg-[#006341]/50 text-emerald-300 border border-emerald-500/50 shadow-[0_0_15px_rgba(0,99,65,0.4)]">
+          <span className="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider bg-blue-900 text-white shadow-sm">
             Pergunta #{question.id} • {question.categoria}
           </span>
-          <span className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider bg-[#0c231a] text-gray-300 border border-[#1d5740]">
+          <span className="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-white text-slate-700 border border-slate-200 shadow-sm">
             {question.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 'Dissertativa'}
           </span>
         </div>
 
         {showPoints && (
           <div className="flex items-center gap-2">
-            <span className="px-4 py-1.5 rounded-xl text-sm sm:text-base font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
-              <Award className="w-4 h-4 text-amber-400" />
+            <span className="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1.5 shadow-sm">
+              <Award className="w-4 h-4 text-emerald-700" />
               Valor: {fullPts} pts
             </span>
           </div>
         )}
       </div>
 
-      {/* Main Question Card */}
-      <div className="p-6 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-[#0c231a] to-[#081c13] border-2 border-[#1d5740] shadow-[0_0_45px_rgba(0,99,65,0.3)]">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-snug tracking-tight text-center sm:text-left drop-shadow-md">
+      {/* Main Question Card (Crisp White Card with Deep Dark Slate Typography) */}
+      <div className="p-6 sm:p-8 md:p-10 rounded-3xl bg-white border-2 border-slate-200 shadow-xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 leading-snug tracking-tight text-center sm:text-left font-display">
           {question.pergunta}
         </h2>
       </div>
 
       {/* Options Grid (Multiple Choice) */}
       {question.tipo === 'multipla_escolha' && question.opcoes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {question.opcoes.map((opcao, idx) => {
             const isCorrect = opcao.trim().toLowerCase() === question.respostaCorreta.trim().toLowerCase();
             const isSelected = selectedOptionIndex === idx;
             const isEliminated = eliminatedOptionIndices.includes(idx);
             const letter = letters[idx] || `${idx + 1}`;
 
-            let cardStyle = 'border-[#1d5740] bg-[#0c231a]/90 text-gray-200 hover:border-emerald-500/60';
-            let letterStyle = 'bg-[#133829] text-amber-300 border-[#1d5740]';
+            let cardStyle = 'border-slate-200 bg-white text-slate-800 hover:border-blue-500 hover:bg-blue-50/40 shadow-sm';
+            let letterStyle = 'bg-blue-900 text-white border-blue-900';
 
             if (isEliminated) {
               cardStyle =
-                'border-dashed border-gray-800 bg-gray-950/40 text-gray-600 line-through opacity-30 pointer-events-none filter grayscale';
-              letterStyle = 'bg-gray-900 text-gray-700 border-gray-800';
+                'border-dashed border-slate-300 bg-slate-100 text-slate-400 line-through opacity-35 pointer-events-none filter grayscale';
+              letterStyle = 'bg-slate-300 text-slate-500 border-slate-300';
             } else if (answerStatus === 'selected' && isSelected) {
               cardStyle =
-                'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_30px_rgba(245,158,11,0.6)] scale-[1.02] ring-2 ring-amber-400 animate-pulse';
-              letterStyle = 'bg-amber-400 text-black border-amber-300 font-black';
+                'border-amber-500 bg-amber-50 text-amber-950 shadow-lg scale-[1.01] ring-2 ring-amber-400 animate-pulse';
+              letterStyle = 'bg-amber-500 text-white border-amber-500 font-black';
             } else if (answerStatus === 'wrong') {
               if (isSelected) {
                 cardStyle =
-                  'border-red-500 bg-red-950/80 text-red-100 shadow-[0_0_35px_rgba(239,68,68,0.7)] scale-[1.02] ring-2 ring-red-500';
-                letterStyle = 'bg-red-600 text-white border-red-400 font-black';
+                  'border-red-500 bg-red-50 text-red-950 shadow-lg scale-[1.01] ring-2 ring-red-500';
+                letterStyle = 'bg-red-600 text-white border-red-600 font-black';
               } else if (isCorrect) {
                 cardStyle =
-                  'border-emerald-500/80 bg-emerald-950/50 text-emerald-200 ring-1 ring-emerald-500/60';
-                letterStyle = 'bg-emerald-600/80 text-white border-emerald-500 font-bold';
+                  'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-500 font-bold';
+                letterStyle = 'bg-emerald-600 text-white border-emerald-600 font-bold';
               } else {
-                cardStyle = 'border-gray-900 bg-gray-950/50 text-gray-500 opacity-40';
-                letterStyle = 'bg-gray-900 text-gray-600 border-gray-800';
+                cardStyle = 'border-slate-200 bg-slate-50 text-slate-400 opacity-40';
+                letterStyle = 'bg-slate-200 text-slate-400 border-slate-200';
               }
             } else if (answerStatus === 'correct' || isRevealed) {
               if (isCorrect) {
                 cardStyle =
-                  'border-emerald-400 bg-emerald-950/80 text-emerald-100 shadow-[0_0_35px_rgba(16,185,129,0.6)] scale-[1.02] ring-2 ring-emerald-400';
-                letterStyle = 'bg-emerald-500 text-black border-emerald-400 font-black';
+                  'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-lg scale-[1.01] ring-2 ring-emerald-500 font-bold';
+                letterStyle = 'bg-emerald-600 text-white border-emerald-600 font-black';
               } else {
-                cardStyle = 'border-gray-900 bg-gray-950/50 text-gray-500 opacity-40';
-                letterStyle = 'bg-gray-900 text-gray-600 border-gray-800';
+                cardStyle = 'border-slate-200 bg-slate-50 text-slate-400 opacity-40';
+                letterStyle = 'bg-slate-200 text-slate-400 border-slate-200';
               }
             }
 
             return (
               <div
                 key={idx}
-                className={`relative p-5 rounded-2xl border-2 transition-all duration-500 flex items-center gap-4 ${cardStyle}`}
+                className={`relative p-5 rounded-2xl border-2 transition-all duration-300 flex items-center gap-4 ${cardStyle}`}
               >
                 <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-lg border-2 shadow shrink-0 transition-colors ${letterStyle}`}
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-lg border-2 shadow-sm shrink-0 transition-colors ${letterStyle}`}
                 >
                   {letter}
                 </div>
-                <span className="text-lg sm:text-xl font-bold flex-1 leading-relaxed">
+                <span className="text-lg sm:text-xl font-bold flex-1 leading-snug">
                   {opcao}
                 </span>
 
                 {/* Status Badges / Icons */}
                 {isEliminated && (
-                  <span className="text-[11px] font-black uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-md border border-purple-500/30 shrink-0">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-1 rounded-md border border-purple-300 shrink-0">
                     50/50 Eliminada
                   </span>
                 )}
                 {!isEliminated && answerStatus === 'selected' && isSelected && (
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-1 rounded-full border border-amber-400/40 animate-pulse">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-200 px-2.5 py-1 rounded-full border border-amber-300 animate-pulse">
                     Opção Marcada
                   </span>
                 )}
                 {!isEliminated && (answerStatus === 'correct' || isRevealed) && isCorrect && (
-                  <CheckCircle2 className="w-7 h-7 text-emerald-400 animate-bounce shrink-0" />
+                  <CheckCircle2 className="w-7 h-7 text-emerald-600 animate-bounce shrink-0" />
                 )}
                 {!isEliminated && answerStatus === 'wrong' && isSelected && (
-                  <XCircle className="w-7 h-7 text-red-400 animate-pulse shrink-0" />
+                  <XCircle className="w-7 h-7 text-red-600 animate-pulse shrink-0" />
                 )}
               </div>
             );
@@ -210,17 +205,16 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
 
       {/* Dissertative Answer (Revealed / Evaluated) */}
       {question.tipo === 'dissertativa' && (
-        <div className="w-full flex flex-col gap-4">
-          {/* Wrong Answer Alert Banner */}
+        <div className="w-full flex flex-col gap-3">
           {answerStatus === 'wrong' && (
-            <div className="p-5 rounded-2xl border-2 border-red-500 bg-red-950/80 text-red-100 shadow-[0_0_35px_rgba(239,68,68,0.7)] flex items-center justify-between animate-fadeIn">
+            <div className="p-5 rounded-2xl border-2 border-red-500 bg-red-50 text-red-950 shadow-md flex items-center justify-between animate-fadeIn">
               <div className="flex items-center gap-3">
-                <XCircle className="w-8 h-8 text-red-400 animate-pulse shrink-0" />
+                <XCircle className="w-8 h-8 text-red-600 animate-pulse shrink-0" />
                 <div>
-                  <span className="text-sm font-black uppercase tracking-wider text-red-300 block">
+                  <span className="text-sm font-black uppercase tracking-wider text-red-800 block">
                     Resposta Incorreta!
                   </span>
-                  <span className="text-base sm:text-lg font-bold text-white">
+                  <span className="text-base sm:text-lg font-bold text-slate-800">
                     {team ? `${team.name} errou e não pontuou nesta questão.` : 'A equipe errou no microfone (0 pts).'}
                   </span>
                 </div>
@@ -231,38 +225,37 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
             </div>
           )}
 
-          {/* Correct Answer Banner (Celebratory) */}
           {answerStatus === 'correct' && (
-            <div className="p-5 rounded-2xl border-2 border-emerald-400 bg-emerald-950/80 text-emerald-100 shadow-[0_0_35px_rgba(16,185,129,0.7)] flex items-center justify-between animate-fadeIn">
+            <div className="p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-950 shadow-md flex items-center justify-between animate-fadeIn">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400 animate-bounce shrink-0" />
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 animate-bounce shrink-0" />
                 <div>
-                  <span className="text-sm font-black uppercase tracking-wider text-emerald-300 block">
+                  <span className="text-sm font-black uppercase tracking-wider text-emerald-800 block">
                     Resposta Correta!
                   </span>
-                  <span className="text-base sm:text-lg font-bold text-white">
+                  <span className="text-base sm:text-lg font-bold text-slate-800">
                     {team ? `${team.name} acertou no microfone!` : 'A equipe acertou a resposta!'}
                   </span>
                 </div>
               </div>
-              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-black font-black text-sm uppercase shadow">
+              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-black text-sm uppercase shadow">
                 +{fullPts} pts
               </span>
             </div>
           )}
 
           {isRevealed ? (
-            <div className="p-6 rounded-2xl border-2 border-emerald-400 bg-emerald-950/70 text-emerald-100 shadow-[0_0_35px_rgba(16,185,129,0.4)] animate-fadeIn">
-              <div className="flex items-center gap-2 text-emerald-400 text-sm font-black uppercase tracking-wider mb-2">
-                <CheckCircle2 className="w-5 h-5" />
+            <div className="p-6 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-950 shadow-md animate-fadeIn">
+              <div className="flex items-center gap-2 text-emerald-800 text-sm font-black uppercase tracking-wider mb-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 {answerStatus === 'wrong' ? 'Gabarito Oficial:' : 'Resposta Correta Oficial:'}
               </div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-white">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">
                 "{question.respostaCorreta}"
               </p>
             </div>
           ) : (
-            <div className="p-6 rounded-2xl border-2 border-dashed border-gray-700 bg-gray-900/40 text-center text-gray-400">
+            <div className="p-6 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center text-slate-500">
               <span className="text-lg font-bold">
                 Pergunta Dissertativa • O líder da equipe deve se manifestar e responder ao microfone!
               </span>
@@ -273,14 +266,14 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
 
       {/* Biblical Text and Reference (ARA) */}
       {isRevealed && question.textoBiblico && (
-        <div className="mt-2 p-6 sm:p-7 rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-gray-900 to-amber-950/30 shadow-[0_0_30px_rgba(245,158,11,0.2)] animate-fadeIn">
-          <div className="flex items-center gap-2.5 mb-3">
-            <BookOpen className="w-5 h-5 text-amber-400" />
-            <span className="text-sm font-black uppercase tracking-wider text-amber-300">
-              Texto Bíblico Oficial • {question.versiculo}
+        <div className="p-6 sm:p-7 rounded-2xl border-2 border-blue-200 bg-blue-50/70 shadow-md animate-fadeIn">
+          <div className="flex items-center gap-2.5 mb-2">
+            <BookOpen className="w-5 h-5 text-blue-900" />
+            <span className="text-sm font-black uppercase tracking-wider text-blue-900">
+              Texto Bíblico Oficial • {question.versiculo} (ARA)
             </span>
           </div>
-          <p className="text-lg sm:text-xl md:text-2xl italic text-gray-200 font-serif leading-relaxed border-l-4 border-amber-400 pl-4">
+          <p className="text-lg sm:text-xl md:text-2xl italic text-slate-800 font-serif leading-relaxed border-l-4 border-blue-900 pl-4 mt-2">
             "{question.textoBiblico}"
           </p>
         </div>
