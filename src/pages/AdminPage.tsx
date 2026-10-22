@@ -543,7 +543,7 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-sm">
-                    {60 - (state.usedQuestionIdsTotal?.length || 0)} douradas disponíveis
+                    {60 - (state.usedQuestionIdsTotal?.length || 0)} disponíveis
                   </span>
                 </div>
               )}

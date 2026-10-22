@@ -144,7 +144,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
         {/* STATS PILL */}
         <div className="mt-2.5 flex items-center gap-3 text-xs font-bold text-slate-600">
           <span className="px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-black">
-            {availableCount} Douradas Disponíveis
+            {availableCount} Disponíveis
           </span>
           <span className="px-3 py-0.5 rounded-full bg-slate-200 text-slate-600 border border-slate-300 font-medium">
             {usedCount} Escolhidas
