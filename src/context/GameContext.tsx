@@ -59,6 +59,7 @@ interface GameContextType {
   setTeamScore: (team: TeamId, newScore: number) => void;
   selectRound: (round: number) => void;
   selectQuestion: (questionId: number) => void;
+  finishCardFlip: (questionId: number) => void;
   selectCardQuestion: (questionId: number, cardIndex: number) => void;
   drawNextRandomQuestion: () => void;
   updateTeams: (newTeams: TeamInfo[], resetScores: boolean) => void;
@@ -268,6 +269,50 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             break;
 
+          
+          case 'SELECT_CARD':
+            sounds.playCorrectReveal();
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                currentQuestionId: action.payload.questionId,
+                selectedCardIndex: action.payload.cardIndex,
+                isCardFlipping: true,
+                stage: 'card_selection',
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
+
+          case 'FINISH_CARD_FLIP':
+            setState((prev) => {
+              const updated: GameState = {
+                ...prev,
+                currentQuestionId: action.payload.questionId,
+                isCardFlipping: false,
+                selectedCardIndex: null,
+                isRevealed: false,
+                answerStatus: 'idle' as const,
+                selectedOptionIndex: null,
+                timerSeconds: DEFAULT_TIMER_SECONDS,
+                timerMaxSeconds: DEFAULT_TIMER_SECONDS,
+                isTimerRunning: false,
+                timerEndTimestamp: null,
+                autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+                isStealActive: false,
+                firstTeamFailed: false,
+                stage: 'question' as GameStage,
+                eliminatedOptionIndices: [],
+                isQuestionSkipped: false,
+                activeCardAnnouncement: null,
+                lastUpdated: Date.now(),
+              };
+              saveStateToStorage(updated);
+              return updated;
+            });
+            break;
           case 'SET_RULE_INDEX':
             setState((prev) => {
               const updated: GameState = {
@@ -1627,17 +1672,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [state.currentQuestionId, updateStateAndSync]
   );
 
-  // SELECT QUESTION MANUALLY
-  const selectQuestion = useCallback(
-    (questionId: number) => {
-      const q = questions.find((item) => item.id === questionId);
-      if (!q) return;
+  const flipTimerRef = useRef<number | null>(null);
 
+  const finishCardFlip = useCallback(
+    (questionId: number) => {
+      if (flipTimerRef.current) {
+        clearTimeout(flipTimerRef.current);
+        flipTimerRef.current = null;
+      }
+      const q = questions.find((item) => item.id === questionId);
       updateStateAndSync(
         (prev) => ({
           ...prev,
           currentQuestionId: questionId,
-          currentRound: q.rodada,
+          currentRound: q?.rodada || prev.currentRound,
+          isCardFlipping: false,
+          selectedCardIndex: null,
           isRevealed: false,
           answerStatus: 'idle',
           selectedOptionIndex: null,
@@ -1653,10 +1703,55 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isQuestionSkipped: false,
           activeCardAnnouncement: null,
         }),
-        { type: 'SET_QUESTION', payload: questionId }
+        { type: 'FINISH_CARD_FLIP', payload: { questionId } }
       );
     },
     [updateStateAndSync]
+  );
+
+  // SELECT QUESTION (WITH DRAMATIC REVEAL ANIMATION)
+  const selectQuestion = useCallback(
+    (questionId: number) => {
+      const q = questions.find((item) => item.id === questionId);
+      if (!q) return;
+
+      sounds.playCorrectReveal();
+
+      if (flipTimerRef.current) {
+        clearTimeout(flipTimerRef.current);
+      }
+
+      // 1. Trigger reveal animation on screen
+      updateStateAndSync(
+        (prev) => ({
+          ...prev,
+          currentQuestionId: questionId,
+          selectedCardIndex: questionId,
+          isCardFlipping: true,
+          stage: 'card_selection',
+          isRevealed: false,
+          answerStatus: 'idle',
+          selectedOptionIndex: null,
+          timerSeconds: DEFAULT_TIMER_SECONDS,
+          timerMaxSeconds: DEFAULT_TIMER_SECONDS,
+          isTimerRunning: false,
+          timerEndTimestamp: null,
+          autoStartEndTimestamp: null,
+          isStealActive: false,
+          firstTeamFailed: false,
+          eliminatedOptionIndices: [],
+          isQuestionSkipped: false,
+          activeCardAnnouncement: null,
+        }),
+        { type: 'SELECT_CARD', payload: { questionId, cardIndex: questionId } }
+      );
+
+      // 2. Complete reveal animation after 2400ms and open question
+      flipTimerRef.current = window.setTimeout(() => {
+        finishCardFlip(questionId);
+      }, 2400);
+    },
+    [finishCardFlip, updateStateAndSync]
   );
 
   const selectCardQuestion = useCallback(
@@ -2012,6 +2107,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTeamScore,
         selectRound,
         selectQuestion,
+        finishCardFlip,
         selectCardQuestion,
         drawNextRandomQuestion,
         updateTeams,

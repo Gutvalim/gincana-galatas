@@ -25,6 +25,7 @@ export const TelaoPage: React.FC = () => {
     finishSpin,
     setStage,
     selectQuestion,
+    finishCardFlip,
     toggleSound,
     clearLastCardUsed,
   } = useGame();
@@ -239,7 +240,11 @@ export const TelaoPage: React.FC = () => {
               usedQuestionIds={state.usedQuestionIdsTotal || []}
               drawnTeam={state.drawnTeam}
               teams={state.teams}
+              currentQuestion={currentQuestion}
+              isCardFlipping={state.isCardFlipping}
+              selectedCardIndex={state.selectedCardIndex}
               onSelectQuestion={selectQuestion}
+              onFinishFlip={finishCardFlip}
               interactive={true}
               round={state.currentRound}
             />

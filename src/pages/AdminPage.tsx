@@ -34,6 +34,8 @@ import {
   Users,
   Shuffle,
   HelpCircle,
+  Search,
+  AlertCircle,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -80,6 +82,25 @@ export const AdminPage: React.FC = () => {
   const [isStealModalOpen, setIsStealModalOpen] = useState<boolean>(false);
   const [graceSecondsLeft, setGraceSecondsLeft] = useState<number>(12);
   const [scoreModalInitialCorrect, setScoreModalInitialCorrect] = useState<boolean>(true);
+  const [operatorSearchQuery, setOperatorSearchQuery] = useState<string>('');
+  const [operatorSearchError, setOperatorSearchError] = useState<string | null>(null);
+
+  const handleOperatorSelectNumber = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const num = parseInt(operatorSearchQuery.trim(), 10);
+    if (isNaN(num) || num < 1 || num > 60) {
+      setOperatorSearchError('Digite um número válido de 1 a 60.');
+      return;
+    }
+    if (state.usedQuestionIdsTotal?.includes(num)) {
+      setOperatorSearchError(`A pergunta #${num} já foi respondida! Escolha outra.`);
+      return;
+    }
+    setOperatorSearchError(null);
+    setOperatorSearchQuery('');
+    selectQuestion(num);
+  };
+
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [isTeamSetupOpen, setIsTeamSetupOpen] = useState<boolean>(false);
 
@@ -442,18 +463,18 @@ export const AdminPage: React.FC = () => {
 
           {/* STAGE-SPECIFIC CONSOLE: CARD SELECTION (1 A 60) */}
           {state.stage === 'card_selection' && (
-            <div className="p-6 rounded-3xl bg-white border-2 border-slate-200 shadow-lg flex flex-col gap-5 animate-fadeIn">
+            <div className="p-6 rounded-3xl bg-white border-2 border-slate-200 shadow-lg flex flex-col gap-4 animate-fadeIn">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center">
-                    <HelpCircle className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-amber-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-black uppercase text-slate-900">
                       Mesa de Escolha de Perguntas (1 a 60)
                     </h3>
                     <p className="text-xs text-slate-500">
-                      A equipe no microfone deve escolher um número de 1 a 60. Clique no número escolhido para abrir no telão.
+                      Digite o número solicitado pela equipe no microfone ou clique diretamente no card dourado.
                     </p>
                   </div>
                 </div>
@@ -466,6 +487,41 @@ export const AdminPage: React.FC = () => {
                   Sortear Aleatória
                 </button>
               </div>
+
+              {/* OPERATOR SEARCH BAR */}
+              <form onSubmit={handleOperatorSelectNumber} className="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-300 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
+                <div className="flex items-center gap-2 text-amber-950 font-black uppercase text-xs shrink-0">
+                  <Search className="w-4 h-4 text-amber-700" />
+                  <span>Selecionar Número:</span>
+                </div>
+                <div className="flex-1 flex items-center gap-2 w-full">
+                  <input
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={operatorSearchQuery}
+                    onChange={(e) => {
+                      setOperatorSearchQuery(e.target.value);
+                      setOperatorSearchError(null);
+                    }}
+                    placeholder="Digite o número (1 a 60)... Ex: 38"
+                    className="flex-1 px-4 py-2.5 rounded-xl border-2 border-amber-400 bg-white text-slate-900 font-black text-base focus:outline-none focus:ring-4 focus:ring-amber-400/30 placeholder:text-slate-400 shadow-inner"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md border border-yellow-300 transition-all transform active:scale-95 cursor-pointer shrink-0"
+                  >
+                    Abrir Pergunta
+                  </button>
+                </div>
+              </form>
+
+              {operatorSearchError && (
+                <div className="flex items-center gap-2 text-xs font-bold text-red-700 bg-red-100/90 border border-red-300 px-3 py-2 rounded-xl">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{operatorSearchError}</span>
+                </div>
+              )}
 
               {activeTeam && (
                 <div
@@ -487,33 +543,29 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-sm">
-                    {60 - (state.usedQuestionIdsTotal?.length || 0)} de 60 disponíveis
+                    {60 - (state.usedQuestionIdsTotal?.length || 0)} douradas disponíveis
                   </span>
                 </div>
               )}
 
-              {/* 1 to 60 Grid */}
-              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 max-h-[380px] overflow-y-auto p-1.5 scrollbar-thin bg-slate-50 rounded-2xl border border-slate-200">
+              {/* 1 to 60 Pure Numbers Grid (Gold = Available, Faded Gray = Used) */}
+              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 max-h-[360px] overflow-y-auto p-2 scrollbar-thin bg-slate-100/80 rounded-2xl border-2 border-slate-200 shadow-inner">
                 {questions.map((q) => {
                   const isUsed = state.usedQuestionIdsTotal?.includes(q.id);
+                  const formatted = q.id < 10 ? `0${q.id}` : `${q.id}`;
                   return (
                     <button
                       key={q.id}
                       disabled={isUsed}
                       onClick={() => selectQuestion(q.id)}
-                      title={`#${q.id} [${q.categoria}]: ${q.pergunta}`}
-                      className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+                      title={isUsed ? `Pergunta #${q.id} (Já Respondida)` : `Pergunta #${q.id} (Disponível)`}
+                      className={`relative rounded-xl h-12 sm:h-14 flex items-center justify-center text-center select-none transition-all ${
                         isUsed
-                          ? 'bg-slate-100 border-slate-200 text-slate-400 opacity-40 line-through cursor-not-allowed'
-                          : 'bg-white hover:bg-blue-50 border-slate-300 hover:border-blue-900 hover:scale-105 hover:shadow-md cursor-pointer text-slate-900'
+                          ? 'bg-slate-200/50 border border-slate-300/40 text-slate-400/50 font-black font-mono text-lg line-through opacity-25 cursor-not-allowed shadow-none'
+                          : 'cursor-pointer bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#b45309] border border-yellow-200 shadow-[0_3px_10px_rgba(245,158,11,0.4),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:shadow-[0_5px_18px_rgba(245,158,11,0.8)] hover:scale-105 active:scale-95 text-slate-950 font-black font-mono text-xl sm:text-2xl'
                       }`}
                     >
-                      <span className="text-sm font-black font-mono">
-                        {q.id < 10 ? `0${q.id}` : q.id}
-                      </span>
-                      <span className="text-[9px] font-bold uppercase truncate max-w-full text-slate-500">
-                        {q.categoria}
-                      </span>
+                      <span>{formatted}</span>
                     </button>
                   );
                 })}
