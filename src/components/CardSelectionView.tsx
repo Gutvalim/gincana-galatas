@@ -1,273 +1,162 @@
 import React from 'react';
-import type { Question, TeamId } from '../types/game';
-import { getTeam, ROUNDS_INFO } from '../types/game';
-import { Lock, Sparkles, CheckCircle2, Award } from 'lucide-react';
+import type { Question, TeamId, TeamInfo } from '../types/game';
+import { getTeam } from '../types/game';
+import { Sparkles, CheckCircle2, HelpCircle } from 'lucide-react';
+import { TeamIcon } from './TeamIcon';
+import { sounds } from '../services/sound';
 
-interface CardSelectionViewProps {
-  round: number;
-  questionsInRound: Question[];
+export interface CardSelectionViewProps {
+  questions: Question[];
   usedQuestionIds: number[];
-  usedCardIndices: number[];
-  currentQuestion?: Question | null;
   drawnTeam: TeamId | null;
-  selectedCardIndex: number | null;
-  isCardFlipping: boolean;
-  onSelectCard: (questionId: number, cardIndex: number) => void;
+  teams?: TeamInfo[];
+  onSelectQuestion: (questionId: number) => void;
   interactive?: boolean;
+  round?: number;
 }
 
 export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
-  round,
-  questionsInRound,
-  usedQuestionIds: _usedQuestionIds,
-  usedCardIndices = [],
-  currentQuestion = null,
+  questions,
+  usedQuestionIds = [],
   drawnTeam,
-  selectedCardIndex,
-  isCardFlipping,
-  onSelectCard,
+  teams = [],
+  onSelectQuestion,
   interactive = true,
+  round,
 }) => {
-  const team = drawnTeam ? getTeam(drawnTeam) : null;
+  const team = drawnTeam ? getTeam(drawnTeam, teams) : null;
+  const usedCount = usedQuestionIds.length;
+  const totalCount = questions.length;
+  const availableCount = Math.max(0, totalCount - usedCount);
+
+  const handleCardClick = (questionId: number, isUsed: boolean) => {
+    if (isUsed || !interactive) return;
+    try {
+      sounds.playSelectionTick();
+    } catch {}
+    onSelectQuestion(questionId);
+  };
 
   return (
-    <div className="w-full max-w-7xl mx-auto flex flex-col items-center gap-8 py-4 px-4 animate-fadeIn">
-      {/* Header Banner */}
+    <div className="w-full max-w-7xl mx-auto flex flex-col items-center gap-5 py-2 px-3 sm:px-6 animate-fadeIn">
+      {/* HEADER SECTION */}
       <div className="text-center flex flex-col items-center">
-        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#006341]/30 border-2 border-amber-400/60 text-amber-300 font-black uppercase tracking-widest text-xs sm:text-sm mb-3 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-          Fase de Escolha • Rodada {round}
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 border border-blue-200 text-blue-900 font-black uppercase tracking-widest text-xs mb-2 shadow-sm">
+          <Sparkles className="w-3.5 h-3.5 text-red-600 animate-pulse" />
+          {round ? `Rodada ${round} • ` : ''}Federação de UMPs • Gálatas
+          <Sparkles className="w-3.5 h-3.5 text-red-600 animate-pulse" />
         </div>
 
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase text-white tracking-tight drop-shadow-md">
+        <h1 className="text-3xl sm:text-5xl font-black uppercase text-slate-900 tracking-tight font-display">
           Escolha da Pergunta
-        </h2>
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
+          A equipe no microfone deve escolher um número de <strong>1 a 60</strong>
+        </p>
 
+        {/* ACTIVE TEAM BANNER */}
         {team && (
-          <div className="mt-4 flex items-center gap-3 animate-bounce">
-            <span className="text-base sm:text-xl font-bold text-gray-300 uppercase tracking-wider">
-              Vez da Equipe:
+          <div className="mt-3 flex items-center gap-3 animate-fadeIn">
+            <span className="text-sm sm:text-base font-bold text-slate-500 uppercase tracking-wider">
+              Vez de Escolher:
             </span>
-            <span
-              className="inline-flex items-center gap-3 px-6 py-2 rounded-2xl border-2 font-black text-xl sm:text-3xl uppercase tracking-widest shadow-xl"
+            <div
+              className="inline-flex items-center gap-3 px-5 py-2 rounded-2xl border-2 font-black text-lg sm:text-2xl uppercase tracking-wider shadow-md bg-white transition-all"
               style={{
                 borderColor: team.color,
-                backgroundColor: `${team.color}25`,
-                color: team.color,
-                boxShadow: `0 0 25px ${team.color}50`,
+                boxShadow: `0 4px 20px ${team.color}30`,
               }}
             >
-              {team.logo && (
-                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/95 border border-white/60 p-1 flex items-center justify-center shrink-0 shadow-md">
-                  <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
-                </div>
-              )}
-              {team.name}
-            </span>
+              <div
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                style={{ backgroundColor: team.color }}
+              >
+                <TeamIcon icon={team.icon} className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <span style={{ color: team.color }}>{team.name}</span>
+            </div>
           </div>
         )}
+
+        {/* STATS PILL */}
+        <div className="mt-3 flex items-center gap-3 text-xs font-bold text-slate-600">
+          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+            {availableCount} Disponíveis
+          </span>
+          <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-300">
+            {usedCount} Respondidas
+          </span>
+        </div>
       </div>
 
-      {/* Cards Grid (8 Cards) */}
-      <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4 perspective-1000">
-        {questionsInRound.map((q, idx) => {
-          const isUsed = usedCardIndices.includes(idx);
-          const isSelected = selectedCardIndex === idx;
-          const isFlipping = isSelected && isCardFlipping;
-          const revealQ = isSelected && currentQuestion ? currentQuestion : q;
+      {/* 60 QUESTIONS GRID (10 COLUMNS ON DESKTOP, 6 ON TABLET, 5 ON MOBILE) */}
+      <div className="w-full grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 sm:gap-2.5 max-h-[64vh] overflow-y-auto p-2 scrollbar-thin rounded-2xl bg-slate-50/70 border border-slate-200">
+        {questions.map((q) => {
+          const isUsed = usedQuestionIds.includes(q.id);
+          const formattedNumber = q.id < 10 ? `0${q.id}` : `${q.id}`;
 
           return (
             <div
               key={q.id}
-              className="relative h-56 sm:h-64 cursor-pointer select-none transition-transform"
-              style={{ perspective: '1000px' }}
-              onClick={() => {
-                if (!isUsed && interactive && !isCardFlipping) {
-                  onSelectCard(q.id, idx);
-                }
+              onClick={() => handleCardClick(q.id, isUsed)}
+              title={`Pergunta #${q.id}: ${q.categoria} - ${q.pergunta}`}
+              className={`relative rounded-2xl p-2 sm:p-2.5 flex flex-col items-center justify-between text-center select-none transition-all duration-150 min-h-[82px] sm:min-h-[92px] ${
+                isUsed
+                  ? 'bg-slate-100/80 border-2 border-slate-200 text-slate-400 opacity-35 cursor-not-allowed'
+                  : 'bg-white border-2 border-slate-200 hover:border-blue-900 hover:shadow-lg hover:-translate-y-1 hover:scale-[1.03] cursor-pointer text-slate-800 shadow-sm'
+              }`}
+              style={{
+                borderColor: !isUsed && team ? undefined : undefined,
               }}
             >
-              {/* Card Container */}
-              <div
-                className={`w-full h-full rounded-3xl transition-all duration-500 relative shadow-2xl ${
-                  isFlipping
-                    ? 'shadow-[0_0_40px_rgba(251,191,36,0.9)] scale-105 ring-4 ring-amber-400'
-                    : isUsed
-                    ? 'opacity-40 grayscale cursor-not-allowed scale-95'
-                    : 'hover:scale-105 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(0,135,90,0.6)]'
-                }`}
-              >
-                {isFlipping ? (
-                  /* REVEALED CARD (Facing forward at 0deg, crystal clear, never mirrored) */
-                  <div className="absolute inset-0 rounded-3xl p-4 sm:p-5 flex flex-col justify-between items-center text-center bg-gradient-to-br from-[#006341] via-[#0b2b1d] to-[#05170f] border-4 border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.8)] text-white animate-fadeIn">
-                    <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black uppercase">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      Card Escolhido!
-                    </div>
-
-                    <div className="my-auto flex flex-col items-center gap-1">
-                      <span className="text-3xl font-black text-amber-300 font-mono">
-                        #{revealQ.id}
-                      </span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-500/50">
-                        {revealQ.categoria}
-                      </span>
-                      <p className="text-xs text-gray-200 mt-2 line-clamp-3 font-medium">
-                        "{revealQ.pergunta}"
-                      </p>
-                    </div>
-
-                    <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 animate-pulse">
-                      Abrindo Pergunta...
-                    </span>
-                  </div>
+              {/* TOP STATUS */}
+              <div className="w-full flex items-center justify-between text-[10px]">
+                {isUsed ? (
+                  <span className="w-full flex items-center justify-end">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
+                  </span>
                 ) : (
-                  /* FRONT OF CARD (Mystery / Unrevealed) */
-                  <div
-                    className={`absolute inset-0 rounded-3xl p-4 flex flex-col justify-between items-center text-center border-2 transition-all ${
-                      isUsed
-                        ? 'bg-[#0b1d14] border-gray-700/60 text-gray-500'
-                        : 'bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-[#1d5740] hover:border-amber-400/80 shadow-lg'
-                    }`}
-                  >
-                    {/* Top Badge */}
-                    <div className="w-full flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#006341]/60 text-emerald-300 border border-emerald-500/40">
-                        R{round}
-                      </span>
-                      {isUsed ? (
-                        <Lock className="w-4 h-4 text-red-400" />
-                      ) : (
-                        <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                      )}
-                    </div>
-
-                    {/* Center Emblem & Mystery Card Label */}
-                    <div className="flex flex-col items-center gap-1.5 my-auto">
-                      <div
-                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl shadow-md border-2 ${
-                          isUsed
-                            ? 'bg-gray-800/60 border-gray-700 text-gray-500'
-                            : 'bg-gradient-to-br from-[#006341] to-[#043322] border-amber-400/60 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
-                        }`}
-                      >
-                        {isUsed ? '🔒' : '📖'}
-                      </div>
-                      <span
-                        className={`text-xl sm:text-2xl font-black uppercase tracking-widest mt-1 ${
-                          isUsed ? 'text-gray-500 line-through' : 'text-amber-300'
-                        }`}
-                      >
-                        Card {idx + 1}
-                      </span>
-                    </div>
-
-                    {/* Bottom Points / Status Banner */}
-                    <div className="w-full">
-                      {isUsed ? (
-                        <span className="block text-[11px] font-black uppercase tracking-wider text-red-400 bg-red-950/60 py-1 rounded-xl border border-red-800/60">
-                          Esgotado
-                        </span>
-                      ) : (
-                        <div className="flex items-center justify-center gap-1 text-xs font-black text-amber-400 bg-amber-500/10 py-1 rounded-xl border border-amber-500/30">
-                          <Award className="w-3.5 h-3.5 text-amber-400" />
-                          {ROUNDS_INFO[round]?.pointsFull ?? q.pontosCheios} pts
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <>
+                    <span className="font-extrabold text-blue-900 text-[10px]">
+                      10 pts
+                    </span>
+                    <HelpCircle className="w-3 h-3 text-slate-300 group-hover:text-blue-900" />
+                  </>
                 )}
+              </div>
+
+              {/* CENTER QUESTION NUMBER */}
+              <div className="my-auto flex flex-col items-center justify-center">
+                <span
+                  className={`text-xl sm:text-2xl font-black font-mono tracking-tight leading-none ${
+                    isUsed ? 'line-through text-slate-400' : 'text-slate-900'
+                  }`}
+                >
+                  {formattedNumber}
+                </span>
+              </div>
+
+              {/* BOTTOM CATEGORY BADGE */}
+              <div className="w-full">
+                <span
+                  className={`block text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-1 py-0.5 rounded truncate max-w-full ${
+                    isUsed
+                      ? 'bg-slate-200/60 text-slate-400'
+                      : 'bg-blue-50 text-blue-900 border border-blue-100'
+                  }`}
+                >
+                  {q.categoria}
+                </span>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Footer Info */}
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-        <span>Cards restantes nesta rodada:</span>
-        <strong className="text-emerald-400 font-bold">
-          {questionsInRound.length - usedCardIndices.length} de {questionsInRound.length}
-        </strong>
+      {/* FOOTER NOTICE */}
+      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium text-center">
+        <span>Selecione a pergunta solicitada pela equipe no microfone. Cada acerto vale <strong>10 pontos</strong>.</span>
       </div>
-
-      {/* CINEMATIC ZOOM OVERLAY: CARD FLIES TO SCREEN FOR EASY AUDIENCE READING */}
-      {isCardFlipping && selectedCardIndex !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          {/* Ambient Gold Halo behind zooming card */}
-          <div className="absolute w-[500px] h-[500px] rounded-full bg-amber-500/25 blur-3xl animate-pulse pointer-events-none" />
-
-          {/* Large Card Flying and Flipping into Center */}
-          <div className="relative w-full max-w-lg sm:max-w-xl h-[460px] sm:h-[500px] rounded-3xl animate-cardFlyZoomIn shadow-[0_0_80px_rgba(251,191,36,0.9)] border-4 border-amber-400 overflow-hidden">
-            {/* FRONT FACE (Envelope zooms in, then flips out edge-on at 0.7s) */}
-            <div className="absolute inset-0 rounded-3xl p-8 flex flex-col justify-between items-center text-center bg-gradient-to-b from-[#0e2a1f] via-[#091f16] to-[#06140e] border-2 border-amber-400/50 animate-envelopeFlipOut">
-              <div className="w-full flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-[#006341]/80 text-emerald-300 border border-emerald-500 shadow">
-                  Rodada {round}
-                </span>
-                <Sparkles className="w-7 h-7 text-amber-400 animate-pulse" />
-              </div>
-
-              <div className="flex flex-col items-center gap-3 my-auto">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-[#006341] to-[#043322] border-2 border-amber-400 text-amber-300 flex items-center justify-center text-5xl sm:text-6xl shadow-[0_0_30px_rgba(245,158,11,0.5)]">
-                  📖
-                </div>
-                <span className="text-3xl sm:text-4xl font-black uppercase tracking-widest text-amber-300">
-                  Card {selectedCardIndex + 1}
-                </span>
-                <span className="text-xs sm:text-sm text-gray-300 font-bold uppercase tracking-wider">
-                  Envelope Escolhido!
-                </span>
-              </div>
-
-              <span className="text-xs text-amber-400 uppercase tracking-widest animate-pulse font-bold">
-                Revelando pergunta...
-              </span>
-            </div>
-
-            {/* BACK FACE (Question flips in from -90deg to 0deg, facing audience, completely straight and readable!) */}
-            <div className="absolute inset-0 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center bg-gradient-to-br from-[#006341] via-[#0c2e1f] to-[#06140e] text-white border-2 border-amber-400 shadow-2xl animate-questionFlipIn">
-              {/* Header */}
-              <div className="w-full flex items-center justify-between border-b border-amber-400/40 pb-3">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  Envelope Card {selectedCardIndex + 1}
-                </span>
-                <span className="px-3.5 py-1 rounded-full bg-amber-400 text-black font-black text-xs sm:text-sm uppercase shadow">
-                  {ROUNDS_INFO[round]?.pointsFull ?? (currentQuestion?.pontosCheios || 15)} pts
-                </span>
-              </div>
-
-              {/* Question Metadata & Enunciado */}
-              <div className="my-auto flex flex-col items-center gap-3 w-full">
-                <div className="flex items-center gap-2 flex-wrap justify-center">
-                  <span className="text-2xl sm:text-3xl font-black text-amber-300 font-mono">
-                    Pergunta #{currentQuestion?.id || '?'}
-                  </span>
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-3.5 py-1 rounded-full border border-emerald-500/50">
-                    {currentQuestion?.categoria || 'Gálatas'}
-                  </span>
-                </div>
-
-                <div className="w-full p-4 sm:p-5 rounded-2xl bg-black/50 border-2 border-amber-400/40 shadow-inner">
-                  <p className="text-base sm:text-xl font-extrabold text-white leading-relaxed text-center">
-                    "{currentQuestion?.pergunta}"
-                  </p>
-                </div>
-              </div>
-
-              {/* Footer Loading */}
-              <div className="w-full flex items-center justify-center gap-2 pt-2 border-t border-white/10">
-                <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
-                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300 animate-pulse">
-                  Abrindo opções no telão...
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { Leaderboard } from '../components/Leaderboard';
 import { QuestionView } from '../components/QuestionView';
 import { RoundSplash } from '../components/RoundSplash';
 import { RulesView } from '../components/RulesView';
+import { CardSelectionView } from '../components/CardSelectionView';
 import { Podium } from '../components/Podium';
 import { ActionCardsHUD } from '../components/ActionCardsHUD';
 import { ActionCardActivationOverlay } from '../components/ActionCardActivationOverlay';
@@ -17,11 +18,13 @@ export const TelaoPage: React.FC = () => {
   const {
     state,
     currentQuestion,
+    questions,
     totalRounds,
     checkpoint1,
     checkpoint2,
     finishSpin,
     setStage,
+    selectQuestion,
     toggleSound,
     clearLastCardUsed,
   } = useGame();
@@ -224,6 +227,21 @@ export const TelaoPage: React.FC = () => {
               drawnTeam={state.drawnTeam}
               spinSeed={state.spinSeed}
               onFinish={finishSpin}
+            />
+          </div>
+        )}
+
+        {/* STAGE: CARD SELECTION (1 TO 60) */}
+        {state.stage === 'card_selection' && (
+          <div className="w-full flex flex-col items-center justify-center animate-fadeIn">
+            <CardSelectionView
+              questions={questions}
+              usedQuestionIds={state.usedQuestionIdsTotal || []}
+              drawnTeam={state.drawnTeam}
+              teams={state.teams}
+              onSelectQuestion={selectQuestion}
+              interactive={true}
+              round={state.currentRound}
             />
           </div>
         )}

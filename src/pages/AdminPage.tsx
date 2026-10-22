@@ -33,6 +33,7 @@ import {
   X,
   Users,
   Shuffle,
+  HelpCircle,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -112,9 +113,10 @@ export const AdminPage: React.FC = () => {
     { key: 'welcome', label: 'Início', icon: <Sparkles className="w-4 h-4" /> },
     { key: 'rules', label: 'Regras', icon: <BookOpen className="w-4 h-4" /> },
     { key: 'roulette', label: 'Roleta (Ordem)', icon: <Shuffle className="w-4 h-4" /> },
+    { key: 'card_selection', label: 'Escolha (1-60)', icon: <HelpCircle className="w-4 h-4" /> },
     { key: 'splash', label: 'Fase/Splash', icon: <Award className="w-4 h-4" /> },
     { key: 'question', label: 'Pergunta', icon: <BookOpen className="w-4 h-4" /> },
-    { key: 'timer', label: 'Cronômetro (30s)', icon: <Clock className="w-4 h-4" /> },
+    { key: 'timer', label: 'Cronômetro (60s)', icon: <Clock className="w-4 h-4" /> },
     { key: 'reveal', label: 'Revelação', icon: <Eye className="w-4 h-4" /> },
     { key: 'leaderboard', label: 'Placar', icon: <Trophy className="w-4 h-4" /> },
     { key: 'podium', label: 'Pódio Final', icon: <Award className="w-4 h-4" /> },
@@ -434,6 +436,87 @@ export const AdminPage: React.FC = () => {
                     Iniciar 1ª Rodada com {getTeam(drawnOrder[0], state.teams).name}
                   </button>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* STAGE-SPECIFIC CONSOLE: CARD SELECTION (1 A 60) */}
+          {state.stage === 'card_selection' && (
+            <div className="p-6 rounded-3xl bg-white border-2 border-slate-200 shadow-lg flex flex-col gap-5 animate-fadeIn">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center">
+                    <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black uppercase text-slate-900">
+                      Mesa de Escolha de Perguntas (1 a 60)
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      A equipe no microfone deve escolher um número de 1 a 60. Clique no número escolhido para abrir no telão.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={drawNextRandomQuestion}
+                  className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-black uppercase flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <Shuffle className="w-4 h-4" />
+                  Sortear Aleatória
+                </button>
+              </div>
+
+              {activeTeam && (
+                <div
+                  className="p-3.5 rounded-2xl border-2 flex items-center justify-between"
+                  style={{ borderColor: activeTeam.color, backgroundColor: `${activeTeam.color}15` }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm"
+                      style={{ backgroundColor: activeTeam.color }}
+                    >
+                      <TeamIcon icon={activeTeam.icon} className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 block font-bold">Vez de Escolher:</span>
+                      <span className="text-lg font-black uppercase tracking-wide" style={{ color: activeTeam.color }}>
+                        {activeTeam.name}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-sm">
+                    {60 - (state.usedQuestionIdsTotal?.length || 0)} de 60 disponíveis
+                  </span>
+                </div>
+              )}
+
+              {/* 1 to 60 Grid */}
+              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 max-h-[380px] overflow-y-auto p-1.5 scrollbar-thin bg-slate-50 rounded-2xl border border-slate-200">
+                {questions.map((q) => {
+                  const isUsed = state.usedQuestionIdsTotal?.includes(q.id);
+                  return (
+                    <button
+                      key={q.id}
+                      disabled={isUsed}
+                      onClick={() => selectQuestion(q.id)}
+                      title={`#${q.id} [${q.categoria}]: ${q.pergunta}`}
+                      className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+                        isUsed
+                          ? 'bg-slate-100 border-slate-200 text-slate-400 opacity-40 line-through cursor-not-allowed'
+                          : 'bg-white hover:bg-blue-50 border-slate-300 hover:border-blue-900 hover:scale-105 hover:shadow-md cursor-pointer text-slate-900'
+                      }`}
+                    >
+                      <span className="text-sm font-black font-mono">
+                        {q.id < 10 ? `0${q.id}` : q.id}
+                      </span>
+                      <span className="text-[9px] font-bold uppercase truncate max-w-full text-slate-500">
+                        {q.categoria}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

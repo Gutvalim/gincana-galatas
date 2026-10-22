@@ -600,7 +600,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 timerMaxSeconds: DEFAULT_TIMER_SECONDS,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
-                stage: prev.stage === 'reveal' ? ('question' as GameStage) : prev.stage,
+                autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+                isStealActive: false,
+                firstTeamFailed: false,
+                stage: 'question' as GameStage,
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
@@ -1303,7 +1306,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cp1 = Math.round(totalRoundsCalc * (1 / 3));
       const cp2 = Math.round(totalRoundsCalc * (2 / 3));
 
-      let nextStage: GameStage = 'question';
+      let nextStage: GameStage = 'card_selection';
       let nextRound = state.currentRound;
       let finalTurnIndex = nextTurnIndex;
       let nextTeam = order[nextTurnIndex];
@@ -1322,12 +1325,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           finalTurnIndex = 0;
           nextTeam = order[0];
         } else {
-          // Seamless advance to next round without stopping at leaderboard
-          nextStage = 'question';
+          // Seamless advance to next round
+          nextStage = 'card_selection';
           nextRound = finishedRound + 1;
           finalTurnIndex = 0;
           nextTeam = order[0];
         }
+      } else {
+        nextStage = 'card_selection';
       }
 
       let broadcastScores: Record<TeamId, number> = { ...state.scores };
@@ -1353,7 +1358,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timerMaxSeconds: DEFAULT_TIMER_SECONDS,
             isTimerRunning: false,
             timerEndTimestamp: null,
-            autoStartEndTimestamp: nextStage === 'question' ? Date.now() + AUTO_START_GRACE_SECONDS * 1000 : null,
+            autoStartEndTimestamp: null,
             isStealActive: false,
             firstTeamFailed: false,
             currentQuestionId: nextQId,
@@ -1399,10 +1404,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // DRAW NEXT RANDOM QUESTION
   const drawNextRandomQuestion = useCallback(() => {
     const nextQId = pickRandomUnusedQuestionId(state.usedQuestionIdsTotal);
+    const q = questions.find((item) => item.id === nextQId);
+    if (!q) return;
+
     updateStateAndSync(
       (prev) => ({
         ...prev,
         currentQuestionId: nextQId,
+        currentRound: q.rodada,
         isRevealed: false,
         answerStatus: 'idle',
         selectedOptionIndex: null,
@@ -1410,6 +1419,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         timerMaxSeconds: DEFAULT_TIMER_SECONDS,
         isTimerRunning: false,
         timerEndTimestamp: null,
+        autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+        isStealActive: false,
+        firstTeamFailed: false,
+        stage: 'question',
         eliminatedOptionIndices: [],
         isQuestionSkipped: false,
         activeCardAnnouncement: null,
@@ -1632,7 +1645,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           timerMaxSeconds: DEFAULT_TIMER_SECONDS,
           isTimerRunning: false,
           timerEndTimestamp: null,
-          stage: prev.stage === 'reveal' ? 'question' : prev.stage,
+          autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+          isStealActive: false,
+          firstTeamFailed: false,
+          stage: 'question',
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
           activeCardAnnouncement: null,
@@ -1716,15 +1732,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         const firstTeam = getTeam(state.teamOrder[0], state.teams);
         return {
-          label: `Iniciar 1ª Rodada (${firstTeam.name})`,
-          actionDescription: `Iniciar a disputa oficial com a 1ª equipe sorteada`,
+          label: `Iniciar Escolha da Pergunta (${firstTeam.name})`,
+          actionDescription: `Iniciar a disputa oficial com a escolha de pergunta por ${firstTeam.name}`,
           canAdvance: true,
         };
       }
       case 'card_selection':
         return {
-          label: `Abrir Pergunta (${activeTeamInfo.name})`,
-          actionDescription: `Exibir pergunta oficial para ${activeTeamInfo.name}`,
+          label: `Escolher Pergunta (${activeTeamInfo.name})`,
+          actionDescription: `Selecione um número de 1 a 60 para ${activeTeamInfo.name} ou clique para sortear`,
           canAdvance: true,
         };
       case 'question':
@@ -1803,21 +1819,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (orderCount < totalTeams) {
           startRouletteSpin();
         } else {
-          const qId = pickRandomUnusedQuestionId(state.usedQuestionIdsTotal);
           const firstTeam = state.teamOrder[0] || state.teams[0]?.id;
           updateStateAndSync(
             (prev) => ({
               ...prev,
               currentRound: 1,
-              currentQuestionId: qId,
               drawnTeam: firstTeam,
               currentTurnTeamIndex: 0,
-              stage: 'question',
+              stage: 'card_selection',
               timerSeconds: DEFAULT_TIMER_SECONDS,
               timerMaxSeconds: DEFAULT_TIMER_SECONDS,
               isTimerRunning: false,
               timerEndTimestamp: null,
-              autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+              autoStartEndTimestamp: null,
               isRevealed: false,
               answerStatus: 'idle',
               selectedOptionIndex: null,
@@ -1825,16 +1839,40 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               isQuestionSkipped: false,
               activeCardAnnouncement: null,
             }),
-            { type: 'SET_ROUND', payload: { round: 1, questionId: qId } }
+            { type: 'CHANGE_STAGE', payload: 'card_selection' }
           );
         }
         break;
       }
 
       case 'splash':
-      case 'card_selection':
-        setStage('question');
+      case 'card_selection': {
+        const nextQId = pickRandomUnusedQuestionId(state.usedQuestionIdsTotal);
+        const q = questions.find((item) => item.id === nextQId);
+        updateStateAndSync(
+          (prev) => ({
+            ...prev,
+            currentQuestionId: nextQId,
+            currentRound: q?.rodada || prev.currentRound,
+            isRevealed: false,
+            answerStatus: 'idle',
+            selectedOptionIndex: null,
+            timerSeconds: DEFAULT_TIMER_SECONDS,
+            timerMaxSeconds: DEFAULT_TIMER_SECONDS,
+            isTimerRunning: false,
+            timerEndTimestamp: null,
+            autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+            isStealActive: false,
+            firstTeamFailed: false,
+            stage: 'question',
+            eliminatedOptionIndices: [],
+            isQuestionSkipped: false,
+            activeCardAnnouncement: null,
+          }),
+          { type: 'SET_QUESTION', payload: nextQId }
+        );
         break;
+      }
 
       case 'question':
         startTimer();
@@ -1852,22 +1890,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       case 'leaderboard': {
-        // Start next team's turn with a fresh random question
-        const qId = pickRandomUnusedQuestionId(state.usedQuestionIdsTotal);
         const order = state.teamOrder.length > 0 ? state.teamOrder : DEFAULT_TEAMS.map((t) => t.id);
         const teamId = order[state.currentTurnTeamIndex] || order[0];
 
         updateStateAndSync(
           (prev) => ({
             ...prev,
-            currentQuestionId: qId,
             drawnTeam: teamId,
-            stage: 'question',
+            stage: 'card_selection',
             timerSeconds: DEFAULT_TIMER_SECONDS,
             timerMaxSeconds: DEFAULT_TIMER_SECONDS,
             isTimerRunning: false,
             timerEndTimestamp: null,
-            autoStartEndTimestamp: Date.now() + AUTO_START_GRACE_SECONDS * 1000,
+            autoStartEndTimestamp: null,
             isRevealed: false,
             answerStatus: 'idle',
             selectedOptionIndex: null,
@@ -1875,7 +1910,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isQuestionSkipped: false,
             activeCardAnnouncement: null,
           }),
-          { type: 'CHANGE_STAGE', payload: 'question' }
+          { type: 'CHANGE_STAGE', payload: 'card_selection' }
         );
         break;
       }
