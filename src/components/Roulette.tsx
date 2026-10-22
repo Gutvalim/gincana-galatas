@@ -28,24 +28,58 @@ export const Roulette: React.FC<RouletteProps> = ({
   onFinish,
 }) => {
   const [rotation, setRotation] = useState<number>(0);
-  const prevSpinningRef = useRef<boolean>(false);
+  const rotationRef = useRef<number>(0);
+  const onFinishRef = useRef(onFinish);
+  useEffect(() => {
+    onFinishRef.current = onFinish;
+  }, [onFinish]);
+
   const audioIntervalRef = useRef<number | null>(null);
+  const lastSpinSeedRef = useRef<number | null>(null);
 
   // Teams to display on wheel: available teams to draw
   const activeTeams = teams.length > 0 ? teams : teamsList.map((t) => t.id);
   const sliceAngle = 360 / Math.max(1, activeTeams.length);
 
+  // Reset rotation when drawnOrder is reset
   useEffect(() => {
-    if (isSpinning && !prevSpinningRef.current && targetTeam) {
+    if (!drawnOrder || drawnOrder.length === 0) {
+      rotationRef.current = 0;
+      setRotation(0);
+      lastSpinSeedRef.current = null;
+    }
+  }, [drawnOrder]);
+
+  useEffect(() => {
+    if (isSpinning && targetTeam && lastSpinSeedRef.current !== spinSeed) {
+      lastSpinSeedRef.current = spinSeed;
+
       // Calculate target angle
       const targetIndex = activeTeams.indexOf(targetTeam);
       const safeIndex = targetIndex >= 0 ? targetIndex : 0;
 
-      // Pointer is at the top (270 degrees in canvas coords, or 0 degrees with top indicator)
+      // Pointer is at the top (12 o'clock, 0 degrees with top indicator)
       const sliceCenter = (safeIndex + 0.5) * sliceAngle;
-      const extraRevs = 6 * 360;
       const wobble = ((spinSeed - 0.5) * 0.7) * (sliceAngle / 2);
-      const finalAngle = extraRevs + (360 - sliceCenter) + wobble;
+
+      // Desired angle where sliceCenter is aligned with the top pointer
+      const targetBaseAngle = ((360 - sliceCenter + wobble) % 360 + 360) % 360;
+
+      // Current normalized angle of the wheel
+      const currentRotation = rotationRef.current;
+      const currentNormalized = ((currentRotation % 360) + 360) % 360;
+
+      // Forward delta to reach targetBaseAngle
+      let forwardDelta = (targetBaseAngle - currentNormalized) % 360;
+      if (forwardDelta <= 0) {
+        forwardDelta += 360;
+      }
+
+      // Add 6 full revolutions (2160 deg) for a dramatic spin animation
+      const extraRevs = 6 * 360;
+      const finalAngle = currentRotation + extraRevs + forwardDelta;
+
+      rotationRef.current = finalAngle;
       setRotation(finalAngle);
 
       // Play tick audio effects during deceleration
@@ -76,8 +110,8 @@ export const Roulette: React.FC<RouletteProps> = ({
 
       // Finish callback after transition ends (5.2 seconds)
       const finishTimeout = setTimeout(() => {
-        if (onFinish && targetTeam) {
-          onFinish(targetTeam);
+        if (onFinishRef.current && targetTeam) {
+          onFinishRef.current(targetTeam);
         }
       }, 5200);
 
@@ -86,8 +120,7 @@ export const Roulette: React.FC<RouletteProps> = ({
         clearTimeout(finishTimeout);
       };
     }
-    prevSpinningRef.current = isSpinning;
-  }, [isSpinning, targetTeam, activeTeams, sliceAngle, spinSeed, onFinish]);
+  }, [isSpinning, targetTeam, activeTeams, sliceAngle, spinSeed]);
 
   // 20 LEDs around the wheel perimeter
   const numLeds = 20;
