@@ -350,11 +350,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (nextStage === 'question') {
                   nextStage = 'timer';
                 }
-                announcement = `📖 Consulta Bíblica: 30s para pesquisar na Bíblia!`;
+                const teamObj = getTeam(team, prev.teams);
+                announcement = `📖 Consulta Bíblica: 30s para pesquisar na Bíblia (${teamObj.name})!`;
               } else if (cardType === 'fiftyFifty') {
-                announcement = `🌓 50/50: 2 alternativas eliminadas para ${team}!`;
+                const teamObj = getTeam(team, prev.teams);
+                announcement = `🌓 50/50: 2 alternativas eliminadas para ${teamObj.name}!`;
               } else if (cardType === 'skip') {
-                announcement = `🏃‍♂️ ${team} usou a carta PULAR! Uma nova pergunta foi sorteada!`;
+                const teamObj = getTeam(team, prev.teams);
+                announcement = `🏃‍♂️ ${teamObj.name} usou a carta PULAR! Uma nova pergunta foi sorteada!`;
                 newTimerSeconds = DEFAULT_TIMER_SECONDS;
                 newTimerMaxSeconds = DEFAULT_TIMER_SECONDS;
                 newTimerEndTimestamp = null;
@@ -1446,13 +1449,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (nextStage === 'question') {
           nextStage = 'timer';
         }
-        announcement = `📖 Consulta Bíblica: 30s adicionais de pesquisa na Bíblia!`;
+        const teamName = getTeam(activeTeam, state.teams).name;
+        announcement = `📖 Consulta Bíblica: 30s para pesquisar na Bíblia (${teamName})!`;
       } else if (cardType === 'fiftyFifty') {
         const teamName = getTeam(activeTeam, state.teams).name;
         announcement = `🌓 50/50: 2 alternativas eliminadas para ${teamName}!`;
       } else if (cardType === 'skip') {
         const teamName = getTeam(activeTeam, state.teams).name;
-        announcement = `🏃‍♂️ ${teamName} usou a carta PULAR! Nova pergunta sorteada!`;
+        announcement = `🏃‍♂️ ${teamName} usou a carta PULAR! Uma nova pergunta foi sorteada!`;
         newTimerSeconds = DEFAULT_TIMER_SECONDS;
         newTimerMaxSeconds = DEFAULT_TIMER_SECONDS;
         newTimerEndTimestamp = null;

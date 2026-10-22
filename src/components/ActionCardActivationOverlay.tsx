@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import type { ActionCardType, TeamId } from '../types/game';
+import type { ActionCardType, TeamId, TeamInfo } from '../types/game';
 import { getTeam } from '../types/game';
+import { TeamIcon } from './TeamIcon';
 import { BookOpen, Sparkles, FastForward, Zap, Flame } from 'lucide-react';
 
 interface ActionCardActivationOverlayProps {
   cardType: ActionCardType | null;
   team: TeamId | null;
+  teams?: TeamInfo[];
   timestamp?: number;
   onDismiss?: () => void;
   duration?: number;
@@ -14,6 +16,7 @@ interface ActionCardActivationOverlayProps {
 export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayProps> = ({
   cardType,
   team,
+  teams = [],
   timestamp,
   onDismiss,
   duration = 2700,
@@ -40,7 +43,7 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
 
   if (!visible || !cardType || !team) return null;
 
-  const teamInfo = getTeam(team);
+  const teamInfo = getTeam(team, teams);
 
   return (
     <div
@@ -80,9 +83,11 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
                 color: teamInfo.color,
               }}
             >
-              {teamInfo.logo && (
+              {teamInfo.icon ? (
+                <TeamIcon icon={teamInfo.icon} className="w-5 h-5" />
+              ) : teamInfo.logo ? (
                 <img src={teamInfo.logo} alt={teamInfo.name} className="w-5 h-5 object-contain" />
-              )}
+              ) : null}
               {teamInfo.name} acionou um Power-Up!
             </div>
 
@@ -141,9 +146,11 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
                 color: teamInfo.color,
               }}
             >
-              {teamInfo.logo && (
+              {teamInfo.icon ? (
+                <TeamIcon icon={teamInfo.icon} className="w-5 h-5" />
+              ) : teamInfo.logo ? (
                 <img src={teamInfo.logo} alt={teamInfo.name} className="w-5 h-5 object-contain" />
-              )}
+              ) : null}
               {teamInfo.name} acionou um Power-Up!
             </div>
 
@@ -205,9 +212,11 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
                 color: teamInfo.color,
               }}
             >
-              {teamInfo.logo && (
+              {teamInfo.icon ? (
+                <TeamIcon icon={teamInfo.icon} className="w-5 h-5" />
+              ) : teamInfo.logo ? (
                 <img src={teamInfo.logo} alt={teamInfo.name} className="w-5 h-5 object-contain" />
-              )}
+              ) : null}
               {teamInfo.name} acionou a Carta Pular!
             </div>
 

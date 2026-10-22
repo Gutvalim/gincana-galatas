@@ -348,6 +348,7 @@ export const TelaoPage: React.FC = () => {
         <ActionCardActivationOverlay
           cardType={state.lastCardUsed.type}
           team={state.lastCardUsed.team}
+          teams={state.teams}
           timestamp={state.lastCardUsed.timestamp}
           onDismiss={clearLastCardUsed}
         />
