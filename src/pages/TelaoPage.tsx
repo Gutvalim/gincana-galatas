@@ -94,27 +94,36 @@ export const TelaoPage: React.FC = () => {
         {/* Center Live Badges */}
         <div className="flex items-center gap-3">
           {state.drawnTeam && activeTeamInfo && state.stage !== 'roulette' && (
-            <div
-              className="px-4 py-1.5 rounded-full border-2 flex items-center gap-2 shadow-sm animate-pulse"
-              style={{
-                borderColor: activeTeamInfo.color,
-                backgroundColor: `${activeTeamInfo.color}15`,
-              }}
-            >
-              <div
-                className="w-5 h-5 rounded-md flex items-center justify-center text-xs"
-                style={{ color: activeTeamInfo.color }}
-              >
-                <TeamIcon icon={activeTeamInfo.icon} className="w-4 h-4" />
+            state.isStealActive ? (
+              <div className="px-4 py-1.5 rounded-full border-2 border-red-500 bg-red-500/15 flex items-center gap-2 shadow-sm animate-pulse text-red-600">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span className="text-xs font-black uppercase tracking-wider">
+                  Repasse Liberado (30s)
+                </span>
               </div>
-              <span className="text-xs text-slate-500 uppercase font-bold">Vez de:</span>
-              <span
-                className="font-black text-sm uppercase tracking-wider"
-                style={{ color: activeTeamInfo.color }}
+            ) : (
+              <div
+                className="px-4 py-1.5 rounded-full border-2 flex items-center gap-2 shadow-sm animate-pulse"
+                style={{
+                  borderColor: activeTeamInfo.color,
+                  backgroundColor: `${activeTeamInfo.color}15`,
+                }}
               >
-                {activeTeamInfo.name}
-              </span>
-            </div>
+                <div
+                  className="w-5 h-5 rounded-md flex items-center justify-center text-xs"
+                  style={{ color: activeTeamInfo.color }}
+                >
+                  <TeamIcon icon={activeTeamInfo.icon} className="w-4 h-4" />
+                </div>
+                <span className="text-xs text-slate-500 uppercase font-bold">Vez de:</span>
+                <span
+                  className="font-black text-sm uppercase tracking-wider"
+                  style={{ color: activeTeamInfo.color }}
+                >
+                  {activeTeamInfo.name}
+                </span>
+              </div>
+            )
           )}
 
           <div className="px-3.5 py-1.5 rounded-full bg-blue-100 border border-blue-200 text-xs font-black text-blue-900 uppercase">
@@ -257,6 +266,7 @@ export const TelaoPage: React.FC = () => {
               eliminatedOptionIndices={state.eliminatedOptionIndices}
               activeCardAnnouncement={state.activeCardAnnouncement}
               isQuestionSkipped={state.isQuestionSkipped}
+              isStealActive={state.isStealActive}
             />
           </div>
         )}
@@ -311,6 +321,7 @@ export const TelaoPage: React.FC = () => {
               eliminatedOptionIndices={state.eliminatedOptionIndices}
               activeCardAnnouncement={state.activeCardAnnouncement}
               isQuestionSkipped={state.isQuestionSkipped}
+              isStealActive={state.isStealActive}
             />
           </div>
         )}
@@ -329,6 +340,7 @@ export const TelaoPage: React.FC = () => {
               eliminatedOptionIndices={state.eliminatedOptionIndices}
               activeCardAnnouncement={state.activeCardAnnouncement}
               isQuestionSkipped={state.isQuestionSkipped}
+              isStealActive={state.isStealActive || state.firstTeamFailed}
             />
           </div>
         )}

@@ -16,6 +16,7 @@ interface QuestionViewProps {
   eliminatedOptionIndices?: number[];
   activeCardAnnouncement?: string | null;
   isQuestionSkipped?: boolean;
+  isStealActive?: boolean;
 }
 
 export const QuestionView: React.FC<QuestionViewProps> = ({
@@ -30,6 +31,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   eliminatedOptionIndices = [],
   activeCardAnnouncement = null,
   isQuestionSkipped = false,
+  isStealActive = false,
 }) => {
   const letters = ['A', 'B', 'C', 'D'];
   const team = drawnTeam ? getTeam(drawnTeam, teams) : null;
@@ -41,7 +43,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 select-none animate-fadeIn">
       {/* Active Team on Microphone Banner */}
-      {team && (
+      {team && !isStealActive && (
         <div
           className="flex items-center justify-between px-5 py-3 rounded-2xl border-2 shadow-sm animate-fadeIn"
           style={{

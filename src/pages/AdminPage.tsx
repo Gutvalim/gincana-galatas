@@ -929,9 +929,21 @@ export const AdminPage: React.FC = () => {
           {/* Active Team Card */}
           <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-sm">
             <span className="text-xs font-black uppercase tracking-wider text-slate-500 block mb-2">
-              Equipe da Vez no Microfone:
+              {state.isStealActive ? '🚨 Modo Repasse (Microfone Aberto):' : 'Equipe da Vez no Microfone:'}
             </span>
-            {state.drawnTeam ? (
+            {state.isStealActive ? (
+              <div className="p-3.5 rounded-xl border-2 border-red-500 bg-red-50 flex items-center gap-3">
+                <AlertTriangle className="w-6 h-6 text-red-600 animate-pulse shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-red-700 block">
+                    Microfone liberado para qualquer adversária!
+                  </span>
+                  <span className="text-[11px] text-slate-600">
+                    {activeTeam.name} errou a questão.
+                  </span>
+                </div>
+              </div>
+            ) : state.drawnTeam ? (
               <div
                 className="p-3.5 rounded-xl border-2 shadow-sm flex items-center justify-between"
                 style={{
