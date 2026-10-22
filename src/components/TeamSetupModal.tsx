@@ -125,12 +125,12 @@ export const TeamSetupModal: React.FC<TeamSetupModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-4xl bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-8 shadow-2xl flex flex-col gap-5 max-h-[92vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-900 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-900 shrink-0 shadow-sm">
               <Users className="w-6 h-6" />
             </div>
             <div>
@@ -175,121 +175,145 @@ export const TeamSetupModal: React.FC<TeamSetupModalProps> = ({
         </div>
 
         {/* Teams List */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3.5">
           {teams.map((team, idx) => (
             <div
               key={team.id}
-              className="p-3.5 rounded-2xl bg-slate-50 border-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all shadow-sm"
-              style={{ borderColor: `${team.color}50` }}
+              className="p-4 rounded-2xl bg-slate-50 border-2 flex flex-col gap-3 transition-all shadow-sm"
+              style={{ borderColor: `${team.color}70` }}
             >
-              {/* Left: Position & Icon & Name */}
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span
-                  className="w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs text-white shrink-0 shadow-sm"
-                  style={{ backgroundColor: team.color }}
-                >
-                  #{idx + 1}
-                </span>
-
-                {/* Team Icon Button */}
-                <button
-                  onClick={() =>
-                    setActiveIconPickerTeamId(
-                      activeIconPickerTeamId === team.id ? null : team.id
-                    )
-                  }
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center border-2 transition-transform hover:scale-105 shrink-0 shadow-sm relative cursor-pointer text-white"
-                  style={{
-                    backgroundColor: team.color,
-                    borderColor: team.color,
-                  }}
-                  title="Clique para trocar o ícone desta equipe"
-                >
-                  <TeamIcon icon={team.icon} className="w-6 h-6" />
-                </button>
-
-                {/* Team Name Input */}
-                <div className="flex-1 min-w-0">
-                  <input
-                    type="text"
-                    value={team.name}
-                    onChange={(e) => handleNameChange(team.id, e.target.value)}
-                    className="w-full bg-white border border-slate-300 focus:border-blue-700 px-3 py-1.5 rounded-xl font-black text-slate-900 text-sm outline-none transition-colors"
-                    placeholder="Nome da Equipe"
-                  />
-                </div>
-              </div>
-
-              {/* Right: Color Picker & Order Controls */}
-              <div className="flex items-center gap-3 justify-between sm:justify-end">
-                {/* Color swatches */}
-                <div className="flex items-center gap-1.5">
-                  {AVAILABLE_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => handleColorChange(team.id, c)}
-                      className={`w-5 h-5 rounded-full transition-transform cursor-pointer ${
-                        team.color === c ? 'scale-125 ring-2 ring-blue-900 ring-offset-1' : 'opacity-70 hover:opacity-100'
-                      }`}
-                      style={{ backgroundColor: c }}
-                      title={`Cor ${c}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Reorder Buttons */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleMoveUp(idx)}
-                    disabled={idx === 0}
-                    className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:pointer-events-none border border-slate-300 cursor-pointer"
-                    title="Mover para cima"
+              {/* Main Team Info Row */}
+              <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                {/* Left: Position & Icon & Name */}
+                <div className="flex items-center gap-3 flex-1 min-w-[220px]">
+                  <span
+                    className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs text-white shrink-0 shadow-sm"
+                    style={{ backgroundColor: team.color }}
                   >
-                    <ArrowUp className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleMoveDown(idx)}
-                    disabled={idx === teams.length - 1}
-                    className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:pointer-events-none border border-slate-300 cursor-pointer"
-                    title="Mover para baixo"
-                  >
-                    <ArrowDown className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Remove Team */}
-                <button
-                  onClick={() => handleRemoveTeam(team.id)}
-                  className="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 cursor-pointer"
-                  title="Remover Equipe"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Collapsible Icon Picker Grid for this Team */}
-              {activeIconPickerTeamId === team.id && (
-                <div className="w-full mt-2 pt-3 border-t border-slate-200 grid grid-cols-4 sm:grid-cols-8 gap-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
-                  <span className="col-span-full text-xs font-bold text-slate-600 mb-1">
-                    Escolha um ícone para <span className="text-slate-900 font-black">{team.name}</span>:
+                    #{idx + 1}
                   </span>
-                  {AVAILABLE_ICONS.map((iconName) => (
+
+                  {/* Team Icon Button */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveIconPickerTeamId(
+                        activeIconPickerTeamId === team.id ? null : team.id
+                      )
+                    }
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center border-2 transition-all hover:scale-105 shrink-0 shadow-sm relative cursor-pointer text-white"
+                    style={{
+                      backgroundColor: team.color,
+                      borderColor: team.color,
+                    }}
+                    title="Clique para trocar o ícone desta equipe"
+                  >
+                    <TeamIcon icon={team.icon} className="w-6 h-6" />
+                  </button>
+
+                  {/* Team Name Input */}
+                  <div className="flex-1 min-w-[140px]">
+                    <input
+                      type="text"
+                      value={team.name}
+                      onChange={(e) => handleNameChange(team.id, e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-blue-700 px-3.5 py-2 rounded-xl font-black text-slate-900 text-sm outline-none transition-colors shadow-inner"
+                      placeholder="Nome da Equipe"
+                    />
+                  </div>
+                </div>
+
+                {/* Right: Color Picker & Order Controls */}
+                <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                  {/* Color swatches */}
+                  <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-slate-200">
+                    {AVAILABLE_COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => handleColorChange(team.id, c)}
+                        className={`w-5 h-5 rounded-full transition-transform cursor-pointer ${
+                          team.color === c ? 'scale-125 ring-2 ring-slate-900 ring-offset-1' : 'opacity-70 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: c }}
+                        title={`Cor ${c}`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Reorder Buttons */}
+                  <div className="flex items-center gap-1">
                     <button
-                      key={iconName}
-                      onClick={() => handleIconChange(team.id, iconName)}
-                      className={`p-2 rounded-xl flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${
-                        team.icon === iconName
-                          ? 'border-blue-700 bg-blue-50 text-blue-900 scale-105 shadow-sm'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-600 hover:bg-slate-50'
-                      }`}
+                      type="button"
+                      onClick={() => handleMoveUp(idx)}
+                      disabled={idx === 0}
+                      className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:pointer-events-none border border-slate-300 cursor-pointer"
+                      title="Mover para cima"
                     >
-                      <TeamIcon icon={iconName} className="w-5 h-5" />
-                      <span className="text-[10px] font-medium truncate w-full text-center">
-                        {iconName}
-                      </span>
+                      <ArrowUp className="w-4 h-4" />
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => handleMoveDown(idx)}
+                      disabled={idx === teams.length - 1}
+                      className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:pointer-events-none border border-slate-300 cursor-pointer"
+                      title="Mover para baixo"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Remove Team */}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTeam(team.id)}
+                    className="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 cursor-pointer"
+                    title="Remover Equipe"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Full-width Icon Picker Grid for this Team */}
+              {activeIconPickerTeamId === team.id && (
+                <div className="w-full mt-1 pt-3 border-t border-slate-200 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm animate-fadeIn">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-600">
+                      Escolha um ícone para <strong className="text-slate-900">{team.name}</strong>:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveIconPickerTeamId(null)}
+                      className="text-slate-400 hover:text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Fechar
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                    {AVAILABLE_ICONS.map((iconName) => {
+                      const isSelected = team.icon === iconName;
+                      return (
+                        <button
+                          key={iconName}
+                          type="button"
+                          onClick={() => handleIconChange(team.id, iconName)}
+                          className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-1.5 border-2 transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-blue-700 bg-blue-50 text-blue-900 shadow-sm scale-105 ring-2 ring-blue-400/40'
+                              : 'border-slate-200 hover:border-slate-400 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <TeamIcon icon={iconName} className="w-6 h-6" />
+                          <span className="text-[10px] font-bold truncate w-full text-center">
+                            {iconName}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
