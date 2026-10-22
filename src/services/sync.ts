@@ -97,7 +97,7 @@ export const INITIAL_STATE: GameState = {
   usedCardIndicesInRound: [],
   selectedCardIndex: null,
   isCardFlipping: false,
-  drawnTeam: DEFAULT_TEAMS[0].id,
+  drawnTeam: null,
   isSpinning: false,
   spinningTargetTeam: null,
   spinSeed: 0,
@@ -126,12 +126,14 @@ export function loadSavedState(): GameState {
       if (parsed && typeof parsed.scores === 'object') {
         const teams = parsed.teams && parsed.teams.length > 0 ? parsed.teams : DEFAULT_TEAMS;
         const teamOrder = Array.isArray(parsed.teamOrder) ? parsed.teamOrder : [];
+        const drawnTeam = teamOrder.length > 0 ? (parsed.drawnTeam || teamOrder[0]) : null;
 
         return {
           ...INITIAL_STATE,
           ...parsed,
           teams,
           teamOrder,
+          drawnTeam,
           currentRuleIndex: typeof parsed.currentRuleIndex === 'number' ? parsed.currentRuleIndex : 0,
           timerSeconds: parsed.timerSeconds || DEFAULT_TIMER_SECONDS,
           timerMaxSeconds: parsed.timerMaxSeconds || DEFAULT_TIMER_SECONDS,

@@ -166,6 +166,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 stage: effectiveStage,
                 isSpinning: false,
                 spinningTargetTeam: null,
+                ...(effectiveStage === 'roulette' && (!prev.teamOrder || prev.teamOrder.length === 0)
+                  ? { drawnTeam: null }
+                  : {}),
                 ...(effectiveStage !== 'reveal'
                   ? {
                       isRevealed: false,
@@ -183,7 +186,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           case 'UPDATE_TEAMS': {
             const { teams, resetScores } = action.payload;
             setState((prev) => {
-              const teamOrder = teams.map((t) => t.id);
+              const isFreshGame = resetScores || !prev.teamOrder || prev.teamOrder.length < prev.teams.length;
+              const teamOrder = isFreshGame ? [] : prev.teamOrder.filter((id) => teams.some((t) => t.id === id));
+              const drawnTeam = teamOrder.length > 0 ? (prev.drawnTeam && teamOrder.includes(prev.drawnTeam) ? prev.drawnTeam : teamOrder[0]) : null;
               const newScores: Record<TeamId, number> = {};
               const newCards: Record<TeamId, any> = {};
 
@@ -199,7 +204,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 teams,
                 teamOrder,
                 currentTurnTeamIndex: 0,
-                drawnTeam: teamOrder[0] || null,
+                drawnTeam,
                 scores: newScores,
                 actionCards: newCards,
                 teamsAvailableInRound: [...teamOrder],
@@ -280,7 +285,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const updated: GameState = {
                 ...prev,
                 teamOrder: [],
-                drawnTeam: prev.teams[0]?.id || null,
+                drawnTeam: null,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -791,6 +796,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         (prev) => ({
           ...prev,
           stage,
+          ...(stage === 'roulette' && (!prev.teamOrder || prev.teamOrder.length === 0)
+            ? { drawnTeam: null }
+            : {}),
           ...(stage !== 'reveal'
             ? {
                 isRevealed: false,
@@ -821,9 +829,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // UPDATE TEAMS CONFIGURATION
   const updateTeams = useCallback(
     (newTeams: TeamInfo[], resetScores: boolean) => {
-      const order = newTeams.map((t) => t.id);
       updateStateAndSync(
         (prev) => {
+          const isFreshGame = resetScores || !prev.teamOrder || prev.teamOrder.length < prev.teams.length;
+          const teamOrder = isFreshGame ? [] : prev.teamOrder.filter((id) => newTeams.some((t) => t.id === id));
+          const drawnTeam = teamOrder.length > 0 ? (prev.drawnTeam && teamOrder.includes(prev.drawnTeam) ? prev.drawnTeam : teamOrder[0]) : null;
           const newScores: Record<TeamId, number> = {};
           const newCards: Record<TeamId, any> = {};
 
@@ -837,12 +847,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return {
             ...prev,
             teams: newTeams,
-            teamOrder: order,
+            teamOrder,
             currentTurnTeamIndex: 0,
-            drawnTeam: order[0] || null,
+            drawnTeam,
             scores: newScores,
             actionCards: newCards,
-            teamsAvailableInRound: [...order],
+            teamsAvailableInRound: [...teamOrder],
           };
         },
         { type: 'UPDATE_TEAMS', payload: { teams: newTeams, resetScores } }
@@ -882,7 +892,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (prev) => ({
         ...prev,
         teamOrder: [],
-        drawnTeam: prev.teams[0]?.id || null,
+        drawnTeam: null,
       }),
       { type: 'RESET_TEAM_ORDER' }
     );
@@ -1857,7 +1867,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // RESET GAME
   const resetGameToStart = useCallback(() => {
     const teams = state.teams.length > 0 ? state.teams : DEFAULT_TEAMS;
-    const teamOrder = teams.map((t) => t.id);
     const initialScores: Record<TeamId, number> = {};
     const initialCards: Record<TeamId, any> = {};
 
@@ -1869,12 +1878,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const resetState: GameState = {
       ...INITIAL_STATE,
       teams,
-      teamOrder,
+      teamOrder: [],
       currentTurnTeamIndex: 0,
-      drawnTeam: teamOrder[0] || null,
+      drawnTeam: null,
       scores: initialScores,
       actionCards: initialCards,
-      teamsAvailableInRound: [...teamOrder],
+      teamsAvailableInRound: [],
       timerSeconds: DEFAULT_TIMER_SECONDS,
       timerMaxSeconds: DEFAULT_TIMER_SECONDS,
       lastUpdated: Date.now(),

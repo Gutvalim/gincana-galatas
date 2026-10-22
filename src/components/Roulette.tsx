@@ -99,6 +99,13 @@ export const Roulette: React.FC<RouletteProps> = ({
   });
 
   const isAllDrawn = teamsList.length > 0 && drawnOrder.length >= teamsList.length;
+  const isTeamActuallyDrawn = Boolean(
+    drawnTeam &&
+      !isSpinning &&
+      drawnOrder &&
+      drawnOrder.length > 0 &&
+      drawnOrder[drawnOrder.length - 1] === drawnTeam
+  );
 
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col items-center select-none animate-fadeIn">
@@ -298,7 +305,7 @@ export const Roulette: React.FC<RouletteProps> = ({
           </div>
 
           {/* Selected Team Highlight Banner with Glow and Animation */}
-          {drawnTeam && !isSpinning && (() => {
+          {isTeamActuallyDrawn && drawnTeam && (() => {
             const dTeam = getTeam(drawnTeam, teamsList);
             return (
               <div className="mt-5 animate-bounce">
