@@ -51,6 +51,9 @@ export type SyncAction =
         pointsAwarded: Record<TeamId, number>;
         newScores: Record<TeamId, number>;
         nextQuestionId?: number;
+        nextStage?: GameStage;
+        nextRound?: number;
+        nextTurnIndex?: number;
         wasSkipped?: boolean;
       };
     }

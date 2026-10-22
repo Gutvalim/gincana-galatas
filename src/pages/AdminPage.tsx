@@ -1124,7 +1124,6 @@ export const AdminPage: React.FC = () => {
                     key={t.id}
                     onClick={() => {
                       confirmStealWinner(t.id);
-                      submitQuestionScore(false, [], t.id);
                       setIsStealModalOpen(false);
                     }}
                     className="p-3.5 rounded-2xl border-2 flex items-center justify-between transition-all cursor-pointer hover:scale-[1.02] shadow-sm"
@@ -1161,7 +1160,6 @@ export const AdminPage: React.FC = () => {
               <button
                 onClick={() => {
                   confirmStealWinner(null);
-                  submitQuestionScore(false, [], null);
                   setIsStealModalOpen(false);
                 }}
                 className="p-3.5 rounded-2xl border-2 border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-black text-sm uppercase flex items-center justify-center gap-2 cursor-pointer transition-all mt-1"

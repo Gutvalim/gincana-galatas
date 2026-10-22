@@ -532,7 +532,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setState((prev) => {
               const updated: GameState = {
                 ...prev,
-                scores: action.payload.newScores,
+                scores: action.payload.newScores ?? prev.scores,
+                drawnTeam: action.payload.drawnTeam ?? prev.drawnTeam,
+                currentTurnTeamIndex: action.payload.nextTurnIndex ?? prev.currentTurnTeamIndex,
+                currentRound: action.payload.nextRound ?? prev.currentRound,
                 isRevealed: false,
                 selectedOptionIndex: null,
                 answerStatus: 'idle',
@@ -540,8 +543,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 timerMaxSeconds: DEFAULT_TIMER_SECONDS,
                 isTimerRunning: false,
                 timerEndTimestamp: null,
+                autoStartEndTimestamp: action.payload.nextStage === 'question' ? Date.now() + AUTO_START_GRACE_SECONDS * 1000 : null,
+                isStealActive: false,
+                firstTeamFailed: false,
                 currentQuestionId: action.payload.nextQuestionId ?? prev.currentQuestionId,
-                stage: 'leaderboard',
+                stage: action.payload.nextStage ?? 'question',
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
@@ -635,14 +641,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               sounds.playCorrectReveal();
             }
             setState((prev) => {
+              const freshScores = newScores ? { ...newScores } : { ...prev.scores };
+              if (!newScores && winnerTeam && pointsAwarded > 0) {
+                freshScores[winnerTeam] = (freshScores[winnerTeam] || 0) + pointsAwarded;
+              }
               const updated: GameState = {
                 ...prev,
-                scores: newScores,
+                scores: freshScores,
                 isRevealed: true,
                 answerStatus: winnerTeam ? 'correct' : 'wrong',
                 isTimerRunning: false,
                 timerEndTimestamp: null,
                 isStealActive: false,
+                firstTeamFailed: true,
                 stage: 'reveal',
                 lastUpdated: Date.now(),
               };
@@ -1089,26 +1100,36 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // CONFIRM STEAL WINNER
   const confirmStealWinner = useCallback(
     (winnerTeam: TeamId | null) => {
-      const newScores = { ...state.scores };
       let pointsAwarded = 0;
       if (winnerTeam) {
         pointsAwarded = FIXED_QUESTION_POINTS;
-        newScores[winnerTeam] = (newScores[winnerTeam] || 0) + pointsAwarded;
         sounds.playCorrectReveal();
       }
 
+      const newScores = { ...state.scores };
+      if (winnerTeam) {
+        newScores[winnerTeam] = (newScores[winnerTeam] || 0) + pointsAwarded;
+      }
+
       updateStateAndSync(
-        (prev) => ({
-          ...prev,
-          scores: newScores,
-          isRevealed: true,
-          answerStatus: winnerTeam ? 'correct' : 'wrong',
-          isTimerRunning: false,
-          timerEndTimestamp: null,
-          autoStartEndTimestamp: null,
-          isStealActive: false,
-          stage: 'reveal',
-        }),
+        (prev) => {
+          const freshScores = { ...prev.scores };
+          if (winnerTeam) {
+            freshScores[winnerTeam] = (freshScores[winnerTeam] || 0) + pointsAwarded;
+          }
+          return {
+            ...prev,
+            scores: freshScores,
+            isRevealed: true,
+            answerStatus: winnerTeam ? 'correct' : 'wrong',
+            isTimerRunning: false,
+            timerEndTimestamp: null,
+            autoStartEndTimestamp: null,
+            isStealActive: false,
+            firstTeamFailed: true,
+            stage: 'reveal',
+          };
+        },
         {
           type: 'CONFIRM_STEAL_WINNER',
           payload: {
@@ -1257,9 +1278,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const activeTeam = state.drawnTeam;
       const isSkipped = state.isQuestionSkipped;
 
-      const newScores = { ...state.scores };
       let winningTeam: TeamId | null = null;
-
       if (customWinnerTeam !== undefined) {
         winningTeam = customWinnerTeam;
       } else if (!isSkipped && activeTeam && drawnCorrect) {
@@ -1311,51 +1330,64 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      let broadcastScores: Record<TeamId, number> = { ...state.scores };
+
       updateStateAndSync(
-        (prev) => ({
-          ...prev,
-          scores: newScores,
-          drawnTeam: nextTeam,
-          currentTurnTeamIndex: finalTurnIndex,
-          currentRound: nextRound,
-          isRevealed: false,
-          selectedOptionIndex: null,
-          answerStatus: 'idle',
-          timerSeconds: DEFAULT_TIMER_SECONDS,
-          timerMaxSeconds: DEFAULT_TIMER_SECONDS,
-          isTimerRunning: false,
-          timerEndTimestamp: null,
-          autoStartEndTimestamp: nextStage === 'question' ? Date.now() + AUTO_START_GRACE_SECONDS * 1000 : null,
-          isStealActive: false,
-          firstTeamFailed: false,
-          currentQuestionId: nextQId,
-          stage: nextStage,
-          eliminatedOptionIndices: [],
-          isQuestionSkipped: false,
-          activeCardAnnouncement: null,
-          usedQuestionIdsTotal: updatedUsedIds,
-          history: [
-            ...prev.history,
-            {
-              round: prev.currentRound,
-              questionId: prev.currentQuestionId,
-              drawnTeam: winningTeam || activeTeam,
-              drawnCorrect: !isSkipped && (drawnCorrect || winningTeam !== null),
-              paperCorrectTeams: [],
-              pointsAwarded,
-              timestamp: Date.now(),
-            },
-          ],
-        }),
+        (prev) => {
+          const freshScores = { ...prev.scores };
+          if (customWinnerTeam) {
+            freshScores[customWinnerTeam] = (freshScores[customWinnerTeam] || 0) + FIXED_QUESTION_POINTS;
+          }
+          broadcastScores = freshScores;
+
+          return {
+            ...prev,
+            scores: freshScores,
+            drawnTeam: nextTeam,
+            currentTurnTeamIndex: finalTurnIndex,
+            currentRound: nextRound,
+            isRevealed: false,
+            selectedOptionIndex: null,
+            answerStatus: 'idle',
+            timerSeconds: DEFAULT_TIMER_SECONDS,
+            timerMaxSeconds: DEFAULT_TIMER_SECONDS,
+            isTimerRunning: false,
+            timerEndTimestamp: null,
+            autoStartEndTimestamp: nextStage === 'question' ? Date.now() + AUTO_START_GRACE_SECONDS * 1000 : null,
+            isStealActive: false,
+            firstTeamFailed: false,
+            currentQuestionId: nextQId,
+            stage: nextStage,
+            eliminatedOptionIndices: [],
+            isQuestionSkipped: false,
+            activeCardAnnouncement: null,
+            usedQuestionIdsTotal: updatedUsedIds,
+            history: [
+              ...prev.history,
+              {
+                round: prev.currentRound,
+                questionId: prev.currentQuestionId,
+                drawnTeam: winningTeam || activeTeam,
+                drawnCorrect: !isSkipped && (drawnCorrect || winningTeam !== null),
+                paperCorrectTeams: [],
+                pointsAwarded,
+                timestamp: Date.now(),
+              },
+            ],
+          };
+        },
         {
           type: 'SUBMIT_POINTS',
           payload: {
-            drawnTeam: winningTeam || activeTeam,
+            drawnTeam: nextTeam,
             drawnCorrect: !isSkipped && (drawnCorrect || winningTeam !== null),
             paperCorrectTeams: [],
             pointsAwarded,
-            newScores,
+            newScores: broadcastScores,
             nextQuestionId: nextQId,
+            nextStage,
+            nextRound,
+            nextTurnIndex: finalTurnIndex,
             wasSkipped: isSkipped,
           },
         }
