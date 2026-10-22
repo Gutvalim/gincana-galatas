@@ -313,11 +313,11 @@ export const AdminPage: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[
                   '1. Sorteio na Roleta',
-                  '2. 10 Pts Gálatas',
-                  '3. Cronômetro 30s',
-                  '4. Líder no Microfone',
+                  '2. Escolha & 10 Pts',
+                  '3. Tempo de 60s',
+                  '4. Repasse (30s e 5 Pts)',
                   '5. Cartas de Ação',
-                  '6. Bônus no Pódio',
+                  '6. Pódio & Bônus (+5 Pts)',
                 ].map((name, idx) => (
                   <button
                     key={idx}
@@ -1287,7 +1287,7 @@ export const AdminPage: React.FC = () => {
                       className="px-3 py-1 rounded-xl text-xs font-black text-white uppercase shadow"
                       style={{ backgroundColor: t.color }}
                     >
-                      +10 Pontos
+                      +5 Pontos
                     </span>
                   </button>
                 ))}

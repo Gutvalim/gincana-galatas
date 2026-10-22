@@ -6,6 +6,7 @@ import {
   STEAL_TIMER_SECONDS,
   AUTO_START_GRACE_SECONDS,
   FIXED_QUESTION_POINTS,
+  STEAL_QUESTION_POINTS,
   ROUNDS_INFO,
   getTeam,
 } from '../types/game';
@@ -1150,7 +1151,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (winnerTeam: TeamId | null) => {
       let pointsAwarded = 0;
       if (winnerTeam) {
-        pointsAwarded = FIXED_QUESTION_POINTS;
+        pointsAwarded = STEAL_QUESTION_POINTS;
         sounds.playCorrectReveal();
       }
 

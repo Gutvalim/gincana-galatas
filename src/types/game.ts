@@ -192,8 +192,9 @@ export const INITIAL_ACTION_CARDS: Record<string, ActionCardsInventory> = {
   Adultos: { skip: 2, bible: 1, fiftyFifty: 1 },
 };
 
-export const CARD_BONUS_POINTS = 10;
+export const CARD_BONUS_POINTS = 5;
 export const FIXED_QUESTION_POINTS = 10;
+export const STEAL_QUESTION_POINTS = 5;
 export const DEFAULT_TIMER_SECONDS = 60;
 export const STEAL_TIMER_SECONDS = 30;
 export const AUTO_START_GRACE_SECONDS = 12;
