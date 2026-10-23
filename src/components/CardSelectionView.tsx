@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Question, TeamId, TeamInfo } from '../types/game';
 import { getTeam } from '../types/game';
-import { Sparkles, Search, AlertCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Search, AlertCircle } from 'lucide-react';
 import { TeamIcon } from './TeamIcon';
 import { sounds } from '../services/sound';
 
@@ -183,89 +183,50 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
         })}
       </div>
 
-      {/* CINEMATIC REVEAL & FULLSCREEN ZOOM ANIMATION MODAL WHEN A QUESTION IS SELECTED */}
+      {/* CINEMATIC REVEAL: CARD APPROACHES SCREEN, NUMBER GROWS BIG, AND FADES OUT TO QUESTION */}
       {isCardFlipping && revealQ && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-backdropFadeOutThrough">
+        <div
+          onClick={() => onFinishFlip && onFinishFlip(revealQ.id)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-backdropFadeOut cursor-pointer select-none"
+        >
           {/* Ambient Gold Halo */}
-          <div className="absolute w-[500px] h-[500px] rounded-full bg-amber-500/35 blur-3xl animate-pulse pointer-events-none" />
+          <div className="absolute w-[600px] h-[600px] rounded-full bg-amber-500/30 blur-3xl animate-pulse pointer-events-none" />
 
-          {/* Flying, Flipping & Zoom-to-Fullscreen Card */}
-          <div className="relative w-full max-w-lg sm:max-w-xl h-[440px] sm:h-[480px] rounded-3xl animate-cardRevealAndZoom shadow-[0_0_80px_rgba(251,191,36,0.95)] border-4 border-amber-400 overflow-hidden">
-            {/* FRONT FACE (Gold Envelope with Big Number, flips out at 0.7s) */}
-            <div className="absolute inset-0 rounded-3xl p-8 flex flex-col justify-between items-center text-center bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#78350f] border-2 border-yellow-200 animate-envelopeFlipOut">
-              <div className="w-full flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-slate-950/80 text-amber-300 border border-amber-400/60 shadow">
-                  Pergunta Selecionada
-                </span>
-                <Sparkles className="w-7 h-7 text-amber-200 animate-pulse" />
-              </div>
+          {/* Card that approaches the screen and fades out */}
+          <div className="relative w-full max-w-md sm:max-w-lg h-[460px] sm:h-[500px] rounded-3xl p-8 flex flex-col justify-between items-center text-center bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#78350f] border-4 border-yellow-200 shadow-[0_0_100px_rgba(245,158,11,0.9)] overflow-hidden animate-cardApproachAndFade">
+            {/* Top Gloss Reflection */}
+            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent pointer-events-none" />
 
-              <div className="flex flex-col items-center gap-2 my-auto">
-                <span className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-widest">
-                  Número Escolhido
-                </span>
-                <span className="text-7xl sm:text-9xl font-black font-mono tracking-tight text-slate-950 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
+            {/* Header Badge */}
+            <div className="relative z-10 w-full flex items-center justify-between">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-slate-950/85 text-amber-300 border border-amber-400/60 shadow">
+                {revealQ.categoria || 'Gálatas'}
+              </span>
+              <Sparkles className="w-7 h-7 text-amber-200 animate-pulse" />
+            </div>
+
+            {/* Center: BIG NUMBER THAT GROWS LARGE */}
+            <div className="relative z-10 flex flex-col items-center gap-3 my-auto">
+              <span className="text-xs sm:text-sm font-black text-slate-950/80 uppercase tracking-widest bg-white/40 px-4 py-1 rounded-full shadow-sm">
+                Número Escolhido
+              </span>
+
+              <div className="animate-numberPopGrow">
+                <span className="text-8xl sm:text-9xl md:text-[10rem] font-black font-mono tracking-tight text-slate-950 drop-shadow-[0_4px_16px_rgba(255,255,255,0.9)] leading-none select-none">
                   #{revealQ.id < 10 ? `0${revealQ.id}` : revealQ.id}
                 </span>
-                <span className="text-xs sm:text-sm text-slate-900 font-bold uppercase tracking-wider bg-white/40 px-4 py-1 rounded-full shadow-sm">
-                  Revelando Pergunta...
-                </span>
               </div>
 
-              <span className="text-xs text-slate-950 uppercase tracking-widest animate-pulse font-black">
-                Gincana Gálatas • Federação de UMPs
+              <span className="text-xs sm:text-sm font-extrabold text-slate-950 uppercase tracking-wider bg-white/50 px-4 py-1.5 rounded-xl shadow-sm border border-yellow-200/60">
+                10 Pontos • Abrindo...
               </span>
             </div>
 
-            {/* BACK FACE (Question Flips In Facing Audience) */}
-            <div className="absolute inset-0 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center bg-gradient-to-br from-[#002b49] via-[#051e33] to-[#021321] text-white border-2 border-amber-400 shadow-2xl animate-questionFlipIn">
-              {/* Header */}
-              <div className="w-full flex items-center justify-between border-b border-amber-400/40 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl sm:text-2xl font-black font-mono text-amber-300">
-                    Pergunta #{revealQ.id < 10 ? `0${revealQ.id}` : revealQ.id}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-blue-900 text-amber-300 text-xs font-black uppercase tracking-wider border border-amber-400/40">
-                    {revealQ.categoria}
-                  </span>
-                </div>
-                <span className="px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-xs sm:text-sm uppercase shadow">
-                  10 pts
-                </span>
-              </div>
-
-              {/* Question Enunciado */}
-              <div className="my-auto flex flex-col items-center gap-3 w-full">
-                <div className="w-full p-4 sm:p-6 rounded-2xl bg-black/50 border-2 border-amber-400/40 shadow-inner">
-                  <p className="text-base sm:text-xl font-extrabold text-white leading-relaxed text-center">
-                    "{revealQ.pergunta}"
-                  </p>
-                </div>
-                <span className="text-xs text-blue-200 font-semibold">
-                  {revealQ.tipo === 'multipla_escolha'
-                    ? `Múltipla Escolha (${revealQ.opcoes.length} alternativas)`
-                    : 'Pergunta Dissertativa / Memorização'}
-                </span>
-              </div>
-
-              {/* Footer */}
-              <div className="w-full flex items-center justify-between pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300 animate-pulse">
-                    Abrindo pergunta no telão...
-                  </span>
-                </div>
-                {onFinishFlip && (
-                  <button
-                    onClick={() => onFinishFlip(revealQ.id)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs uppercase flex items-center gap-1 cursor-pointer transition-all"
-                  >
-                    <span>Iniciar</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+            {/* Footer */}
+            <div className="relative z-10 w-full flex items-center justify-center pt-2 border-t border-slate-950/15">
+              <span className="text-xs text-slate-950 uppercase tracking-widest font-black">
+                Gincana Gálatas • Federação de UMPs
+              </span>
             </div>
           </div>
         </div>

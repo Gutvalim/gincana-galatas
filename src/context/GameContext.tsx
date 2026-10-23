@@ -1775,10 +1775,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         { type: 'SELECT_CARD', payload: { questionId, cardIndex: questionId } }
       );
 
-      // 2. Complete reveal animation and zoom into question after 3100ms
+      // 2. Complete reveal animation and fade into question after 1600ms
       flipTimerRef.current = window.setTimeout(() => {
         finishCardFlip(questionId);
-      }, 3100);
+      }, 1600);
     },
     [finishCardFlip, updateStateAndSync]
   );
