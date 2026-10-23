@@ -36,7 +36,8 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const team = drawnTeam ? getTeam(drawnTeam, teams) : null;
-  const usedCount = usedQuestionIds.length;
+  const uniqueUsedIds = React.useMemo(() => new Set(usedQuestionIds || []), [usedQuestionIds]);
+  const usedCount = uniqueUsedIds.size;
   const totalCount = questions.length;
   const availableCount = Math.max(0, totalCount - usedCount);
 
@@ -57,7 +58,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
       setSearchError('Digite um número válido entre 1 e 60.');
       return;
     }
-    if (usedQuestionIds.includes(num)) {
+    if (uniqueUsedIds.has(num)) {
       setSearchError(`A pergunta #${num} já foi respondida! Escolha outra.`);
       return;
     }
@@ -155,7 +156,7 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
       {/* 60 QUESTIONS NUMBER-ONLY GRID (10 COLUMNS ON DESKTOP, 6 ON TABLET, 5 ON MOBILE) */}
       <div className="w-full grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 sm:gap-2.5 max-h-[60vh] overflow-y-auto p-2.5 scrollbar-thin rounded-2xl bg-slate-100/80 border-2 border-slate-200 shadow-inner">
         {questions.map((q) => {
-          const isUsed = usedQuestionIds.includes(q.id);
+          const isUsed = uniqueUsedIds.has(q.id);
           const formattedNumber = q.id < 10 ? `0${q.id}` : `${q.id}`;
 
           return (

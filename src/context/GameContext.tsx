@@ -123,6 +123,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveStateToStorage(next);
         if (actionToBroadcast) {
           broadcast(actionToBroadcast);
+          broadcast({ type: 'SYNC_STATE', payload: next });
         } else {
           broadcast({ type: 'SYNC_STATE', payload: next });
         }
@@ -149,16 +150,36 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           case 'REQUEST_SYNC':
             setState((curr) => {
               if (channelRef.current) {
-                channelRef.current.postMessage({ type: 'SYNC_STATE', payload: curr });
+                const historyIds = Array.isArray(curr.history)
+                  ? curr.history.map((h: any) => h?.questionId).filter((id: any) => typeof id === 'number')
+                  : [];
+                const healedState: GameState = {
+                  ...curr,
+                  usedQuestionIdsTotal: Array.from(new Set([...(curr.usedQuestionIdsTotal || []), ...historyIds])),
+                  usedQuestionIdsInRound: Array.from(new Set(curr.usedQuestionIdsInRound || [])),
+                };
+                channelRef.current.postMessage({ type: 'SYNC_STATE', payload: healedState });
               }
               return curr;
             });
             break;
 
-          case 'SYNC_STATE':
-            setState(action.payload);
-            saveStateToStorage(action.payload);
+          case 'SYNC_STATE': {
+            const fresh = action.payload;
+            if (fresh) {
+              const historyIds = Array.isArray(fresh.history)
+                ? fresh.history.map((h: any) => h?.questionId).filter((id: any) => typeof id === 'number')
+                : [];
+              const healedState: GameState = {
+                ...fresh,
+                usedQuestionIdsTotal: Array.from(new Set([...(fresh.usedQuestionIdsTotal || []), ...historyIds])),
+                usedQuestionIdsInRound: Array.from(new Set(fresh.usedQuestionIdsInRound || [])),
+              };
+              setState(healedState);
+              saveStateToStorage(healedState);
+            }
             break;
+          }
 
           case 'CHANGE_STAGE':
             setState((prev) => {
@@ -280,6 +301,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 selectedCardIndex: action.payload.cardIndex,
                 isCardFlipping: true,
                 stage: 'card_selection',
+                usedQuestionIdsTotal: Array.from(new Set([...(prev.usedQuestionIdsTotal || []), action.payload.questionId])),
+                usedQuestionIdsInRound: Array.from(new Set([...(prev.usedQuestionIdsInRound || []), action.payload.questionId])),
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -308,6 +331,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
+                usedQuestionIdsTotal: Array.from(new Set([...(prev.usedQuestionIdsTotal || []), action.payload.questionId])),
+                usedQuestionIdsInRound: Array.from(new Set([...(prev.usedQuestionIdsInRound || []), action.payload.questionId])),
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -428,13 +453,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
 
               const updatedUsedIds =
-                cardType === 'skip' && !prev.usedQuestionIdsTotal.includes(prev.currentQuestionId)
-                  ? [...prev.usedQuestionIdsTotal, prev.currentQuestionId]
-                  : prev.usedQuestionIdsTotal;
+                cardType === 'skip'
+                  ? Array.from(new Set([...(prev.usedQuestionIdsTotal || []), prev.currentQuestionId]))
+                  : Array.from(new Set(prev.usedQuestionIdsTotal || []));
               const updatedUsedInRound =
-                cardType === 'skip' && !prev.usedQuestionIdsInRound.includes(prev.currentQuestionId)
-                  ? [...prev.usedQuestionIdsInRound, prev.currentQuestionId]
-                  : prev.usedQuestionIdsInRound;
+                cardType === 'skip'
+                  ? Array.from(new Set([...(prev.usedQuestionIdsInRound || []), prev.currentQuestionId]))
+                  : Array.from(new Set(prev.usedQuestionIdsInRound || []));
 
               const updated: GameState = {
                 ...prev,
@@ -609,6 +634,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           case 'SUBMIT_POINTS':
             setState((prev) => {
+              const updatedUsedIds = action.payload.usedQuestionIdsTotal
+                ? Array.from(new Set(action.payload.usedQuestionIdsTotal))
+                : Array.from(new Set([...(prev.usedQuestionIdsTotal || []), prev.currentQuestionId]));
+              const updatedUsedInRound = action.payload.usedQuestionIdsInRound
+                ? Array.from(new Set(action.payload.usedQuestionIdsInRound))
+                : Array.from(new Set([...(prev.usedQuestionIdsInRound || []), prev.currentQuestionId]));
+
               const updated: GameState = {
                 ...prev,
                 scores: action.payload.newScores ?? prev.scores,
@@ -630,6 +662,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
+                usedQuestionIdsTotal: updatedUsedIds,
+                usedQuestionIdsInRound: updatedUsedInRound,
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -686,6 +720,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 eliminatedOptionIndices: [],
                 isQuestionSkipped: false,
                 activeCardAnnouncement: null,
+                usedQuestionIdsTotal: Array.from(new Set([...(prev.usedQuestionIdsTotal || []), action.payload])),
+                usedQuestionIdsInRound: Array.from(new Set([...(prev.usedQuestionIdsInRound || []), action.payload])),
                 lastUpdated: Date.now(),
               };
               saveStateToStorage(updated);
@@ -769,7 +805,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
           const fresh = JSON.parse(e.newValue);
-          setState(fresh);
+          if (fresh) {
+            const historyIds = Array.isArray(fresh.history)
+              ? fresh.history.map((h: any) => h?.questionId).filter((id: any) => typeof id === 'number')
+              : [];
+            fresh.usedQuestionIdsTotal = Array.from(new Set([...(fresh.usedQuestionIdsTotal || []), ...historyIds]));
+            fresh.usedQuestionIdsInRound = Array.from(new Set(fresh.usedQuestionIdsInRound || []));
+            setState(fresh);
+          }
         } catch {}
       }
     };
@@ -1368,7 +1411,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Next random unused question (ALWAYS random!)
-      const updatedUsedIds = [...state.usedQuestionIdsTotal, state.currentQuestionId];
+      const updatedUsedIds = Array.from(new Set([...(state.usedQuestionIdsTotal || []), state.currentQuestionId]));
+      const updatedUsedInRound = Array.from(new Set([...(state.usedQuestionIdsInRound || []), state.currentQuestionId]));
       const nextQId = pickRandomUnusedQuestionId(updatedUsedIds);
 
       // Order of teams remains strictly the one drawn on the roulette
@@ -1446,6 +1490,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isQuestionSkipped: false,
             activeCardAnnouncement: null,
             usedQuestionIdsTotal: updatedUsedIds,
+            usedQuestionIdsInRound: updatedUsedInRound,
             history: [
               ...prev.history,
               {
@@ -1473,11 +1518,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             nextRound,
             nextTurnIndex: finalTurnIndex,
             wasSkipped: isSkipped,
+            usedQuestionIdsTotal: updatedUsedIds,
+            usedQuestionIdsInRound: updatedUsedInRound,
           },
         }
       );
     },
-    [state.drawnTeam, state.isQuestionSkipped, state.scores, state.usedQuestionIdsTotal, state.currentQuestionId, state.teamOrder, state.currentTurnTeamIndex, state.currentRound, pickRandomUnusedQuestionId, updateStateAndSync]
+    [state.drawnTeam, state.isQuestionSkipped, state.scores, state.usedQuestionIdsTotal, state.usedQuestionIdsInRound, state.currentQuestionId, state.teamOrder, state.currentTurnTeamIndex, state.currentRound, pickRandomUnusedQuestionId, updateStateAndSync]
   );
 
   // DRAW NEXT RANDOM QUESTION
@@ -1505,6 +1552,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         eliminatedOptionIndices: [],
         isQuestionSkipped: false,
         activeCardAnnouncement: null,
+        usedQuestionIdsTotal: Array.from(new Set([...(prev.usedQuestionIdsTotal || []), nextQId])),
+        usedQuestionIdsInRound: Array.from(new Set([...(prev.usedQuestionIdsInRound || []), nextQId])),
       }),
       { type: 'SET_QUESTION', payload: nextQId }
     );
@@ -1608,13 +1657,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateStateAndSync(
         (prev) => {
           const updatedUsedIds =
-            cardType === 'skip' && !prev.usedQuestionIdsTotal.includes(prev.currentQuestionId)
-              ? [...prev.usedQuestionIdsTotal, prev.currentQuestionId]
-              : prev.usedQuestionIdsTotal;
+            cardType === 'skip'
+              ? Array.from(new Set([...(prev.usedQuestionIdsTotal || []), prev.currentQuestionId]))
+              : Array.from(new Set(prev.usedQuestionIdsTotal || []));
           const updatedUsedInRound =
-            cardType === 'skip' && !prev.usedQuestionIdsInRound.includes(prev.currentQuestionId)
-              ? [...prev.usedQuestionIdsInRound, prev.currentQuestionId]
-              : prev.usedQuestionIdsInRound;
+            cardType === 'skip'
+              ? Array.from(new Set([...(prev.usedQuestionIdsInRound || []), prev.currentQuestionId]))
+              : Array.from(new Set(prev.usedQuestionIdsInRound || []));
 
           return {
             ...prev,
@@ -1767,6 +1816,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
           activeCardAnnouncement: null,
+          usedQuestionIdsTotal: Array.from(new Set([...(prev.usedQuestionIdsTotal || []), questionId])),
+          usedQuestionIdsInRound: Array.from(new Set([...(prev.usedQuestionIdsInRound || []), questionId])),
         }),
         { type: 'FINISH_CARD_FLIP', payload: { questionId } }
       );
@@ -1807,6 +1858,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           eliminatedOptionIndices: [],
           isQuestionSkipped: false,
           activeCardAnnouncement: null,
+          usedQuestionIdsTotal: Array.from(new Set([...(prev.usedQuestionIdsTotal || []), questionId])),
+          usedQuestionIdsInRound: Array.from(new Set([...(prev.usedQuestionIdsInRound || []), questionId])),
         }),
         { type: 'SELECT_CARD', payload: { questionId, cardIndex: questionId } }
       );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
 import type { GameStage, ActionCardType } from '../types/game';
 import { getTeam, FIXED_QUESTION_POINTS } from '../types/game';
@@ -85,6 +85,11 @@ export const AdminPage: React.FC = () => {
   const [operatorSearchQuery, setOperatorSearchQuery] = useState<string>('');
   const [operatorSearchError, setOperatorSearchError] = useState<string | null>(null);
 
+  const usedQuestionsSet = useMemo(
+    () => new Set(state.usedQuestionIdsTotal || []),
+    [state.usedQuestionIdsTotal]
+  );
+
   const handleOperatorSelectNumber = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const num = parseInt(operatorSearchQuery.trim(), 10);
@@ -92,7 +97,7 @@ export const AdminPage: React.FC = () => {
       setOperatorSearchError('Digite um número válido de 1 a 60.');
       return;
     }
-    if (state.usedQuestionIdsTotal?.includes(num)) {
+    if (usedQuestionsSet.has(num)) {
       setOperatorSearchError(`A pergunta #${num} já foi respondida! Escolha outra.`);
       return;
     }
@@ -543,7 +548,7 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-sm">
-                    {60 - (state.usedQuestionIdsTotal?.length || 0)} disponíveis
+                    {Math.max(0, questions.length - usedQuestionsSet.size)} disponíveis
                   </span>
                 </div>
               )}
@@ -551,7 +556,7 @@ export const AdminPage: React.FC = () => {
               {/* 1 to 60 Pure Numbers Grid (Gold = Available, Faded Gray = Used) */}
               <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 max-h-[360px] overflow-y-auto p-2 scrollbar-thin bg-slate-100/80 rounded-2xl border-2 border-slate-200 shadow-inner">
                 {questions.map((q) => {
-                  const isUsed = state.usedQuestionIdsTotal?.includes(q.id);
+                  const isUsed = usedQuestionsSet.has(q.id);
                   const formatted = q.id < 10 ? `0${q.id}` : `${q.id}`;
                   return (
                     <button
@@ -1171,13 +1176,13 @@ export const AdminPage: React.FC = () => {
                 Questionário Gálatas (1 a {questions.length}):
               </span>
               <span className="text-[10px] text-slate-500 font-bold">
-                Usadas: {state.usedQuestionIdsTotal?.length || 0}/{questions.length}
+                Usadas: {usedQuestionsSet.size}/{questions.length}
               </span>
             </div>
             <div className="max-h-56 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
               {questions.map((q) => {
                 const isSelected = q.id === state.currentQuestionId;
-                const isUsed = state.usedQuestionIdsTotal?.includes(q.id);
+                const isUsed = usedQuestionsSet.has(q.id);
 
                 return (
                   <button

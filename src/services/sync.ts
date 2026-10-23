@@ -55,6 +55,8 @@ export type SyncAction =
         nextRound?: number;
         nextTurnIndex?: number;
         wasSkipped?: boolean;
+        usedQuestionIdsTotal?: number[];
+        usedQuestionIdsInRound?: number[];
       };
     }
   | { type: 'EMERGENCY_SCORE'; payload: { team: TeamId; delta: number; newScores: Record<TeamId, number> } }
@@ -131,6 +133,12 @@ export function loadSavedState(): GameState {
         const teamOrder = Array.isArray(parsed.teamOrder) ? parsed.teamOrder : [];
         const drawnTeam = teamOrder.length > 0 ? (parsed.drawnTeam || teamOrder[0]) : null;
 
+        const historyIds = Array.isArray(parsed.history)
+          ? parsed.history.map((h: any) => h?.questionId).filter((id: any) => typeof id === 'number')
+          : [];
+        const usedQuestionIdsTotal = Array.from(new Set([...(parsed.usedQuestionIdsTotal || []), ...historyIds]));
+        const usedQuestionIdsInRound = Array.from(new Set(parsed.usedQuestionIdsInRound || []));
+
         return {
           ...INITIAL_STATE,
           ...parsed,
@@ -158,8 +166,8 @@ export function loadSavedState(): GameState {
           isQuestionSkipped: parsed.isQuestionSkipped || false,
           skipsUsedInRound: parsed.skipsUsedInRound || 0,
           activeCardAnnouncement: null,
-          usedQuestionIdsTotal: parsed.usedQuestionIdsTotal || [],
-          usedQuestionIdsInRound: parsed.usedQuestionIdsInRound || [],
+          usedQuestionIdsTotal,
+          usedQuestionIdsInRound,
         };
       }
     }
