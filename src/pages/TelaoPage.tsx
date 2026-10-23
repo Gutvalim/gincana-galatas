@@ -69,9 +69,11 @@ export const TelaoPage: React.FC = () => {
   }, [toggleSound]);
 
   const activeTeamInfo = getTeam(state.drawnTeam, state.teams);
-  const remainingTeamsToDraw = state.teams
-    .filter((t) => !(state.teamOrder || []).includes(t.id))
-    .map((t) => t.id);
+  const remainingTeamsToDraw = React.useMemo(() => {
+    return state.teams
+      .filter((t) => !(state.teamOrder || []).includes(t.id))
+      .map((t) => t.id);
+  }, [state.teams, state.teamOrder]);
 
   return (
     <div className="relative w-screen h-screen bg-gradient-to-br from-slate-100 via-blue-50/40 to-slate-100 text-slate-800 flex flex-col justify-between overflow-y-auto overflow-x-hidden select-none font-sans scrollbar-none">

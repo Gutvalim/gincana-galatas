@@ -35,10 +35,14 @@ export const Roulette: React.FC<RouletteProps> = ({
   }, [onFinish]);
 
   const audioIntervalRef = useRef<number | null>(null);
+  const finishTimeoutRef = useRef<number | null>(null);
   const lastSpinSeedRef = useRef<number | null>(null);
 
   // Teams to display on wheel: available teams to draw
-  const activeTeams = teams.length > 0 ? teams : teamsList.map((t) => t.id);
+  const activeTeams = React.useMemo(
+    () => (teams.length > 0 ? teams : teamsList.map((t) => t.id)),
+    [teams, teamsList]
+  );
   const sliceAngle = 360 / Math.max(1, activeTeams.length);
 
   // Reset rotation when drawnOrder is reset
@@ -49,6 +53,28 @@ export const Roulette: React.FC<RouletteProps> = ({
       lastSpinSeedRef.current = null;
     }
   }, [drawnOrder]);
+
+  // Cleanup timers on component unmount
+  useEffect(() => {
+    return () => {
+      if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current);
+      if (audioIntervalRef.current) clearTimeout(audioIntervalRef.current);
+    };
+  }, []);
+
+  // Cancel timers if isSpinning becomes false
+  useEffect(() => {
+    if (!isSpinning) {
+      if (finishTimeoutRef.current) {
+        clearTimeout(finishTimeoutRef.current);
+        finishTimeoutRef.current = null;
+      }
+      if (audioIntervalRef.current) {
+        clearTimeout(audioIntervalRef.current);
+        audioIntervalRef.current = null;
+      }
+    }
+  }, [isSpinning]);
 
   useEffect(() => {
     if (isSpinning && targetTeam && lastSpinSeedRef.current !== spinSeed) {
@@ -83,6 +109,7 @@ export const Roulette: React.FC<RouletteProps> = ({
       setRotation(finalAngle);
 
       // Play tick audio effects during deceleration
+      if (audioIntervalRef.current) clearTimeout(audioIntervalRef.current);
       let tickCount = 0;
       const totalTicks = 45;
       const startTime = Date.now();
@@ -91,7 +118,10 @@ export const Roulette: React.FC<RouletteProps> = ({
       const tickTimer = () => {
         const elapsed = Date.now() - startTime;
         if (elapsed >= spinDuration) {
-          if (audioIntervalRef.current) clearTimeout(audioIntervalRef.current);
+          if (audioIntervalRef.current) {
+            clearTimeout(audioIntervalRef.current);
+            audioIntervalRef.current = null;
+          }
           return;
         }
 
@@ -109,16 +139,13 @@ export const Roulette: React.FC<RouletteProps> = ({
       audioIntervalRef.current = window.setTimeout(tickTimer, 40);
 
       // Finish callback after transition ends (5.2 seconds)
-      const finishTimeout = setTimeout(() => {
+      if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current);
+      finishTimeoutRef.current = window.setTimeout(() => {
+        finishTimeoutRef.current = null;
         if (onFinishRef.current && targetTeam) {
           onFinishRef.current(targetTeam);
         }
       }, 5200);
-
-      return () => {
-        if (audioIntervalRef.current) clearTimeout(audioIntervalRef.current);
-        clearTimeout(finishTimeout);
-      };
     }
   }, [isSpinning, targetTeam, activeTeams, sliceAngle, spinSeed]);
 

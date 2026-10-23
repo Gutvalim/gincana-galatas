@@ -60,6 +60,7 @@ export const AdminPage: React.FC = () => {
     prevRule,
     resetTeamOrder,
     startRouletteSpin,
+    finishSpin,
     startTimer,
     pauseTimer,
     add15Seconds,
@@ -443,16 +444,27 @@ export const AdminPage: React.FC = () => {
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 {!isOrderComplete ? (
-                  <button
-                    onClick={() => startRouletteSpin()}
-                    disabled={state.isSpinning}
-                    className="flex-1 py-4 px-6 rounded-2xl bg-blue-900 hover:bg-blue-800 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 cursor-pointer"
-                  >
-                    <Shuffle className="w-5 h-5 text-amber-400" />
-                    {state.isSpinning
-                      ? 'Girando Roleta no Telão...'
-                      : `Girar Roleta para Sortear ${drawnOrder.length + 1}º Lugar`}
-                  </button>
+                  <div className="flex items-center gap-2 flex-1 flex-wrap sm:flex-nowrap">
+                    <button
+                      onClick={() => startRouletteSpin()}
+                      disabled={state.isSpinning}
+                      className="flex-1 py-4 px-6 rounded-2xl bg-blue-900 hover:bg-blue-800 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 cursor-pointer"
+                    >
+                      <Shuffle className="w-5 h-5 text-amber-400" />
+                      {state.isSpinning
+                        ? 'Girando Roleta no Telão...'
+                        : `Girar Roleta para Sortear ${drawnOrder.length + 1}º Lugar`}
+                    </button>
+                    {state.isSpinning && state.spinningTargetTeam && (
+                      <button
+                        onClick={() => finishSpin(state.spinningTargetTeam!)}
+                        className="py-4 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs uppercase shadow-lg transition-all cursor-pointer animate-pulse shrink-0"
+                        title="Confirmar resultado manualmente se a animação do telão já tiver concluído"
+                      >
+                        Confirmar ({getTeam(state.spinningTargetTeam, state.teams).name})
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <button
                     onClick={advanceGameStep}

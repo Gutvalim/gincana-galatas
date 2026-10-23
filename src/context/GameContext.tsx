@@ -77,6 +77,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isConnected, setIsConnected] = useState<boolean>(true);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
+  const spinWatchdogRef = useRef<number | null>(null);
 
   // Sync sound manager enabled state
   useEffect(() => {
@@ -1027,9 +1028,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // TEAM ORDER DRAW (ROULETTE BEFORE COMPETITION)
   const resetTeamOrder = useCallback(() => {
+    if (spinWatchdogRef.current) {
+      clearTimeout(spinWatchdogRef.current);
+      spinWatchdogRef.current = null;
+    }
     updateStateAndSync(
       (prev) => ({
         ...prev,
+        isSpinning: false,
+        spinningTargetTeam: null,
         teamOrder: [],
         drawnTeam: null,
       }),
@@ -1060,35 +1067,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [updateStateAndSync]
   );
 
-  const startRouletteSpin = useCallback((): TeamId | null => {
-    const allTeamIds = state.teams.map((t) => t.id);
-    const currentOrder = state.teamOrder || [];
-    const remainingToDraw = allTeamIds.filter((id) => !currentOrder.includes(id));
-    const pool = remainingToDraw.length > 0 ? remainingToDraw : allTeamIds;
-    const randomIndex = Math.floor(Math.random() * pool.length);
-    const targetTeam = pool[randomIndex];
-    const seed = Math.random();
-
-    updateStateAndSync(
-      (prev) => ({
-        ...prev,
-        isSpinning: true,
-        spinningTargetTeam: targetTeam,
-        spinSeed: seed,
-        stage: 'roulette',
-      }),
-      { type: 'START_SPIN', payload: { targetTeam, seed } }
-    );
-
-    return targetTeam;
-  }, [state.teams, state.teamOrder, updateStateAndSync]);
-
   const finishSpin = useCallback(
     (team: TeamId) => {
+      if (spinWatchdogRef.current) {
+        clearTimeout(spinWatchdogRef.current);
+        spinWatchdogRef.current = null;
+      }
+
       sounds.playRouletteSelected();
 
       updateStateAndSync(
         (prev) => {
+          if (!prev.isSpinning && (prev.teamOrder || []).includes(team)) {
+            return prev;
+          }
+
           const currentOrder = prev.teamOrder || [];
           let newOrder = currentOrder.includes(team) ? currentOrder : [...currentOrder, team];
 
@@ -1128,6 +1121,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     [updateStateAndSync]
   );
+
+  const startRouletteSpin = useCallback((): TeamId | null => {
+    const allTeamIds = state.teams.map((t) => t.id);
+    const currentOrder = state.teamOrder || [];
+    const remainingToDraw = allTeamIds.filter((id) => !currentOrder.includes(id));
+    const pool = remainingToDraw.length > 0 ? remainingToDraw : allTeamIds;
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const targetTeam = pool[randomIndex];
+    const seed = Math.random();
+
+    if (spinWatchdogRef.current) {
+      clearTimeout(spinWatchdogRef.current);
+    }
+    // Safety watchdog: guarantees spin completion even if tab is in background or animation callback is dropped
+    spinWatchdogRef.current = window.setTimeout(() => {
+      finishSpin(targetTeam);
+    }, 5400);
+
+    updateStateAndSync(
+      (prev) => ({
+        ...prev,
+        isSpinning: true,
+        spinningTargetTeam: targetTeam,
+        spinSeed: seed,
+        stage: 'roulette',
+      }),
+      { type: 'START_SPIN', payload: { targetTeam, seed } }
+    );
+
+    return targetTeam;
+  }, [state.teams, state.teamOrder, updateStateAndSync, finishSpin]);
 
   // TIMER CONTROLS
   const startTimer = useCallback(() => {

@@ -180,6 +180,8 @@ export function loadSavedState(): GameState {
           timerMaxSeconds: parsed.timerMaxSeconds || DEFAULT_TIMER_SECONDS,
           isStealActive: parsed.isStealActive || false,
           firstTeamFailed: parsed.firstTeamFailed || false,
+          isSpinning: false,
+          spinningTargetTeam: null,
           autoStartEndTimestamp: null,
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,
