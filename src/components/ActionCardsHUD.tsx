@@ -55,7 +55,7 @@ export const ActionCardsHUD: React.FC<ActionCardsHUDProps> = ({
       type: 'skip',
       name: 'Pular Pergunta',
       shortName: 'Pular',
-      desc: 'Pula • Sorteia outra questão',
+      desc: 'Pula • Escolhe outro número',
       icon: <FastForward className="w-4 h-4 text-orange-600" />,
       count: inventory.skip,
       max: 2,

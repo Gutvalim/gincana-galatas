@@ -361,7 +361,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             break;
 
           case 'USE_ACTION_CARD': {
-            const { team, cardType, eliminatedOptionIndices, newQuestionId } = action.payload;
+            const { team, cardType, eliminatedOptionIndices } = action.payload;
             if (cardType === 'fiftyFifty') {
               sounds.playCard5050();
             } else if (cardType === 'bible') {
@@ -403,13 +403,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 announcement = `🌓 50/50: 2 alternativas eliminadas para ${teamObj.name}!`;
               } else if (cardType === 'skip') {
                 const teamObj = getTeam(team, prev.teams);
-                announcement = `🏃‍♂️ ${teamObj.name} usou a carta PULAR! Uma nova pergunta foi sorteada!`;
+                announcement = `🏃‍♂️ ${teamObj.name} usou a carta PULAR! Escolha outro número no telão!`;
                 newTimerSeconds = DEFAULT_TIMER_SECONDS;
                 newTimerMaxSeconds = DEFAULT_TIMER_SECONDS;
                 newTimerEndTimestamp = null;
                 isRunning = false;
-                nextStage = 'question';
+                nextStage = 'card_selection';
               }
+
+              const updatedUsedIds =
+                cardType === 'skip' && !prev.usedQuestionIdsTotal.includes(prev.currentQuestionId)
+                  ? [...prev.usedQuestionIdsTotal, prev.currentQuestionId]
+                  : prev.usedQuestionIdsTotal;
+              const updatedUsedInRound =
+                cardType === 'skip' && !prev.usedQuestionIdsInRound.includes(prev.currentQuestionId)
+                  ? [...prev.usedQuestionIdsInRound, prev.currentQuestionId]
+                  : prev.usedQuestionIdsInRound;
 
               const updated: GameState = {
                 ...prev,
@@ -421,16 +430,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     ? eliminatedOptionIndices
                     : prev.eliminatedOptionIndices,
                 isQuestionSkipped: cardType === 'skip',
+                skipsUsedInRound: cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : prev.skipsUsedInRound,
                 timerSeconds: newTimerSeconds,
                 timerMaxSeconds: newTimerMaxSeconds,
                 timerEndTimestamp: newTimerEndTimestamp,
+                autoStartEndTimestamp: cardType === 'skip' ? null : prev.autoStartEndTimestamp,
                 isTimerRunning: isRunning,
                 stage: nextStage,
                 activeCardAnnouncement: announcement,
-                currentQuestionId: newQuestionId || prev.currentQuestionId,
+                currentQuestionId: prev.currentQuestionId,
                 isRevealed: cardType === 'skip' ? false : prev.isRevealed,
                 answerStatus: cardType === 'skip' ? 'idle' : prev.answerStatus,
                 selectedOptionIndex: cardType === 'skip' ? null : prev.selectedOptionIndex,
+                isCardFlipping: false,
+                selectedCardIndex: null,
+                isStealActive: false,
+                firstTeamFailed: false,
+                usedQuestionIdsTotal: updatedUsedIds,
+                usedQuestionIdsInRound: updatedUsedInRound,
                 lastCardUsed: { type: cardType, team, timestamp: Date.now() },
                 lastUpdated: Date.now(),
               };
@@ -1487,7 +1504,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!teamCards || teamCards[cardType] <= 0) return;
 
       let eliminatedIndices: number[] | undefined = undefined;
-      let newQId: number | undefined = undefined;
 
       if (cardType === 'fiftyFifty') {
         if (!currentQuestion || !currentQuestion.opcoes || currentQuestion.opcoes.length <= 2) {
@@ -1510,9 +1526,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         eliminatedIndices = shuffled.slice(0, 2);
       } else if (cardType === 'skip') {
         sounds.playSkipCard();
-        // Pick new random question immediately for this team
-        const updatedUsedIds = [...state.usedQuestionIdsTotal, state.currentQuestionId];
-        newQId = pickRandomUnusedQuestionId(updatedUsedIds);
+        // Skip allows the active team to choose another question number from the grid
       }
 
       const updatedCount = Math.max(0, teamCards[cardType] - 1);
@@ -1547,41 +1561,56 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         announcement = `🌓 50/50: 2 alternativas eliminadas para ${teamName}!`;
       } else if (cardType === 'skip') {
         const teamName = getTeam(activeTeam, state.teams).name;
-        announcement = `🏃‍♂️ ${teamName} usou a carta PULAR! Uma nova pergunta foi sorteada!`;
+        announcement = `🏃‍♂️ ${teamName} usou a carta PULAR! Escolha outro número no telão!`;
         newTimerSeconds = DEFAULT_TIMER_SECONDS;
         newTimerMaxSeconds = DEFAULT_TIMER_SECONDS;
         newTimerEndTimestamp = null;
         isRunning = false;
-        nextStage = 'question';
+        nextStage = 'card_selection';
       }
 
       updateStateAndSync(
-        (prev) => ({
-          ...prev,
-          actionCards: newActionCards,
-          eliminatedOptionIndices:
-            cardType === 'skip'
-              ? []
-              : eliminatedIndices !== undefined
-              ? eliminatedIndices
-              : prev.eliminatedOptionIndices,
-          isQuestionSkipped: cardType === 'skip',
-          timerSeconds: newTimerSeconds,
-          timerMaxSeconds: newTimerMaxSeconds,
-          timerEndTimestamp: newTimerEndTimestamp,
-          isTimerRunning: isRunning,
-          stage: nextStage,
-          activeCardAnnouncement: announcement,
-          currentQuestionId: newQId || prev.currentQuestionId,
-          isRevealed: cardType === 'skip' ? false : prev.isRevealed,
-          answerStatus: cardType === 'skip' ? 'idle' : prev.answerStatus,
-          selectedOptionIndex: cardType === 'skip' ? null : prev.selectedOptionIndex,
-          usedQuestionIdsTotal:
-            cardType === 'skip'
+        (prev) => {
+          const updatedUsedIds =
+            cardType === 'skip' && !prev.usedQuestionIdsTotal.includes(prev.currentQuestionId)
               ? [...prev.usedQuestionIdsTotal, prev.currentQuestionId]
-              : prev.usedQuestionIdsTotal,
-          lastCardUsed: { type: cardType, team: activeTeam, timestamp: Date.now() },
-        }),
+              : prev.usedQuestionIdsTotal;
+          const updatedUsedInRound =
+            cardType === 'skip' && !prev.usedQuestionIdsInRound.includes(prev.currentQuestionId)
+              ? [...prev.usedQuestionIdsInRound, prev.currentQuestionId]
+              : prev.usedQuestionIdsInRound;
+
+          return {
+            ...prev,
+            actionCards: newActionCards,
+            eliminatedOptionIndices:
+              cardType === 'skip'
+                ? []
+                : eliminatedIndices !== undefined
+                ? eliminatedIndices
+                : prev.eliminatedOptionIndices,
+            isQuestionSkipped: cardType === 'skip',
+            skipsUsedInRound: cardType === 'skip' ? (prev.skipsUsedInRound || 0) + 1 : prev.skipsUsedInRound,
+            timerSeconds: newTimerSeconds,
+            timerMaxSeconds: newTimerMaxSeconds,
+            timerEndTimestamp: newTimerEndTimestamp,
+            autoStartEndTimestamp: cardType === 'skip' ? null : prev.autoStartEndTimestamp,
+            isTimerRunning: isRunning,
+            stage: nextStage,
+            activeCardAnnouncement: announcement,
+            currentQuestionId: prev.currentQuestionId,
+            isRevealed: cardType === 'skip' ? false : prev.isRevealed,
+            answerStatus: cardType === 'skip' ? 'idle' : prev.answerStatus,
+            selectedOptionIndex: cardType === 'skip' ? null : prev.selectedOptionIndex,
+            isCardFlipping: false,
+            selectedCardIndex: null,
+            isStealActive: false,
+            firstTeamFailed: false,
+            usedQuestionIdsTotal: updatedUsedIds,
+            usedQuestionIdsInRound: updatedUsedInRound,
+            lastCardUsed: { type: cardType, team: activeTeam, timestamp: Date.now() },
+          };
+        },
         {
           type: 'USE_ACTION_CARD',
           payload: {
@@ -1589,7 +1618,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             cardType,
             eliminatedOptionIndices: eliminatedIndices,
             additionalSeconds: 30,
-            newQuestionId: newQId,
           },
         }
       );
@@ -1747,10 +1775,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         { type: 'SELECT_CARD', payload: { questionId, cardIndex: questionId } }
       );
 
-      // 2. Complete reveal animation after 2400ms and open question
+      // 2. Complete reveal animation and zoom into question after 3100ms
       flipTimerRef.current = window.setTimeout(() => {
         finishCardFlip(questionId);
-      }, 2400);
+      }, 3100);
     },
     [finishCardFlip, updateStateAndSync]
   );

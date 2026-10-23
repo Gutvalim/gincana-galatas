@@ -183,14 +183,14 @@ export const CardSelectionView: React.FC<CardSelectionViewProps> = ({
         })}
       </div>
 
-      {/* CINEMATIC REVEAL ANIMATION MODAL WHEN A QUESTION IS SELECTED */}
+      {/* CINEMATIC REVEAL & FULLSCREEN ZOOM ANIMATION MODAL WHEN A QUESTION IS SELECTED */}
       {isCardFlipping && revealQ && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-backdropFadeOutThrough">
           {/* Ambient Gold Halo */}
           <div className="absolute w-[500px] h-[500px] rounded-full bg-amber-500/35 blur-3xl animate-pulse pointer-events-none" />
 
-          {/* Flying & Flipping Zoom Card */}
-          <div className="relative w-full max-w-lg sm:max-w-xl h-[440px] sm:h-[480px] rounded-3xl animate-cardFlyZoomIn shadow-[0_0_80px_rgba(251,191,36,0.95)] border-4 border-amber-400 overflow-hidden">
+          {/* Flying, Flipping & Zoom-to-Fullscreen Card */}
+          <div className="relative w-full max-w-lg sm:max-w-xl h-[440px] sm:h-[480px] rounded-3xl animate-cardRevealAndZoom shadow-[0_0_80px_rgba(251,191,36,0.95)] border-4 border-amber-400 overflow-hidden">
             {/* FRONT FACE (Gold Envelope with Big Number, flips out at 0.7s) */}
             <div className="absolute inset-0 rounded-3xl p-8 flex flex-col justify-between items-center text-center bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#78350f] border-2 border-yellow-200 animate-envelopeFlipOut">
               <div className="w-full flex items-center justify-between">

@@ -240,12 +240,12 @@ export const ActionCardActivationOverlay: React.FC<ActionCardActivationOverlayPr
                 Pergunta Pulada!
               </h2>
               <p className="text-xl sm:text-2xl font-black text-orange-300 font-mono mt-1 drop-shadow">
-                NOVA PERGUNTA SORTEADA!
+                ESCOLHA OUTRO NÚMERO!
               </p>
             </div>
 
             <p className="text-sm sm:text-base text-gray-200 max-w-md font-medium text-center leading-snug">
-              A equipe utilizou a carta Pular. Uma nova pergunta foi sorteada e a equipe tem 30 segundos para responder!
+              A equipe utilizou a carta Pular. A mesa de escolha foi reaberta para selecionar uma nova pergunta!
             </p>
           </div>
         </div>

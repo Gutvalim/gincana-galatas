@@ -75,7 +75,57 @@
   animation: turboSpin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* Zoom in effect: Card flies from table towards screen */
+/* Zoom in & reveal effect: Card flies from table towards screen, flips to reveal question, and zooms into fullscreen */
+@keyframes cardRevealAndZoom {
+  0% {
+    transform: perspective(1200px) scale(0.35) translateY(100px);
+    opacity: 0;
+  }
+  20% {
+    transform: perspective(1200px) scale(1.04) translateY(-8px);
+    opacity: 1;
+  }
+  26% {
+    transform: perspective(1200px) scale(1) translateY(0);
+    opacity: 1;
+  }
+  66% {
+    transform: perspective(1200px) scale(1) translateY(0);
+    opacity: 1;
+  }
+  76% {
+    transform: perspective(1200px) scale(1.18) translateY(0);
+    opacity: 1;
+  }
+  92% {
+    transform: perspective(1200px) scale(3.2) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(1200px) scale(4.2) translateY(0);
+    opacity: 0;
+  }
+}
+
+.animate-cardRevealAndZoom {
+  animation: cardRevealAndZoom 3.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes backdropFadeOutThrough {
+  0%, 75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-backdropFadeOutThrough {
+  animation: backdropFadeOutThrough 3.1s ease-in forwards;
+}
+
+/* Backward-compatibility fallback */
 @keyframes cardFlyZoomIn {
   0% {
     transform: perspective(1200px) scale(0.35) translateY(100px);
