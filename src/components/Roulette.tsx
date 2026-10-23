@@ -298,7 +298,17 @@ export const Roulette: React.FC<RouletteProps> = ({
                           x={textX}
                           y={textY}
                           fill="#ffffff"
-                          fontSize={activeTeams.length <= 4 ? "20" : "15"}
+                          fontSize={
+                            activeTeams.length <= 4
+                              ? "20"
+                              : activeTeams.length <= 6
+                              ? "15"
+                              : team.name.length > 16
+                              ? "10"
+                              : team.name.length > 10
+                              ? "12"
+                              : "13"
+                          }
                           fontWeight="900"
                           fontFamily="Poppins, Inter, sans-serif"
                           textAnchor="middle"
@@ -306,7 +316,7 @@ export const Roulette: React.FC<RouletteProps> = ({
                           transform={`rotate(${textRot + 90}, ${textX}, ${textY})`}
                           style={{
                             filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.9))',
-                            letterSpacing: '1px',
+                            letterSpacing: activeTeams.length > 6 ? '0.5px' : '1px',
                             textTransform: 'uppercase',
                           }}
                         >

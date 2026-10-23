@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { TeamInfo } from '../types/game';
-import { AVAILABLE_ICONS, AVAILABLE_COLORS } from '../types/game';
+import { AVAILABLE_ICONS, AVAILABLE_COLORS, DEFAULT_TEAMS } from '../types/game';
 import { TeamIcon } from './TeamIcon';
 import {
   Users,
@@ -9,6 +9,7 @@ import {
   ArrowUp,
   ArrowDown,
   Shuffle,
+  RotateCcw,
   Check,
   X,
   ShieldAlert,
@@ -152,7 +153,15 @@ export const TeamSetupModal: React.FC<TeamSetupModalProps> = ({
 
         {/* Action Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-100 p-3 rounded-2xl border border-slate-200">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setTeams(JSON.parse(JSON.stringify(DEFAULT_TEAMS)))}
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs sm:text-sm font-black uppercase flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+              title="Restaurar a lista oficial das 10 UMPs participantes"
+            >
+              <RotateCcw className="w-4 h-4 text-emerald-600" />
+              Restaurar 10 UMPs
+            </button>
             <button
               onClick={handleShuffleOrder}
               className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs sm:text-sm font-black uppercase flex items-center gap-2 transition-all shadow-sm cursor-pointer"

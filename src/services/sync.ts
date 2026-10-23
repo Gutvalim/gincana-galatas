@@ -129,9 +129,21 @@ export function loadSavedState(): GameState {
     if (data) {
       const parsed = JSON.parse(data) as GameState;
       if (parsed && typeof parsed.scores === 'object') {
-        const teams = parsed.teams && parsed.teams.length > 0 ? parsed.teams : DEFAULT_TEAMS;
-        const teamOrder = Array.isArray(parsed.teamOrder) ? parsed.teamOrder : [];
-        const drawnTeam = teamOrder.length > 0 ? (parsed.drawnTeam || teamOrder[0]) : null;
+        const isLegacyDefaultTeams =
+          parsed.teams &&
+          parsed.teams.length === 4 &&
+          parsed.teams.some((t: any) => t.name === 'UMP Aliança' || t.name === 'UMP Peniel');
+
+        const teams = (!parsed.teams || parsed.teams.length === 0 || isLegacyDefaultTeams)
+          ? DEFAULT_TEAMS
+          : parsed.teams;
+
+        const teamOrder = isLegacyDefaultTeams
+          ? []
+          : Array.isArray(parsed.teamOrder)
+          ? parsed.teamOrder.filter((id) => teams.some((t) => t.id === id))
+          : [];
+        const drawnTeam = teamOrder.length > 0 ? (parsed.drawnTeam && teamOrder.includes(parsed.drawnTeam) ? parsed.drawnTeam : teamOrder[0]) : null;
 
         const historyIds = Array.isArray(parsed.history)
           ? parsed.history.map((h: any) => h?.questionId).filter((id: any) => typeof id === 'number')
@@ -139,29 +151,36 @@ export function loadSavedState(): GameState {
         const usedQuestionIdsTotal = Array.from(new Set([...(parsed.usedQuestionIdsTotal || []), ...historyIds]));
         const usedQuestionIdsInRound = Array.from(new Set(parsed.usedQuestionIdsInRound || []));
 
+        const rawScores = parsed.scores || {};
+        const scores: Record<TeamId, number> = {};
+        teams.forEach((t) => {
+          scores[t.id] = isLegacyDefaultTeams ? 0 : (typeof rawScores[t.id] === 'number' ? rawScores[t.id] : 0);
+        });
+
+        const rawCards = parsed.actionCards || INITIAL_ACTION_CARDS;
+        const actionCards: Record<string, ActionCardsInventory> = {};
+        teams.forEach((t) => {
+          const inv = isLegacyDefaultTeams ? { skip: 2, help: 2 } : (rawCards[t.id] || { skip: 2, help: 2 });
+          actionCards[t.id] = {
+            skip: typeof inv.skip === 'number' ? inv.skip : 2,
+            help: typeof inv.help === 'number' ? inv.help : ((inv.bible || 0) + (inv.fiftyFifty || 0)),
+          };
+        });
+
         return {
           ...INITIAL_STATE,
           ...parsed,
           teams,
           teamOrder,
           drawnTeam,
+          scores,
+          actionCards,
           currentRuleIndex: typeof parsed.currentRuleIndex === 'number' ? parsed.currentRuleIndex : 0,
           timerSeconds: parsed.timerSeconds || DEFAULT_TIMER_SECONDS,
           timerMaxSeconds: parsed.timerMaxSeconds || DEFAULT_TIMER_SECONDS,
           isStealActive: parsed.isStealActive || false,
           firstTeamFailed: parsed.firstTeamFailed || false,
           autoStartEndTimestamp: null,
-          actionCards: (() => {
-            const rawCards = parsed.actionCards || INITIAL_ACTION_CARDS;
-            const normalized: Record<string, ActionCardsInventory> = {};
-            Object.entries(rawCards).forEach(([tId, inv]) => {
-              normalized[tId] = {
-                skip: typeof inv.skip === 'number' ? inv.skip : 2,
-                help: typeof inv.help === 'number' ? inv.help : ((inv.bible || 0) + (inv.fiftyFifty || 0)),
-              };
-            });
-            return normalized;
-          })(),
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,
           skipsUsedInRound: parsed.skipsUsedInRound || 0,

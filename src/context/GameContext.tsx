@@ -2150,7 +2150,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // RESET GAME
   const resetGameToStart = useCallback(() => {
-    const teams = state.teams.length > 0 ? state.teams : DEFAULT_TEAMS;
+    const isLegacyDefaultTeams =
+      state.teams &&
+      state.teams.length === 4 &&
+      state.teams.some((t) => t.name === 'UMP Aliança' || t.name === 'UMP Peniel');
+
+    const teams = (!state.teams || state.teams.length === 0 || isLegacyDefaultTeams)
+      ? DEFAULT_TEAMS
+      : state.teams;
+
     const initialScores: Record<TeamId, number> = {};
     const initialCards: Record<TeamId, any> = {};
 
