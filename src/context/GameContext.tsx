@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import type { GameState, GameStage, TeamId, TeamInfo, Question, ActionCardType } from '../types/game';
+import type { GameState, GameStage, TeamId, TeamInfo, Question, ActionCardType, ActionCardsInventory } from '../types/game';
 import {
   DEFAULT_TEAMS,
   DEFAULT_TIMER_SECONDS,
@@ -197,8 +197,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               teams.forEach((t) => {
                 newScores[t.id] = resetScores ? 0 : prev.scores[t.id] || 0;
                 newCards[t.id] = resetScores
-                  ? { skip: 2, bible: 1, fiftyFifty: 1 }
-                  : prev.actionCards[t.id] || { skip: 2, bible: 1, fiftyFifty: 1 };
+                  ? { skip: 2, help: 2 }
+                  : prev.actionCards[t.id] || { skip: 2, help: 2 };
               });
 
               const updated: GameState = {
@@ -371,14 +371,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             setState((prev) => {
-              const currentCards = prev.actionCards?.[team] || { skip: 2, bible: 1, fiftyFifty: 1 };
-              const updatedCount = Math.max(0, (currentCards[cardType] || 0) - 1);
+              const currentCards = prev.actionCards?.[team] || { skip: 2, help: 2 };
+              const currentHelp = typeof currentCards.help === 'number'
+                ? currentCards.help
+                : (currentCards.bible || 0) + (currentCards.fiftyFifty || 0);
+
+              let updatedTeamCards: ActionCardsInventory;
+              if (cardType === 'skip') {
+                updatedTeamCards = {
+                  ...currentCards,
+                  skip: Math.max(0, (currentCards.skip || 0) - 1),
+                };
+              } else {
+                const nextHelp = Math.max(0, currentHelp - 1);
+                updatedTeamCards = {
+                  ...currentCards,
+                  help: nextHelp,
+                  bible: nextHelp,
+                  fiftyFifty: nextHelp,
+                };
+              }
+
               const newCards = {
                 ...prev.actionCards,
-                [team]: {
-                  ...currentCards,
-                  [cardType]: updatedCount,
-                },
+                [team]: updatedTeamCards,
               };
 
               let newTimerSeconds = prev.timerSeconds;
@@ -920,8 +936,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           newTeams.forEach((t) => {
             newScores[t.id] = resetScores ? 0 : prev.scores[t.id] || 0;
             newCards[t.id] = resetScores
-              ? { skip: 2, bible: 1, fiftyFifty: 1 }
-              : prev.actionCards[t.id] || { skip: 2, bible: 1, fiftyFifty: 1 };
+              ? { skip: 2, help: 2 }
+              : prev.actionCards[t.id] || { skip: 2, help: 2 };
           });
 
           return {
@@ -1500,8 +1516,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const activeTeam = state.drawnTeam;
       if (!activeTeam) return;
 
-      const teamCards = state.actionCards?.[activeTeam] || { skip: 2, bible: 1, fiftyFifty: 1 };
-      if (!teamCards || teamCards[cardType] <= 0) return;
+      const teamCards = state.actionCards?.[activeTeam] || { skip: 2, help: 2 };
+      const currentHelp = typeof teamCards.help === 'number'
+        ? teamCards.help
+        : (teamCards.bible || 0) + (teamCards.fiftyFifty || 0);
+
+      if (cardType === 'skip') {
+        if ((teamCards.skip || 0) <= 0) return;
+      } else {
+        if (currentHelp <= 0) return;
+      }
 
       let eliminatedIndices: number[] | undefined = undefined;
 
@@ -1529,13 +1553,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Skip allows the active team to choose another question number from the grid
       }
 
-      const updatedCount = Math.max(0, teamCards[cardType] - 1);
+      let updatedTeamCards: ActionCardsInventory;
+      if (cardType === 'skip') {
+        updatedTeamCards = {
+          ...teamCards,
+          skip: Math.max(0, (teamCards.skip || 0) - 1),
+        };
+      } else {
+        const nextHelp = Math.max(0, currentHelp - 1);
+        updatedTeamCards = {
+          ...teamCards,
+          help: nextHelp,
+          bible: nextHelp,
+          fiftyFifty: nextHelp,
+        };
+      }
+
       const newActionCards = {
         ...state.actionCards,
-        [activeTeam]: {
-          ...teamCards,
-          [cardType]: updatedCount,
-        },
+        [activeTeam]: updatedTeamCards,
       };
 
       let newTimerSeconds = state.timerSeconds;
@@ -2067,7 +2103,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     teams.forEach((t) => {
       initialScores[t.id] = 0;
-      initialCards[t.id] = { skip: 2, bible: 1, fiftyFifty: 1 };
+      initialCards[t.id] = { skip: 2, help: 2 };
     });
 
     const resetState: GameState = {

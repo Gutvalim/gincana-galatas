@@ -176,21 +176,34 @@ export type ActionCardType = 'skip' | 'bible' | 'fiftyFifty';
 
 export interface ActionCardsInventory {
   skip: number;       // 2 unidades
-  bible: number;      // 1 unidade (30s)
-  fiftyFifty: number; // 1 unidade (elimina 2 alternativas)
+  help?: number;      // 2 unidades de ajuda adaptativa (Bíblia se dissertativa, 50/50 se múltipla escolha)
+  bible?: number;      // compatibilidade legada
+  fiftyFifty?: number; // compatibilidade legada
 }
 
 export const INITIAL_ACTION_CARDS: Record<string, ActionCardsInventory> = {
-  ump_1: { skip: 2, bible: 1, fiftyFifty: 1 },
-  ump_2: { skip: 2, bible: 1, fiftyFifty: 1 },
-  ump_3: { skip: 2, bible: 1, fiftyFifty: 1 },
-  ump_4: { skip: 2, bible: 1, fiftyFifty: 1 },
-  UCP: { skip: 2, bible: 1, fiftyFifty: 1 },
-  UPA: { skip: 2, bible: 1, fiftyFifty: 1 },
-  UMP: { skip: 2, bible: 1, fiftyFifty: 1 },
-  Casais: { skip: 2, bible: 1, fiftyFifty: 1 },
-  Adultos: { skip: 2, bible: 1, fiftyFifty: 1 },
+  ump_1: { skip: 2, help: 2 },
+  ump_2: { skip: 2, help: 2 },
+  ump_3: { skip: 2, help: 2 },
+  ump_4: { skip: 2, help: 2 },
+  UCP: { skip: 2, help: 2 },
+  UPA: { skip: 2, help: 2 },
+  UMP: { skip: 2, help: 2 },
+  Casais: { skip: 2, help: 2 },
+  Adultos: { skip: 2, help: 2 },
 };
+
+export function getUnusedCardsCount(inv?: ActionCardsInventory | null): number {
+  if (!inv) return 0;
+  if (typeof inv.help === 'number') {
+    return (inv.skip || 0) + inv.help;
+  }
+  return (inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0);
+}
+
+export function getCardBonus(inv?: ActionCardsInventory | null): number {
+  return getUnusedCardsCount(inv) * CARD_BONUS_POINTS;
+}
 
 export const CARD_BONUS_POINTS = 5;
 export const FIXED_QUESTION_POINTS = 10;

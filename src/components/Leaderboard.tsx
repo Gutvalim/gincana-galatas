@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { TeamId, TeamInfo, ActionCardsInventory } from '../types/game';
-import { getTeam, CARD_BONUS_POINTS } from '../types/game';
+import { getTeam, getCardBonus as calcCardBonus } from '../types/game';
 import { TeamIcon } from './TeamIcon';
 import { Trophy, Award, Medal, Sparkles, Check } from 'lucide-react';
 
@@ -51,8 +51,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
   const getCardBonus = (teamId: TeamId) => {
     if (!actionCards || !actionCards[teamId]) return 0;
-    const inv = actionCards[teamId];
-    return ((inv.skip || 0) + (inv.bible || 0) + (inv.fiftyFifty || 0)) * CARD_BONUS_POINTS;
+    return calcCardBonus(actionCards[teamId]);
   };
 
   const sortedTeams = [...teamList].sort((a, b) => (scores[b] || 0) - (scores[a] || 0));

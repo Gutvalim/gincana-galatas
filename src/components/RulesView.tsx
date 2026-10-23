@@ -146,52 +146,59 @@ export const RulesView: React.FC<RulesViewProps> = ({ currentIndex }) => {
       num: '05',
       badge: 'Cartas de Ação',
       title: 'Cartas de Ação da Equipe',
-      subtitle: 'Recursos especiais para usar na vez da sua equipe',
+      subtitle: '2 cartas de Pular + 2 cartas de Ajuda (Bíblia ou 50/50)',
       icon: <Sparkles className="w-12 h-12 text-blue-700" />,
       color: 'blue',
       content: (
         <div className="flex flex-col gap-4 text-left">
           <p className="text-lg sm:text-xl text-slate-700 font-medium">
-            Cada equipe começa a gincana com 4 cartas especiais para usar na sua vez quando precisar de ajuda:
+            Cada equipe começa com <strong className="text-blue-900 font-black">4 cartas no total</strong> para usar estrategicamente na sua vez:
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
-            <div className="p-4 rounded-2xl bg-orange-50 border-2 border-orange-300 flex flex-col justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-1">
+            {/* 1. Pular */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-orange-50/90 border-2 border-orange-300 flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-2 text-orange-700 font-black mb-1">
-                  <FastForward className="w-5 h-5" />
-                  <span>Pular (2x)</span>
+                <div className="flex items-center gap-2 text-orange-700 font-black text-base sm:text-lg mb-1.5">
+                  <FastForward className="w-5 h-5 shrink-0" />
+                  <span>Pular Pergunta (2x)</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
-                  Não sabe a resposta? Descarta a pergunta na hora e escolhe outro número sem penalidade.
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                  Não tem certeza da resposta? Descarta a pergunta e a sua equipe escolhe outro número no telão sem qualquer penalidade.
                 </p>
               </div>
-              <span className="text-[11px] font-black uppercase text-orange-800 mt-2 block">2 Unidades</span>
+              <span className="text-xs font-black uppercase tracking-wider text-orange-800 mt-3 px-3 py-1 rounded-xl bg-orange-100 border border-orange-200 self-start">
+                2 Unidades
+              </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-sky-50 border-2 border-sky-300 flex flex-col justify-between">
+            {/* 2. Ajuda Adaptativa */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-sky-50 to-purple-50 border-2 border-indigo-200 flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-2 text-sky-700 font-black mb-1">
-                  <BookOpen className="w-5 h-5" />
-                  <span>Bíblia (1x)</span>
+                <div className="flex items-center gap-2 text-indigo-900 font-black text-base sm:text-lg mb-1.5">
+                  <BookOpen className="w-5 h-5 text-sky-700 shrink-0" />
+                  <Sparkles className="w-5 h-5 text-purple-700 shrink-0" />
+                  <span>Ajuda Adaptativa (2x no Total)</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
-                  Dá 30 segundos adicionais no relógio para a equipe folhear e pesquisar na Bíblia.
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                  A ajuda adapta-se automaticamente à pergunta:
+                </p>
+                <ul className="text-xs sm:text-sm text-slate-700 font-medium space-y-1 mt-1.5">
+                  <li className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0" />
+                    <span><strong>Múltipla Escolha:</strong> vira <strong>50/50</strong> (elimina 2 erradas).</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-600 shrink-0" />
+                    <span><strong>Dissertativa:</strong> vira <strong>Consulta Bíblica</strong> (+30s extras).</span>
+                  </li>
+                </ul>
+                <p className="text-xs text-slate-500 font-semibold mt-2">
+                  Vocês escolhem como gastar as 2: pode ser 2 Bíblias, 2 de 50/50 ou 1 de cada!
                 </p>
               </div>
-              <span className="text-[11px] font-black uppercase text-sky-800 mt-2 block">1 Unidade • 30s Extras</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-purple-50 border-2 border-purple-300 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-purple-700 font-black mb-1">
-                  <Sparkles className="w-5 h-5" />
-                  <span>50/50 (1x)</span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-snug">
-                  Nas perguntas de múltipla escolha, o sistema elimina 2 alternativas erradas, sobrando só duas.
-                </p>
-              </div>
-              <span className="text-[11px] font-black uppercase text-purple-800 mt-2 block">1 Unidade</span>
+              <span className="text-xs font-black uppercase tracking-wider text-indigo-900 mt-3 px-3 py-1 rounded-xl bg-indigo-100 border border-indigo-200 self-start">
+                Pool de 2 Ajudas
+              </span>
             </div>
           </div>
         </div>

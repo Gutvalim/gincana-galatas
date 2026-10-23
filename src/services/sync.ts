@@ -1,4 +1,4 @@
-import type { GameState, TeamId, TeamInfo, GameStage, ActionCardType } from '../types/game';
+import type { GameState, TeamId, TeamInfo, GameStage, ActionCardType, ActionCardsInventory } from '../types/game';
 import {
   DEFAULT_TEAMS,
   INITIAL_ACTION_CARDS,
@@ -143,7 +143,17 @@ export function loadSavedState(): GameState {
           isStealActive: parsed.isStealActive || false,
           firstTeamFailed: parsed.firstTeamFailed || false,
           autoStartEndTimestamp: null,
-          actionCards: parsed.actionCards || INITIAL_ACTION_CARDS,
+          actionCards: (() => {
+            const rawCards = parsed.actionCards || INITIAL_ACTION_CARDS;
+            const normalized: Record<string, ActionCardsInventory> = {};
+            Object.entries(rawCards).forEach(([tId, inv]) => {
+              normalized[tId] = {
+                skip: typeof inv.skip === 'number' ? inv.skip : 2,
+                help: typeof inv.help === 'number' ? inv.help : ((inv.bible || 0) + (inv.fiftyFifty || 0)),
+              };
+            });
+            return normalized;
+          })(),
           eliminatedOptionIndices: parsed.eliminatedOptionIndices || [],
           isQuestionSkipped: parsed.isQuestionSkipped || false,
           skipsUsedInRound: parsed.skipsUsedInRound || 0,
