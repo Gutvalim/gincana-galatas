@@ -27,8 +27,30 @@ export const Roulette: React.FC<RouletteProps> = ({
   spinSeed,
   onFinish,
 }) => {
-  const [rotation, setRotation] = useState<number>(0);
-  const rotationRef = useRef<number>(0);
+  // Helper to calculate wheel rotation so teamId slice center is at the top pointer (0 deg)
+  const getAlignedAngleForTeam = (teamId: TeamId | null, teamList: TeamId[]): number => {
+    if (!teamId || teamList.length === 0) return 0;
+    const anglePerSlice = 360 / teamList.length;
+    const idx = teamList.indexOf(teamId);
+    if (idx < 0) return 0;
+    const sliceCenter = (idx + 0.5) * anglePerSlice;
+    return ((360 - sliceCenter) % 360 + 360) % 360;
+  };
+
+  const [rotation, setRotation] = useState<number>(() => {
+    if (drawnTeam && drawnOrder && drawnOrder.length > 0 && !isSpinning) {
+      const allIds = teamsList.map((t) => t.id);
+      const lastSpinDrawnCount =
+        drawnOrder.length === allIds.length && allIds.length > 1
+          ? allIds.length - 2
+          : drawnOrder.length - 1;
+      const excluded = new Set(drawnOrder.slice(0, Math.max(0, lastSpinDrawnCount)));
+      const preserved = allIds.filter((id) => !excluded.has(id));
+      return getAlignedAngleForTeam(drawnTeam, preserved);
+    }
+    return 0;
+  });
+  const rotationRef = useRef<number>(rotation);
   const onFinishRef = useRef(onFinish);
   useEffect(() => {
     onFinishRef.current = onFinish;
@@ -38,12 +60,38 @@ export const Roulette: React.FC<RouletteProps> = ({
   const finishTimeoutRef = useRef<number | null>(null);
   const lastSpinSeedRef = useRef<number | null>(null);
 
-  // Teams to display on wheel: available teams to draw
-  const activeTeams = React.useMemo(
-    () => (teams.length > 0 ? teams : teamsList.map((t) => t.id)),
-    [teams, teamsList]
-  );
+  // Active teams displayed on wheel:
+  // - When spinning: show the teams remaining to be drawn (excluding drawnOrder)
+  // - When stopped: preserve the wheel that was just spun so people see where it landed
+  // - Before any spin: show all teams
+  const activeTeams = React.useMemo(() => {
+    const allIds = teamsList.map((t) => t.id);
+    if (!drawnOrder || drawnOrder.length === 0) {
+      return teams.length > 0 ? teams : allIds;
+    }
+    if (isSpinning) {
+      const excluded = new Set(drawnOrder);
+      const remaining = allIds.filter((id) => !excluded.has(id));
+      return remaining.length > 0 ? remaining : allIds;
+    } else {
+      const lastSpinDrawnCount =
+        drawnOrder.length === allIds.length && allIds.length > 1
+          ? allIds.length - 2
+          : drawnOrder.length - 1;
+      const excluded = new Set(drawnOrder.slice(0, Math.max(0, lastSpinDrawnCount)));
+      const preserved = allIds.filter((id) => !excluded.has(id));
+      return preserved.length > 0 ? preserved : allIds;
+    }
+  }, [teamsList, drawnOrder, isSpinning, teams]);
+
   const sliceAngle = 360 / Math.max(1, activeTeams.length);
+
+  // Teams that are still to be drawn in upcoming spins (for "Restam sortear" pill)
+  const remainingTeamsToDraw = React.useMemo(() => {
+    const allIds = teamsList.map((t) => t.id);
+    const drawnSet = new Set(drawnOrder || []);
+    return allIds.filter((id) => !drawnSet.has(id));
+  }, [teamsList, drawnOrder]);
 
   // Reset rotation when drawnOrder is reset
   useEffect(() => {
@@ -410,21 +458,27 @@ export const Roulette: React.FC<RouletteProps> = ({
           {/* Remaining Teams Counter */}
           <div className="mt-3 flex items-center gap-2 text-xs text-slate-600 font-medium">
             <span>Restam sortear:</span>
-            <div className="flex gap-1.5 flex-wrap justify-center">
-              {activeTeams.map((t) => {
-                const tInfo = getTeam(t, teamsList);
-                return (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow"
-                    style={{ backgroundColor: tInfo.color }}
-                  >
-                    <TeamIcon icon={tInfo.icon} className="w-3.5 h-3.5" />
-                    {tInfo.name}
-                  </span>
-                );
-              })}
-            </div>
+            {remainingTeamsToDraw.length > 0 ? (
+              <div className="flex gap-1.5 flex-wrap justify-center">
+                {remainingTeamsToDraw.map((t) => {
+                  const tInfo = getTeam(t, teamsList);
+                  return (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow"
+                      style={{ backgroundColor: tInfo.color }}
+                    >
+                      <TeamIcon icon={tInfo.icon} className="w-3.5 h-3.5" />
+                      {tInfo.name}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className="text-emerald-700 font-bold">
+                Todas as equipes já foram sorteadas!
+              </span>
+            )}
           </div>
         </div>
 
